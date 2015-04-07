@@ -25,3 +25,5 @@ data/mu/*
 .Trashes
 ehthumbs.db
 Thumbs.db
+*.dSYM
+
