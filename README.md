@@ -22,3 +22,7 @@ output file, modify the constant for input/output file paths, and do:
 make
 ./user_avg
 ```
+
+Helper functions for SVD added as well. This is in helper/. The functions
+compute global average and offset of each movie's average from the global
+average. Output is in stats/. More to come...
