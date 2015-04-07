@@ -3,7 +3,7 @@
 from numpy import *
 
 # Set up input and output files
-avg = open('../stats/movie_offset.dta', 'w')
+avg = open('../data/movie_offset.dta', 'w')
 idx = open('../data/mu/all.idx', 'r')
 
 # Assume we start with Movie 1
