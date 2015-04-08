@@ -3,9 +3,9 @@
 #include <iomanip>
 #include <iostream>
 
-#define IDX_PATH "data/um/all.idx"
-#define DTA_PATH "data/um/all.dta"
-#define OUTPUT_PATH "data/um/um_avg.out"
+#define IDX_PATH "../../data/um/all.idx"
+#define DTA_PATH "../../data/um/all.dta"
+#define OUTPUT_PATH "../../data/um/um_avg.out"
 #define PRECISION 4 // 4 Sig figs to output file
 
 using namespace std;

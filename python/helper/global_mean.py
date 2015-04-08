@@ -7,11 +7,11 @@ from numpy import *
 
 # Set up
 # Does not matter if we choose mu or um data
-idx = open('../data/um/all.idx', 'r')
+idx = open('../../data/um/all.idx', 'r')
 total, n = 0.0, 0
 
 # Iterate through the data file one line at a time
-with open('../data/um/all.dta', 'r') as f:
+with open('../../data/um/all.dta', 'r') as f:
     for s in f:
         # Determine if the index is valid
         index = int(idx.next().strip())
