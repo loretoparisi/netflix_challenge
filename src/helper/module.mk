@@ -1,0 +1,1 @@
+BINS += user_avg
