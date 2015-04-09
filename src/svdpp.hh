@@ -20,10 +20,15 @@
 #include <map>
 #include <fstream>
 #include <stdexcept>
-
+#include <cmath>
 
 using namespace std;
 using namespace arma;
+
+// TODO: Put these in a namespace or something in a different "constants"
+// file. Namespace could be called netflix_challenge.
+const int MIN_RATING = 1;
+const int MAX_RATING = 5;
 
 class SVDPP : public MLAlgorithm
 {
@@ -91,6 +96,9 @@ private:
 
     // Tells us whether the algorithm has been trained yet or not.
     bool trained = false;
+
+    // This flag enables some cout statements.
+    bool verbose = false;
     
     // TODO: refactor this so that we put our convenience functions in a
     // separate file...
@@ -99,7 +107,7 @@ private:
 
 public:
     SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
-          int numIterations, const string &fileNameN);
+          int numIterations, const string &fileNameN, bool verbose);
 
     ~SVDPP();
 
