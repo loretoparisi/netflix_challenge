@@ -11,8 +11,10 @@ CXX = g++
 # Default Cython compiler (pyx -> cpp)
 CYTHON = cython
 
-# Directory containing source files
-srcdir = $(shell find src -type d)
+# Base source directory
+srcdir = src
+# Directories containing source files
+modules = $(shell find $(srcdir) -type d)
 # Directory containing header files
 includedir = src
 # Destination directory for object files and libraries

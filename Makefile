@@ -5,10 +5,10 @@
 
 include config.mk
 
-include $(addsuffix /module.mk, $(srcdir))
+include $(addsuffix /module.mk, $(modules))
 
-vpath %.cc $(srcdir)
-vpath %.pyx $(srcdir)
+vpath %.cc $(modules)
+vpath %.pyx $(modules)
 
 # Absolute file paths for dynamic libraries
 LIB_FILES = $(foreach lib, $(LIBS), $(libdir)/$(lib))
@@ -62,7 +62,7 @@ mkbin:
 
 # Generate a C++ file from a Cython file
 %.cc: %.pyx mklib
-	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o src/$@
+	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o $(srcdir)/$@
 
 # Implicit rule to generate object files
 $(libdir)/%.o: %.cc mklib
