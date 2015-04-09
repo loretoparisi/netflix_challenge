@@ -62,27 +62,27 @@ mkbin:
 
 # Generate a C++ file from a Cython file
 %.cc: %.pyx mklib
-	$(CYTHON) $(CYTHON_FLAGS) --cplus $(srcdir)/$< -o $(srcdir)/$@
+	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o src/$@
 
 # Implicit rule to generate object files
-lib/%.o: %.cc mklib
+$(libdir)/%.o: %.cc mklib
 	@# Everything is compiled with -fPIC so they can be dynamically linked
 	$(CXX) $(ALL_CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
 
 # Implicit rule matching the C/C++ dynamic library naming convention
-lib%.so: lib/%.o
-	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $(libdir)/$< -o $(libdir)/$@ \
+lib%.so: $(libdir)/%.o
+	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $< -o $(libdir)/$@ \
 	$(EXTRA_LDFLAGS)
 
 # Any shared object not matching the C/C++ library naming convention is
 # assumed to be a Cython extension; shared objects must match the name of the
 # Cython interfaces to avoid runtime errors
-%.so: lib/%.o
-	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $(libdir)/$< -o $(libdir)/$@ \
+%.so: $(libdir)/%.o
+	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $< -o $(libdir)/$@ \
 	$(EXTRA_LDFLAGS)
 	@# Link the extension back to our source directory for use
 	ln -s $(libdir)/$@ $(srcdir)
 
 # Default rule for compiling binaries
-$(BINS): %: lib/%.o mkbin
+$(BINS): %: $(libdir)/%.o mkbin
 	$(CXX) $(LD_FLAGS) $< -o $(bindir)/$@ $(EXTRA_LDFLAGS)
