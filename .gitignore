@@ -3,6 +3,11 @@
 data/um/*
 data/mu/*
 
+# Library/Binary Directories #
+##############################
+lib/*
+bin/*
+
 # Compiled source #
 ###################
 *.pyc
@@ -26,4 +31,3 @@ data/mu/*
 ehthumbs.db
 Thumbs.db
 *.dSYM
-
