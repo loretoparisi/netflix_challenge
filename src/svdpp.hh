@@ -23,6 +23,11 @@
 #include <stdexcept>
 #include <cmath>
 #include <iostream>
+#include <algorithm>
+#include <random>
+#include <functional>
+#include <iterator>
+#include <array>
 
 using namespace std;
 using namespace arma;

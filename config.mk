@@ -31,8 +31,11 @@ override CXXFLAGS += $(CFLAGS) -std=c++11 -Wno-write-strings
 # Default linker flags
 override LD_FLAGS += -L$(libdir) -Wl,-O1,--sort-common,--as-needed,-z,relro -std=c++11 
 
-# Linker flags for Armadillo
-EXTRA_LDFLAGS = -larmadillo
+# Disables bounds-checking in Armadillo. Only do this if everything is working correctly!
+override CXXFLAGS += -DARMA_NO_DEBUG
+
+# Extra linker flags for Armadillo.
+EXTRA_LDFLAGS = -larmadillo 
 
 # Default Cython flags
 CYTHON_FLAGS = -2

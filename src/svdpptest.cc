@@ -11,8 +11,10 @@
 #include "netflix_namespace.hh"
 #include <string>
 #include <vector>
+#include <set>
 #include <armadillo>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <stdexcept>
 
@@ -23,8 +25,8 @@ using namespace netflix; // challenge-related constants/functions.
 
 /* Constants */
 
-// The index of the dataset to use for training.
-const int TRAINING_SET_IND = VALID_SET;
+// The indices of the dataset to use for training.
+const set<int> TRAINING_SET_INDICES = {BASE_SET};
 
 // The number of factors to use for SVD++.
 const int NUM_FACTORS = 60;
@@ -33,6 +35,10 @@ const int NUM_FACTORS = 60;
 const int NUM_ITERATIONS = 30;
 
 // The name of the output file to use.
+const string OUTPUT_FN = "../data/svdpppredictions.dta";
+
+// Sig-figs for output file.
+const int RATING_SIG_FIGS = 4;
 
 
 int main(void)
@@ -68,7 +74,10 @@ int main(void)
 
         // Check the set index of this line. We will ignore this line if
         // the corresponding data isn't in the training set.
-        if (thisLineInd != TRAINING_SET_IND)
+        bool notInTrainingSet = TRAINING_SET_INDICES.find(thisLineInd) == 
+            TRAINING_SET_INDICES.end();
+        
+        if (notInTrainingSet)
         {
             continue;
         }
@@ -99,14 +108,15 @@ int main(void)
 
         inputsReadIn ++;
 
-        if (inputsReadIn % 100000 == 0)
+        if (inputsReadIn % 1000000 == 0)
         {
             cout << "Read in " << inputsReadIn << " data points so far" <<
                 endl;
         }
     }
 
-    cout << endl;
+    cout << "\nRead in a total of " << inputsReadIn << " points" << endl;
+    cout << "\nTraining SVD++..." << endl;
 
     // The matrix where we'll store our training set. The three columns in
     // this will correspond to (user, movie, rating).
@@ -123,10 +133,37 @@ int main(void)
     predAlgo.train(trainingSet);
 
     // Go through qual.dta to produce a prediction file.
-
-
-    cout << predAlgo.predict(0, 79) << endl;
-    cout << predAlgo.predict(0, 13833) << endl;
-
+    ifstream qualDataFile(QUAL_DATA_FN);
+    ofstream outputFile(OUTPUT_FN, ios::out); 
     
+    string qualDataLine;
+
+    while (getline(qualDataFile, qualDataLine))
+    {
+        // Read the line and split it.
+        vector<int> thisLineVec;
+        splitIntoInts(qualDataLine, NETFLIX_FILES_DELIMITER,
+                      thisLineVec);
+
+        if (thisLineVec.size() != 3)
+        {
+            throw logic_error("The line \"" + qualDataLine + "\" did not "
+                              "contain three delimiter-separated "
+                              "entries!");
+        }
+        
+        // The first entry is the user ID, and the second entry is the item
+        // ID. Subtract off 1 from both because of one-indexing.
+        int user = thisLineVec[0] - 1;
+        int item = thisLineVec[1] - 1;
+
+        // Output the prediction to file.
+        float prediction = predAlgo.predict(user, item);
+        outputFile << setprecision(RATING_SIG_FIGS) << prediction << endl;
+    }
+
+    outputFile.close();
+    
+    cout << "\nOutputted predictions on " << QUAL_DATA_FN << " to the " 
+        "output file " << OUTPUT_FN << endl;
 }

@@ -59,7 +59,7 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
 
     // Before performing stochastic gradient descent, we should fill bUser,
     // bItem, userFacMat, itemFacMat, and yMat with uniformly distributed
-    // values ranging from -0.1 to 0.1. This is the "stochastic" part.
+    // values ranging from -0.05 to 0.05. This is the "stochastic" part.
     randomizeInternalData();
 
 }
@@ -74,15 +74,22 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
  * This function randomizes the internal data in this SVDPP object.
  * Specifically, all of the items in bUser, bItem, userFacMat, itemFacMat,
  * and yMat are set to uniformly distributed random numbers ranging from
- * -0.1 to 0.1.
+ * -0.05 to 0.05.
  *
  */
 void SVDPP::randomizeInternalData()
 {
-    uniform_real_distribution<float> distr(-0.1, 0.1);
-
-    // Mersenne twister random number engine (default params).
-    mt19937 engine;
+    uniform_real_distribution<float> distr(-0.05, 0.05);
+    
+    // Set the seed to a sequence of random numbers that's large enough to
+    // fill the mt19937's state.
+    array<int, mt19937::state_size> seedData;
+    random_device r;
+    generate_n(seedData.data(), seedData.size(), ref(r));
+    seed_seq seedSeq(begin(seedData), end(seedData));
+    
+    // Mersenne twister random number engine, based on the earlier seed.
+    mt19937 engine(seedSeq);
     
     bUser.imbue( [&]() { return distr(engine); } );
     bItem.imbue( [&]() { return distr(engine); } );
@@ -172,9 +179,7 @@ void SVDPP::train(const imat &data)
 
             // Get the predicted rating for this user and item, using the
             // aforementioned formula for rHat_{ui}.
-            float predictedRating = meanRating;
-            predictedRating += bUser(user);
-            predictedRating += bItem(item);
+            float predictedRating = meanRating + bUser(user) + bItem(item);
 
             // Compute the factorized term (i.e. q_i^T * (p_u + ...)).
             // First find p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j, the
@@ -249,8 +254,8 @@ void SVDPP::train(const imat &data)
 
         if (verbose)
         {
-            cout << "Finished iteration " << iterCount << " of SVD++" <<
-                endl;
+            cout << "Finished iteration " << (iterCount+1) << " of SVD++" 
+                << endl;
         }
     }
 
