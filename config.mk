@@ -24,12 +24,15 @@ bindir = bin
 
 
 # Default compiler flags (for C and C++)
-override CFLAGS += -O3 -march=native -mtune=generic
+override CFLAGS += -Wall -O3 -march=native -mtune=generic -Wno-reorder
 # -pipe -fstack-protector --param=ssp-buffer-size=4 -Wno-sign-compare -Wno-unused-function
 # Default compiler flags for C++
 override CXXFLAGS += $(CFLAGS) -std=c++11 -Wno-write-strings
 # Default linker flags
-override LD_FLAGS += -L$(libdir) -Wl,-O1,--sort-common,--as-needed,-z,relro 
+override LD_FLAGS += -L$(libdir) -Wl,-O1,--sort-common,--as-needed,-z,relro -std=c++11 
+
+# Linker flags for Armadillo
+EXTRA_LDFLAGS = -larmadillo
 
 # Default Cython flags
 CYTHON_FLAGS = -2

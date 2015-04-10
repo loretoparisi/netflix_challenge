@@ -1,11 +1,13 @@
-#include "svdpp.cc"
+#include "svdpp.hh"
 
 
 /** 
  * A constructor for this run of SVD++.
  *
- * @param numUsers: Number of users in the training set.
- * @param numItems: Number of items in the training set.
+ * @param numUsers: Number of users in the entire data set (not just
+ *                  training set).
+ * @param numItems: Number of items in the entire data set (not just
+ *                  training set).
  * @param meanRating: The mean rating of items in the training set.
  * @param numFactors: The number of factors to use for the SVD.
  * @param numIterations: The number of iterations to use for SVD++.
@@ -29,24 +31,28 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
 
     while (getline(fileN, line))
     {
-        // Split the string around whitespaces.
+        // Split the string around the specified delimiter.
         vector<int> thisLineVec;
-        splitIntoInts(line, DELIMITER, thisLineVec);
+        splitIntoInts(line, NETFLIX_FILES_DELIMITER, thisLineVec);
         
         // The first int should be the user's ID.
         int userID = thisLineVec[0];
 
         // The remaining ints should be the item IDs that the user gave
-        // "implicit feedback" on (without actually rating them).
+        // "implicit feedback" on (without actually rating them). We want
+        // to subtract 1 from these IDs since item IDs are **one-indexed**,
+        // which is slightly inconvenient for our purposes...
         vector<int> userImplFeedbackItems;
         
         for(vector<int>::size_type i = 1; i < thisLineVec.size(); i++)
         {
-            userImplFeedbackItems.push_back(thisLineVec[i]);
+            // Subtract 1 to get rid of one-indexing
+            userImplFeedbackItems.push_back(thisLineVec[i] - 1);
         }
         
-        // Add this data to the map N.
-        N[userID] = userImplFeedbackItems;
+        // Add this data to the map N. Subtract off 1 because of the
+        // userID!
+        N[userID - 1] = userImplFeedbackItems;
     }
 
     fileN.close();
@@ -83,49 +89,6 @@ void SVDPP::randomizeInternalData()
     userFacMat.imbue( [&]() { return distr(engine); } );
     itemFacMat.imbue( [&]() { return distr(engine); } );
     yMat.imbue( [&]() { return distr(engine); } );
-}
-
-
-/**
- * TODO: refactor this into a separate file containing convenience
- * functions...
- *
- * This function splits a string around an input delimiter string. The
- * parts of the string between delimiters are converted into ints, and are
- * returned in a vector of ints.
- *
- * @param str: The input string.
- * @param delimiter: The delimiter string that separates data.
- * @param output: A vector containing the ints that were in the original
- *                string, after separating around "delimiter".
- *
- */
-void SVDPP::splitIntoInts(const string &str, const string &delimiter,
-                          vector<int> &output)
-{
-    string::size_type start = 0;
-    string::size_type delimPos = str.find(delimiter);
-    string::size_type length = 0;
-
-    // Keep adding elements to the vector as long as the delimiter is found.
-    while (delimPos != string::npos)
-    {
-        length = delimPos - start;
-        
-        // Convert the substring to an integer and add to the vector.
-        output.push_back(stoi(str.substr(start, length)));
-        
-        // Go look for the next delimiter after this last one.
-        start = delimPos + 1;
-        delimPos = str.find(delimiter, start);
-        
-        // If there are no more delimiters left, add in the remainder of
-        // the string (from "start" to the end of the string).
-        if (delimPos == string::npos)
-        {
-            output.push_back(stoi(str.substr(start, str.length())));
-        }
-    }
 }
 
 
@@ -189,12 +152,23 @@ void SVDPP::train(const imat &data)
     {
         // Iterate through all elements of the training data, and predict a
         // rating. Use gradient descent to correct the relevant matrices.
-        for(int ratingNum = 0; ratingNum < data.n_rows; ratingNum ++)
+        for(unsigned int ratingNum = 0; ratingNum < data.n_rows; 
+            ratingNum ++)
         {
             // The user ID, item ID, and rating
             int user = data(ratingNum, 0);
             int item = data(ratingNum, 1);
             int actualRating = data(ratingNum, 2);
+            
+            // Check N(u) to see if this user has implicit feedback data.
+            vector<int> nu = N[user];
+            
+            if (nu.size() == 0)
+            {
+                // If they don't, ignore them. After all, we're not gonna
+                // predict anything for them anyways.
+                continue;
+            }
 
             // Get the predicted rating for this user and item, using the
             // aforementioned formula for rHat_{ui}.
@@ -206,8 +180,7 @@ void SVDPP::train(const imat &data)
             // First find p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j, the
             // "userFactorTerm".
             frowvec userFactorTerm = userFacMat.row(user); // p_u
-            
-            vector<int> nu = N[user];
+
             float nuNormFac = 1.0/sqrt(nu.size());
 
             // This is where we'll store |N(u)|^{-1/2} sum_{j in N(u)} y_j.
@@ -224,8 +197,8 @@ void SVDPP::train(const imat &data)
             // Now we've computed p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j.
             userFactorTerm += implicitTerm;
 
-            // Add the factorized term (q_i^T * ...) to the prediction. 
-            qi = itemFacMat.row(item);
+            // Add the factorized term (q_i^T * ...) to the prediction.
+            frowvec qi = itemFacMat.row(item);
             predictedRating += dot(qi, userFactorTerm);
             
             // Apply gradient descent on all of the free parameters in our
@@ -342,7 +315,7 @@ float SVDPP::predict(int user, int item)
     userFactorTerm += implicitTerm;
 
     // Add the factorized term (q_i^T * ...) to the prediction. 
-    qi = itemFacMat.row(item);
+    frowvec qi = itemFacMat.row(item);
     predictedRating += dot(qi, userFactorTerm);
 
     // Put the rating between MIN_RATING and MAX_RATING! Otherwise, the

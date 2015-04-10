@@ -30,7 +30,7 @@ BIN_FILES = $(foreach bin, $(BINS), $(bindir)/$(bin))
 
 
 # All (final) targets
-all: $(LIBS) $(EXTS) $(BINS)
+all: $(LIBS) $(EXTS) $(bindir)/svdpptest #$(BINS)
 
 # Clean up all files
 clean:
@@ -64,10 +64,25 @@ mkbin:
 %.cc: %.pyx mklib
 	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o $(srcdir)/$@
 
+# Generating SVD++ test based on its dependencies.
+$(bindir)/svdpptest: $(libdir)/svdpptest.o $(libdir)/svdpp.o $(libdir)/netflix_namespace.o
+	test -d $(bindir) || mkdir $(bindir)
+	$(CXX) $(LD_FLAGS) $(libdir)/svdpptest.o $(libdir)/svdpp.o $(libdir)/netflix_namespace.o -o $@ $(EXTRA_LDFLAGS)
+
+# Generating object files for SVD++ test.
+$(libdir)/svdpptest.o: $(srcdir)/svdpptest.cc $(srcdir)/netflix_namespace.hh $(srcdir)/netflix_namespace.cc $(srcdir)/svdpp.hh $(srcdir)/svdpp.cc mklib
+	@# Compile with -fPIC for position-independent code.
+	$(CXX) $(CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
+
+# Generating object files for SVD++ class.
+$(libdir)/svdpp.o: $(srcdir)/svdpp.cc $(srcdir)/svdpp.hh $(srcdir)/netflix_namespace.hh $(srcdir)/netflix_namespace.cc $(srcdir)/mlalgorithm.hh $(srcdir)/mlalgorithm.cc mklib
+	@# Compile with -fPIC for position-independent code.
+	$(CXX) $(CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
+
 # Implicit rule to generate object files
 $(libdir)/%.o: %.cc mklib
 	@# Everything is compiled with -fPIC so they can be dynamically linked
-	$(CXX) $(ALL_CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
 
 # Implicit rule matching the C/C++ dynamic library naming convention
 lib%.so: $(libdir)/%.o
@@ -84,5 +99,6 @@ lib%.so: $(libdir)/%.o
 	ln -s $(libdir)/$@ $(srcdir)
 
 # Default rule for compiling binaries
-$(BINS): %: $(libdir)/%.o mkbin
-	$(CXX) $(LD_FLAGS) $< -o $(bindir)/$@ $(EXTRA_LDFLAGS)
+#$(BINS): %: $(libdir)/%.o mkbin
+#	echo "Outputting binary!"
+#	$(CXX) $(LD_FLAGS) $< -o $(bindir)/$@ $(EXTRA_LDFLAGS)

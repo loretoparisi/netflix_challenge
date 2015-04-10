@@ -13,45 +13,38 @@
 #ifndef SVDPP_HH
 #define SVDPP_HH
 
-#include "MLAlgorithm.hh"
+#include "mlalgorithm.hh"
+#include "netflix_namespace.hh"
 #include <armadillo>
 #include <vector>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <fstream>
 #include <stdexcept>
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 using namespace arma;
-
-// TODO: Put these in a namespace or something in a different "constants"
-// file. Namespace could be called netflix_challenge.
-const int MIN_RATING = 1;
-const int MAX_RATING = 5;
+using namespace netflix; // challenge-related constants/functions.
 
 class SVDPP : public MLAlgorithm
 {
 private:
     // Regularization constants. See the train() method for more on what these
     // mean.
-    static const float SVDPP_REG_1 = 0.005;
-    static const float SVDPP_REG_2 = 0.015;
+    static constexpr float SVDPP_REG_1 = 0.005;
+    static constexpr float SVDPP_REG_2 = 0.015;
 
     // Step sizes used for stochastic gradient descent. See the train() method
     // for more on which parameters these apply to.
-    static const float SVDPP_GAMMA_1 = 0.007;
-    static const float SVDPP_GAMMA_2 = 0.007;
+    float SVDPP_GAMMA_1 = 0.007;
+    float SVDPP_GAMMA_2 = 0.007;
 
     // The fraction by which the step sizes will be multiplied on each
     // iteration (as recommended in the Koren paper).
-    static const float SVDPP_GAMMA_MULT_PER_ITER = 0.9;
-
-    // The delimiter used in our data files (e.g. in the data file containing
-    // N). TODO: Maybe make a file containing codebase-wide constants like
-    // delimiters...
-    static const string DELIMITER = " ";
-
+    static constexpr float SVDPP_GAMMA_MULT_PER_ITER = 0.9;
+    
     // The number of factors used in matrix factorization.
     const int numFactors;
     
@@ -69,7 +62,7 @@ private:
     // implicit preference for. These are essentially just the items that
     // we know the user rated (i.e. they show up in the data file), but we
     // don't know their rating. This is called N(u) in the Koren paper.
-    unordered_map<int, vector<int>> N;
+    unordered_map<int, vector<int> > N;
 
     // The bias for each user. Referred to as "b_u" in the Koren paper. The
     // uth element in this is the bias for user u.
@@ -99,11 +92,8 @@ private:
 
     // This flag enables some cout statements.
     bool verbose = false;
-    
-    // TODO: refactor this so that we put our convenience functions in a
-    // separate file...
-    void splitIntoInts(const string &str, const string &delimiter,
-                       vector<int> &output);
+
+    void randomizeInternalData();
 
 public:
     SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
