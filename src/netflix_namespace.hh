@@ -35,19 +35,24 @@ namespace netflix
     // The mean rating in the training set.
     const float MEAN_RATING_TRAINING_SET = 3.60951619727;
     
-    // Name of the file containing all of the data.
-    const string ALL_DATA_FN = "../data/um/all.dta";
+    // Name of the file containing all of the data. Note that we are using
+    // the version where user IDs, item IDs, and time IDs are all
+    // zero-indexed. 
+    const string ALL_DATA_FN = "../data/um/new_all.dta";
 
-    // Name of the file containing corresponding set indexes for "all.dta".
+    // Name of the file containing corresponding set indexes for "all.dta"
+    // (and "new_all.dta" too).
     const string ALL_IDX_FN = "../data/um/all.idx";
 
-    // Name of the file containing "qual" set data only.
-    const string QUAL_DATA_FN = "../data/um/qual.dta";
+    // Name of the file containing "qual" set data only. The user IDs, item
+    // IDs, and time IDs in this have also been zero-indexed.
+    const string QUAL_DATA_FN = "../data/um/new_qual.dta";
 
     // Name of the file containing the "N" matrix.
     const string N_FN = "../data/N.dta";
     
-    // These indices represent the different kinds of data in all.dta.
+    // These indices represent the different kinds of data in all.dta (and
+    // in "new_all.dta" too).
     const int BASE_SET = 1;
     const int VALID_SET = 2;
     const int HIDDEN_SET = 3;

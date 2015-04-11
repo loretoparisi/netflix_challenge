@@ -1,7 +1,8 @@
-# Big data files #
-##################
+# Big data files/caches #
+#########################
 data/um/*
 data/mu/*
+data/svdppcached/*.mat
 
 # Library/Binary Directories #
 ##############################

@@ -21,7 +21,7 @@
 DELIMITER = " "
 
 # The input data files.
-QUAL_DTA = "../../data/um/qual.dta"
+QUAL_DTA = "../../data/um/new_qual.dta"
 
 # The file to output to
 OUTPUT_N_FILE_NAME = "../../data/N.dta"

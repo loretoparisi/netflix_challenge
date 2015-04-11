@@ -2,23 +2,28 @@
 
 
 /** 
- * A constructor for this run of SVD++.
+ * A constructor for this run of SVD++. Note that this constructor does not
+ * make use of previously cached data, and will need to be trained!
  *
- * @param numUsers: Number of users in the entire data set (not just
- *                  training set).
- * @param numItems: Number of items in the entire data set (not just
- *                  training set).
- * @param meanRating: The mean rating of items in the training set.
- * @param numFactors: The number of factors to use for the SVD.
- * @param numIterations: The number of iterations to use for SVD++.
- * @param fileNameN: Name of the file that contains the information needed
- *                   to populate the N mapping.
- * @param verbose: If true, some print statements are outputted.
+ * @param numUsers:             Number of users in the entire data set (not
+ *                              just training set).
+ * @param numItems:             Number of items in the entire data set (not
+ *                              just training set).
+ * @param meanRating:           The mean rating of items in the training
+ *                              set.
+ * @param numFactors:           The number of factors to use for the SVD.
+ * @param numIterations:        The number of iterations to use for SVD++.
+ * @param fileNameN:            Name of the file that contains the
+ *                              information needed to populate the N
+ *                              mapping. This should be a plain text .dta
+ *                              file (or equivalent).
+ * @param verbose:              If true, some print statements are
+ *                              outputted.
  *
  */
 SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
              int numIterations, const string &fileNameN, 
-             bool verbose = false) :
+             bool verbose) :
     numUsers(numUsers), numItems(numItems), meanRating(meanRating),
     numFactors(numFactors), numIterations(numIterations), bUser(numUsers),
     bItem(numItems), userFacMat(numUsers, numFactors),
@@ -26,6 +31,89 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
     verbose(verbose)
 {
     // Populate N by reading from fileNameN.
+    populateN(fileNameN);
+    
+    // Initialize bUser, bItem, userFacMat, itemFacMat, and yMat.
+    initInternalData();
+
+}
+
+
+/**
+ * This constructor uses cached data to initialize the internals of the
+ * SVDPP object. It is assumed that all of the cached data (except the file
+ * containing N) is stored in Armadillo's machine-dependent binary format.
+ *
+ * Note: This constructor should be used for blending, not the other one!
+ *
+ * @param numUsers:             Number of users in the entire data set (not
+ *                              just training set).
+ * @param numItems:             Number of items in the entire data set (not
+ *                              just training set).
+ * @param meanRating:           The mean rating of items in the training
+ *                              set.
+ * @param numFactors:           The number of factors to use for the SVD.
+ * @param numIterations:        The number of iterations to use for SVD++.
+ * @param fileNameN:            Name of the file that contains the
+ *                              information needed to populate the N
+ *                              mapping. This should be a plain text .dta
+ *                              file (or equivalent).
+ * @param fileNameBUser:        Name of file containing data for bUser, in
+ *                              Armadillo's machine-dependent binary
+ *                              format.
+ * @param fileNameBItem:        Same as above, but for bItem.
+ * @param fileNameUserFacMat:   Same as above, but for userFacMat.
+ * @param fileNameItemFacMat:   Same as above, but for itemFacMat.
+ * @param fileNameYMat:         Same as above, but for yMat.
+ * @param verbose:              If true, some print statements are
+ *                              outputted.
+ *
+ */
+SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
+             int numIterations, const string &fileNameN,
+             const string &fileNameBUser, const string &fileNameBItem,
+             const string &fileNameUserFacMat,
+             const string &fileNameItemFacMat, const string &fileNameYMat,
+             bool verbose) :
+    numUsers(numUsers), numItems(numItems), meanRating(meanRating),
+    numFactors(numFactors), numIterations(numIterations), bUser(numUsers),
+    bItem(numItems), userFacMat(numUsers, numFactors),
+    itemFacMat(numItems, numFactors), yMat(numItems, numFactors),
+    verbose(verbose)
+{
+    // Populate N by reading from fileNameN.
+    populateN(fileNameN);
+
+    // Initialize bUser, bItem, userFacMat, itemFacMat, and yMat by reading
+    // from their binary files.
+    bUser.load(fileNameBUser, arma_binary);
+    bItem.load(fileNameBItem, arma_binary);
+    userFacMat.load(fileNameUserFacMat, arma_binary);
+    itemFacMat.load(fileNameItemFacMat, arma_binary);
+    yMat.load(fileNameYMat, arma_binary);
+    
+    trained = true;
+    usingCachedData = true;
+
+    if (verbose)
+    {
+        cout << "Created SVD++ predictor using cached data." << endl;
+    }
+}
+
+
+/**
+ * This function populates N (the mapping from zero-indexed user IDs to the
+ * zero-indexed item IDs which that user has shown an implicit preference
+ * for).
+ *
+ * @param fileNameN: Name of the file that contains the information needed
+ *                   to populate the N mapping. This should be a plain text
+ *                   .dta file (or equivalent).
+ *
+ */
+void SVDPP::populateN(const string &fileNameN)
+{
     ifstream fileN(fileNameN);
     string line;
 
@@ -35,51 +123,39 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
         vector<int> thisLineVec;
         splitIntoInts(line, NETFLIX_FILES_DELIMITER, thisLineVec);
         
-        // The first int should be the user's ID.
+        // The first int should be the user's ID. This should be
+        // zero-indexed!
         int userID = thisLineVec[0];
 
         // The remaining ints should be the item IDs that the user gave
-        // "implicit feedback" on (without actually rating them). We want
-        // to subtract 1 from these IDs since item IDs are **one-indexed**,
-        // which is slightly inconvenient for our purposes...
+        // "implicit feedback" on (without actually rating them). These
+        // item IDs should be zero-indexed!
         vector<int> userImplFeedbackItems;
         
         for(vector<int>::size_type i = 1; i < thisLineVec.size(); i++)
         {
-            // Subtract 1 to get rid of one-indexing
-            userImplFeedbackItems.push_back(thisLineVec[i] - 1);
+            userImplFeedbackItems.push_back(thisLineVec[i]);
         }
         
-        // Add this data to the map N. Subtract off 1 because of the
-        // userID!
-        N[userID - 1] = userImplFeedbackItems;
+        // Add this data to the map N.
+        N[userID] = userImplFeedbackItems;
     }
 
     fileN.close();
-
-    // Before performing stochastic gradient descent, we should fill bUser,
-    // bItem, userFacMat, itemFacMat, and yMat with uniformly distributed
-    // values ranging from -0.05 to 0.05. This is the "stochastic" part.
-    randomizeInternalData();
-
 }
 
 
-// TODO: Write a constructor that can work with cached matrix data so we
-// can accommodate blending in the future... This constructor should also
-// set "trained" to true at the end.
-
-
 /**
- * This function randomizes the internal data in this SVDPP object.
- * Specifically, all of the items in bUser, bItem, userFacMat, itemFacMat,
- * and yMat are set to uniformly distributed random numbers ranging from
- * -0.05 to 0.05.
+ *
+ * This function initializes the internal data in this SVDPP object.
+ * Currently, randomization is turned on, so this sets all of the
+ * elements in bUser, bItem, userFacMat, itemFacMat, and yMat equal to
+ * uniformly distributed random numbers between -0.1 and 0.1.
  *
  */
-void SVDPP::randomizeInternalData()
+void SVDPP::initInternalData()
 {
-    uniform_real_distribution<float> distr(-0.05, 0.05);
+    uniform_real_distribution<float> distr(-0.1, 0.1);
     
     // Set the seed to a sequence of random numbers that's large enough to
     // fill the mt19937's state.
@@ -96,6 +172,56 @@ void SVDPP::randomizeInternalData()
     userFacMat.imbue( [&]() { return distr(engine); } );
     itemFacMat.imbue( [&]() { return distr(engine); } );
     yMat.imbue( [&]() { return distr(engine); } );
+   
+    // Uncomment the lines below to set all of the data to zero instead.
+    /*
+    bUser.zeros();
+    bItem.zeros();
+    userFacMat.zeros();
+    itemFacMat.zeros();
+    yMat.zeros();
+    */
+}
+
+
+/** 
+ * This function trains on a given set of data, and then caches the
+ * internal data of this SVDPP object.
+ *
+ * @param data:                 This is the training data to use for our
+ *                              algorithm. See train() for more details.
+ * @param fileNameBUser:        Name of file where we'll save bUser (in
+ *                              Armadillo's machine-dependent binary
+ *                              format).
+ * @param fileNameBItem:        Same as above, but for bItem.
+ * @param fileNameUserFacMat:   Same as above, but for userFacMat.
+ * @param fileNameItemFacMat:   Same as above, but for itemFacMat.
+ * @param fileNameYMat:         Same as above, but for yMat.
+ * 
+ */
+void SVDPP::trainAndCache(const imat &data, const string &fileNameBUser,
+                          const string &fileNameBItem,
+                          const string &fileNameUserFacMat,
+                          const string &fileNameItemFacMat,
+                          const string &fileNameYMat)
+{
+    // Train the SVD++ algorithm, then save internal data to file.
+    train(data);
+
+    bUser.save(fileNameBUser, arma_binary);
+    bItem.save(fileNameBItem, arma_binary);
+    userFacMat.save(fileNameUserFacMat, arma_binary);
+    itemFacMat.save(fileNameItemFacMat, arma_binary);
+    yMat.save(fileNameYMat, arma_binary);
+
+    if (verbose)
+    {
+        cout << "Saved bUser to " << fileNameBUser << endl;
+        cout << "Saved bItem to " << fileNameBItem << endl;
+        cout << "Saved userFacMat to " << fileNameUserFacMat << endl;
+        cout << "Saved itemFacMat to " << fileNameItemFacMat << endl;
+        cout << "Saved yMat to " << fileNameYMat << endl;
+    }
 }
 
 
@@ -142,11 +268,18 @@ void SVDPP::train(const imat &data)
         throw invalid_argument("Data array must have three columns!");
     }
 
+    // If we're using cached data, we shouldn't be calling this method!
+    if (usingCachedData)
+    {
+        throw logic_error("This algorithm shouldn't be trained if you're "
+                          "using cached data!");
+    }
+        
     // If we've already trained on a previous dataset, we should reset all
-    // of the internal data to random values.
+    // of the internal data.
     if (trained)
     {
-        randomizeInternalData();
+        initInternalData();
         
         if (verbose)
         {
@@ -292,10 +425,8 @@ float SVDPP::predict(int user, int item)
     //                  q_i^T * (p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j)
     //
     // Where we use the same naming convention as in the Koren paper.
-
-    float predictedRating = meanRating;
-    predictedRating += bUser(user);
-    predictedRating += bItem(item);
+    
+    float predictedRating = meanRating + bUser(user) + bItem(item);
 
     // Compute the factorized term (i.e. q_i^T * (p_u + ...)).
     // First find p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j, the

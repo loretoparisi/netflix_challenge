@@ -92,21 +92,37 @@ private:
     // preferences in N(u)).
     fmat yMat;
 
-    // Tells us whether the algorithm has been trained yet or not.
+    // Whether the algorithm has been trained yet or not.
     bool trained = false;
+
+    // Whether we're using cached data or not.
+    bool usingCachedData = false;
 
     // This flag enables some cout statements.
     bool verbose = false;
 
-    void randomizeInternalData();
+    void initInternalData();
+    void populateN(const string &fileNameN);
 
 public:
     SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
           int numIterations, const string &fileNameN, bool verbose);
-
+    SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
+          int numIterations, const string &fileNameN,
+          const string &fileNameBUser, const string &fileNameBItem,
+          const string &fileNameUserFacMat,
+          const string &fileNameItemFacMat, const string &fileNameYMat,
+          bool verbose = false);
+    
     ~SVDPP();
-
+    
     void train(const imat &data);
+    void trainAndCache(const imat &data, const string &fileNameBUser,
+                       const string &fileNameBItem,
+                       const string &fileNameUserFacMat,
+                       const string &fileNameItemFacMat,
+                       const string &fileNameYMat);
+    
     float predict(int user, int item);
 };
 
