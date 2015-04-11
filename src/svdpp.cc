@@ -150,12 +150,12 @@ void SVDPP::populateN(const string &fileNameN)
  * This function initializes the internal data in this SVDPP object.
  * Currently, randomization is turned on, so this sets all of the
  * elements in bUser, bItem, userFacMat, itemFacMat, and yMat equal to
- * uniformly distributed random numbers between -0.1 and 0.1.
+ * uniformly distributed random numbers between -0.05 and 0.05.
  *
  */
 void SVDPP::initInternalData()
 {
-    uniform_real_distribution<float> distr(-0.1, 0.1);
+    uniform_real_distribution<float> distr(-0.05, 0.05);
     
     // Set the seed to a sequence of random numbers that's large enough to
     // fill the mt19937's state.
