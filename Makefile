@@ -64,7 +64,8 @@ mkbin:
 %.cc: %.pyx mklib
 	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o $(srcdir)/$@
 
-svdpptest: lib/svdpp.o lib/netflix_namespace.o
+lib/sdvpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+lib/svdpptest.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 
 # Implicit rule to generate object files
 $(libdir)/%.o: %.cc mklib
@@ -84,6 +85,9 @@ lib%.so: $(libdir)/%.o
 	$(EXTRA_LDFLAGS)
 	@# Link the extension back to our source directory for use
 	ln -s $(libdir)/$@ $(srcdir)
+
+svdpptest: lib/svdpp.o lib/netflix.o
+svdpptest: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 
 # Default rule for compiling binaries
 $(BINS): %: $(libdir)/%.o mkbin

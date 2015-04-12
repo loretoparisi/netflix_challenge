@@ -22,18 +22,18 @@ namespace netflix
     /* Constants */
 
     // Minimum and maximum possible ratings in this dataset.
-    const int MIN_RATING = 1;
-    const int MAX_RATING = 5;
+    constexpr int MIN_RATING = 1;
+    constexpr int MAX_RATING = 5;
 
     // Represents an entry with no rating (or rather, an unknown rating).
-    const int NO_RATING = 0;
+    constexpr int NO_RATING = 0;
 
     // The total number of users and movies in the dataset.
-    const int NUM_USERS = 458293;
-    const int NUM_MOVIES = 17770;
+    constexpr int NUM_USERS = 458293;
+    constexpr int NUM_MOVIES = 17770;
 
     // The mean rating in the training set.
-    const float MEAN_RATING_TRAINING_SET = 3.60951619727;
+    constexpr float MEAN_RATING_TRAINING_SET = 3.60951619727;
     
     // Name of the file containing all of the data. Note that we are using
     // the version where user IDs, item IDs, and time IDs are all
@@ -53,11 +53,11 @@ namespace netflix
     
     // These indices represent the different kinds of data in all.dta (and
     // in "new_all.dta" too).
-    const int BASE_SET = 1;
-    const int VALID_SET = 2;
-    const int HIDDEN_SET = 3;
-    const int PROBE_SET = 4;
-    const int QUAL_SET = 5;
+    constexpr int BASE_SET = 1;
+    constexpr int VALID_SET = 2;
+    constexpr int HIDDEN_SET = 3;
+    constexpr int PROBE_SET = 4;
+    constexpr int QUAL_SET = 5;
     
     // The delimiter used in our data files (e.g. in the data file containing
     // N).

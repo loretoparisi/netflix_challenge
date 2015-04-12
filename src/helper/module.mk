@@ -1,1 +1,1 @@
-BINS += user_avg
+BINS += user_avg rank_prob

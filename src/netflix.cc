@@ -1,4 +1,4 @@
-#include "netflix_namespace.hh"
+#include "netflix.hh"
 
 namespace netflix
 {

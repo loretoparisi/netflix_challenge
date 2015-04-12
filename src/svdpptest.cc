@@ -8,7 +8,7 @@
  */
 
 #include "svdpp.hh"
-#include "netflix_namespace.hh"
+#include "netflix.hh"
 #include <string>
 #include <vector>
 #include <set>

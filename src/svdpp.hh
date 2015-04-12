@@ -14,7 +14,7 @@
 #define SVDPP_HH
 
 #include "mlalgorithm.hh"
-#include "netflix_namespace.hh"
+#include "netflix.hh"
 #include <armadillo>
 #include <vector>
 #include <string>
