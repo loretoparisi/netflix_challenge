@@ -30,7 +30,7 @@ BIN_FILES = $(foreach bin, $(BINS), $(bindir)/$(bin))
 
 
 # All (final) targets
-all: $(LIBS) $(EXTS) $(bindir)/svdpptest #$(BINS)
+all: $(LIBS) $(EXTS) $(BINS)
 
 # Clean up all files
 clean:
@@ -64,20 +64,7 @@ mkbin:
 %.cc: %.pyx mklib
 	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o $(srcdir)/$@
 
-# Generating SVD++ test based on its dependencies.
-$(bindir)/svdpptest: $(libdir)/svdpptest.o $(libdir)/svdpp.o $(libdir)/netflix_namespace.o
-	test -d $(bindir) || mkdir $(bindir)
-	$(CXX) $(LD_FLAGS) $(libdir)/svdpptest.o $(libdir)/svdpp.o $(libdir)/netflix_namespace.o -o $@ $(EXTRA_LDFLAGS)
-
-# Generating object files for SVD++ test.
-$(libdir)/svdpptest.o: $(srcdir)/svdpptest.cc $(srcdir)/netflix_namespace.hh $(srcdir)/netflix_namespace.cc $(srcdir)/svdpp.hh $(srcdir)/svdpp.cc mklib
-	@# Compile with -fPIC for position-independent code.
-	$(CXX) $(CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
-
-# Generating object files for SVD++ class.
-$(libdir)/svdpp.o: $(srcdir)/svdpp.cc $(srcdir)/svdpp.hh $(srcdir)/netflix_namespace.hh $(srcdir)/netflix_namespace.cc $(srcdir)/mlalgorithm.hh $(srcdir)/mlalgorithm.cc mklib
-	@# Compile with -fPIC for position-independent code.
-	$(CXX) $(CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
+svdpptest: lib/svdpp.o lib/netflix_namespace.o
 
 # Implicit rule to generate object files
 $(libdir)/%.o: %.cc mklib
@@ -86,19 +73,18 @@ $(libdir)/%.o: %.cc mklib
 
 # Implicit rule matching the C/C++ dynamic library naming convention
 lib%.so: $(libdir)/%.o
-	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $< -o $(libdir)/$@ \
+	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $^ -o $(libdir)/$@ \
 	$(EXTRA_LDFLAGS)
 
 # Any shared object not matching the C/C++ library naming convention is
 # assumed to be a Cython extension; shared objects must match the name of the
 # Cython interfaces to avoid runtime errors
 %.so: $(libdir)/%.o
-	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $< -o $(libdir)/$@ \
+	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $^ -o $(libdir)/$@ \
 	$(EXTRA_LDFLAGS)
 	@# Link the extension back to our source directory for use
 	ln -s $(libdir)/$@ $(srcdir)
 
 # Default rule for compiling binaries
-#$(BINS): %: $(libdir)/%.o mkbin
-#	echo "Outputting binary!"
-#	$(CXX) $(LD_FLAGS) $< -o $(bindir)/$@ $(EXTRA_LDFLAGS)
+$(BINS): %: $(libdir)/%.o mkbin
+	$(CXX) $(LD_FLAGS) $(filter-out mkbin,$^) -o $(bindir)/$@ $(EXTRA_LDFLAGS)
