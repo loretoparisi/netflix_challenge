@@ -80,7 +80,7 @@ int main(void)
         SVDPP predAlgo(NUM_USERS, NUM_MOVIES, MEAN_RATING_TRAINING_SET,
                        NUM_FACTORS, NUM_ITERATIONS, N_FN,
                        B_USER_FN, B_ITEM_FN, USER_FAC_MAT_FN,
-                       ITEM_FAC_MAT_FN, Y_MAT_FN, /* verbose */ true);
+                       ITEM_FAC_MAT_FN, Y_MAT_FN);
         
         // Go through qual.dta and produce a prediction file.
         testOnDataFile(predAlgo, QUAL_DATA_FN, OUTPUT_FN);
@@ -170,8 +170,7 @@ int main(void)
         inplace_trans(trainingSet);
         
         SVDPP predAlgo(NUM_USERS, NUM_MOVIES, MEAN_RATING_TRAINING_SET,
-                       NUM_FACTORS, NUM_ITERATIONS, N_FN,
-                       /* verbose */ true);
+                       NUM_FACTORS, NUM_ITERATIONS, N_FN);
 
         // Check if we want to cache.
         if (WILL_CACHE_DATA)

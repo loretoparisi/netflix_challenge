@@ -1,3 +1,10 @@
+#ifndef NDEBUG
+#include <chrono>
+#include <iostream>
+
+using namespace std::chrono;
+#endif
+
 #include "svdpp.hh"
 
 
@@ -17,18 +24,14 @@
  *                              information needed to populate the N
  *                              mapping. This should be a plain text .dta
  *                              file (or equivalent).
- * @param verbose:              If true, some print statements are
- *                              outputted.
  *
  */
 SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
-             int numIterations, const string &fileNameN, 
-             bool verbose) :
+             int numIterations, const string &fileNameN) :
     numUsers(numUsers), numItems(numItems), meanRating(meanRating),
     numFactors(numFactors), numIterations(numIterations), bUser(numUsers),
     bItem(numItems), userFacMat(numUsers, numFactors),
-    itemFacMat(numItems, numFactors), yMat(numItems, numFactors),
-    verbose(verbose)
+    itemFacMat(numItems, numFactors), yMat(numItems, numFactors)
 {
     // Populate N by reading from fileNameN.
     populateN(fileNameN);
@@ -65,21 +68,17 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
  * @param fileNameUserFacMat:   Same as above, but for userFacMat.
  * @param fileNameItemFacMat:   Same as above, but for itemFacMat.
  * @param fileNameYMat:         Same as above, but for yMat.
- * @param verbose:              If true, some print statements are
- *                              outputted.
  *
  */
 SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
              int numIterations, const string &fileNameN,
              const string &fileNameBUser, const string &fileNameBItem,
              const string &fileNameUserFacMat,
-             const string &fileNameItemFacMat, const string &fileNameYMat,
-             bool verbose) :
+             const string &fileNameItemFacMat, const string &fileNameYMat) :
     numUsers(numUsers), numItems(numItems), meanRating(meanRating),
     numFactors(numFactors), numIterations(numIterations), bUser(numUsers),
     bItem(numItems), userFacMat(numUsers, numFactors),
-    itemFacMat(numItems, numFactors), yMat(numItems, numFactors),
-    verbose(verbose)
+    itemFacMat(numItems, numFactors), yMat(numItems, numFactors)
 {
     // Populate N by reading from fileNameN.
     populateN(fileNameN);
@@ -95,10 +94,9 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
     trained = true;
     usingCachedData = true;
 
-    if (verbose)
-    {
-        cout << "Created SVD++ predictor using cached data." << endl;
-    }
+#ifndef NDEBUG
+    cout << "Created SVD++ predictor using cached data." << endl;
+#endif
 }
 
 
@@ -214,14 +212,13 @@ void SVDPP::trainAndCache(const imat &data, const string &fileNameBUser,
     itemFacMat.save(fileNameItemFacMat, arma_binary);
     yMat.save(fileNameYMat, arma_binary);
 
-    if (verbose)
-    {
-        cout << "Saved bUser to " << fileNameBUser << endl;
-        cout << "Saved bItem to " << fileNameBItem << endl;
-        cout << "Saved userFacMat to " << fileNameUserFacMat << endl;
-        cout << "Saved itemFacMat to " << fileNameItemFacMat << endl;
-        cout << "Saved yMat to " << fileNameYMat << endl;
-    }
+#ifndef NDEBUG
+    cout << "Saved bUser to " << fileNameBUser << endl;
+    cout << "Saved bItem to " << fileNameBItem << endl;
+    cout << "Saved userFacMat to " << fileNameUserFacMat << endl;
+    cout << "Saved itemFacMat to " << fileNameItemFacMat << endl;
+    cout << "Saved yMat to " << fileNameYMat << endl;
+#endif
 }
 
 
@@ -281,15 +278,22 @@ void SVDPP::train(const imat &data)
     {
         initInternalData();
         
-        if (verbose)
-        {
-            cout << "Cleared old internal data" << endl;
-        }
+#ifndef NDEBUG
+        cout << "Cleared old internal data" << endl;
+#endif
     }
+
+#ifndef NDEBUG
+    time_point<system_clock> start, end;
+    duration<float, ratio<60>> minutes_elapsed; 
+#endif
 
     // Iterate for the specified number of iterations.
     for(int iterCount = 0; iterCount < numIterations; iterCount++)
     {
+#ifndef NDEBUG
+        start = system_clock::now();
+#endif
         // Iterate through all elements of the training data, and predict a
         // rating. Use gradient descent to correct the relevant matrices.
         for(unsigned int ratingNum = 0; ratingNum < data.n_rows; 
@@ -385,17 +389,17 @@ void SVDPP::train(const imat &data)
         SVDPP_GAMMA_1 *= SVDPP_GAMMA_MULT_PER_ITER;
         SVDPP_GAMMA_2 *= SVDPP_GAMMA_MULT_PER_ITER;
 
-        if (verbose)
-        {
-            cout << "Finished iteration " << (iterCount+1) << " of SVD++" 
-                << endl;
-        }
+#ifndef NDEBUG
+        end = system_clock::now();
+        minutes_elapsed = end - start;
+        cout << "Finished iteration " << (iterCount + 1) << " of SVD++ in " 
+             << minutes_elapsed.count() << " minutes" << endl;
+#endif
     }
 
-    if (verbose)
-    {
-        cout << endl;
-    }
+#ifndef NDEBUG
+    cout << endl;
+#endif
 
     trained = true;
 }
