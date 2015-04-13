@@ -30,9 +30,9 @@ RBM::RBM (float rate) {
     // Initialize biases of visible units
     for ( int i = 0; i < NUM_MOVIES; ++i ) {
         // For each movie, initialize the bias of each rank to P[rank | movie]
-        rankPMF >> this->visibleBias[0] >> this->visibleBias[1] 
-                >> this->visibleBias[2] >> this->visibleBias[3]
-                >> this->visibleBias[4];
+        rankPMF >> this->visibleBias[i][0] >> this->visibleBias[i][1] 
+                >> this->visibleBias[i][2] >> this->visibleBias[i][3]
+                >> this->visibleBias[i][4];
     }
     // Close data file
     rankPMF.close();

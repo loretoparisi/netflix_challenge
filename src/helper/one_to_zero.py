@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Convert one-indexed to zero-indexed
 #
 # > import this file
@@ -31,6 +33,8 @@ def conversion(filename, output_name):
             count += 1
             # Print progress
             if (count % 10000 == 0):
-                print 'Finished processing line ' + str(count)
+                print('Finished processing line ' + str(count))
     output.close()
 
+if __name__ == "__main__":
+    conversion('../../data/um/all.dta', '../../data/um/new_all.dta')
