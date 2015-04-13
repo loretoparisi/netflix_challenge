@@ -64,6 +64,7 @@ mkbin:
 %.cc: %.pyx mklib
 	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o $(srcdir)/$@
 
+# Additional compiler flags for all object files go here (using EXTRA_CFLAGS)
 lib/sdvpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 lib/svdpptest.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 
@@ -71,6 +72,10 @@ lib/svdpptest.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/%.o: %.cc mklib
 	@# Everything is compiled with -fPIC so they can be dynamically linked
 	$(CXX) $(CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
+
+# Dependencies for all library targets go here
+
+# Additional linker flags for all library targets go here (using EXTRA_LDFLAGS)
 
 # Implicit rule matching the C/C++ dynamic library naming convention
 lib%.so: $(libdir)/%.o
@@ -86,7 +91,11 @@ lib%.so: $(libdir)/%.o
 	@# Link the extension back to our source directory for use
 	ln -s $(libdir)/$@ $(srcdir)
 
+# Dependencies for all binary targets go here
 svdpptest: lib/svdpp.o lib/netflix.o
+
+# Additional linker flags for all binary targets go here (using EXTRA_LDFLAGS)
+rank_prob: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 svdpptest: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 
 # Default rule for compiling binaries
