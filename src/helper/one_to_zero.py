@@ -38,3 +38,4 @@ def conversion(filename, output_name):
 
 if __name__ == "__main__":
     conversion('../../data/um/all.dta', '../../data/um/new_all.dta')
+    conversion('../../data/um/qual.dta', '../../data/um/new_qual.dta')
