@@ -66,7 +66,7 @@ mkbin:
 
 # Additional compiler flags for all object files go here (using EXTRA_CFLAGS)
 lib/sdvpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-lib/svdpptest.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+lib/svdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 
 # Implicit rule to generate object files
 $(libdir)/%.o: %.cc mklib
@@ -92,11 +92,12 @@ lib%.so: $(libdir)/%.o
 	ln -s $(libdir)/$@ $(srcdir)
 
 # Dependencies for all binary targets go here
-svdpptest: lib/svdpp.o lib/netflix.o
+rbm_test: lib/rbm.o lib/netflix.o
+svdpp_test: lib/svdpp.o lib/netflix.o
 
 # Additional linker flags for all binary targets go here (using EXTRA_LDFLAGS)
-rank_prob: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
-svdpptest: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+rbm_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+svdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 
 # Default rule for compiling binaries
 $(BINS): %: $(libdir)/%.o mkbin

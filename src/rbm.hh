@@ -6,6 +6,7 @@
 #include "mlalgorithm.hh"
 #include "netflix.hh"
 
+#define EPSILON 0.001
 #define HIDDEN 100
 
 using namespace arma;
@@ -13,13 +14,29 @@ using namespace netflix;
 
 class RBM : public MLAlgorithm {
 private:
-    fcube::fixed<NUM_MOVIES, HIDDEN, MAX_RATING> weights;
-    fmat::fixed<NUM_MOVIES, MAX_RATING> visibleBias;
-    frowvec::fixed<HIDDEN> hiddenBias;
+    // Weights between the hidden & visible units (W)
+    fcube weights;
+
+    // Shared biases of visible units
+    fmat visibleBias;
+
+    // Shared biases of the hidden units
+    frowvec hiddenBias;
+
+    // Number of users in the data set
+    int users;
+
+    // Number of movies in the data set
+    int movies;
+
+    // Number of hidden units
+    int hidden;
+
+    // Learning rate
     float rate;
 
 public:
-    RBM(float rate);
+    RBM(int users, int movies, int hidden, float rate);
     ~RBM();
 
     void train(const imat &data);
