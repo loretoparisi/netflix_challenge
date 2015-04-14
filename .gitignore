@@ -32,3 +32,5 @@ bin/*
 ehthumbs.db
 Thumbs.db
 *.dSYM
+*.mk~
+
