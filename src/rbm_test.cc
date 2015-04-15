@@ -1,7 +1,8 @@
 #include "rbm.hh"
 
 int main() {
-    RBM(NUM_USERS, NUM_MOVIES, HIDDEN, EPSILON);
-
+    RBM rbm(NUM_USERS, NUM_MOVIES, HIDDEN, EPSILON);
+    rbm.train();
+    
     return 0;
 }

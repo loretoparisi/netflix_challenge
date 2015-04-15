@@ -12,6 +12,8 @@
 using namespace arma;
 using namespace netflix;
 
+// TODO: add momentum, sparse cube class (operators?)
+
 class RBM : public MLAlgorithm {
 private:
     // Weights between the hidden & visible units (W)
@@ -39,6 +41,7 @@ public:
     RBM(int users, int movies, int hidden, float rate);
     ~RBM();
 
+    void train();
     void train(const imat &data);
     float predict(int user, int item);
 };

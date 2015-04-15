@@ -14,7 +14,7 @@ CYTHON = cython
 # Base source directory
 srcdir = src
 # Directories containing source files
-modules = $(shell find $(srcdir) -type d)
+modules = $(filter-out %__pycache__,$(shell find $(srcdir) -type d))
 # Directory containing header files
 includedir = src
 # Destination directory for object files and libraries

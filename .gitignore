@@ -2,7 +2,7 @@
 #########################
 data/um/*
 data/mu/*
-data/svdppcached/*.mat
+*.mat
 
 # Library/Binary Directories #
 ##############################
