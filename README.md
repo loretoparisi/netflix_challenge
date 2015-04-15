@@ -13,16 +13,12 @@ be deemed a breach of the Caltech Honor Code, and will be handled
 accordingly.
 
 
-Update 4/7/2015
+Updated 4/14/2015
 ===
 
-Current has a simple solution by each user's average ranking. To create an
-output file, modify the constant for input/output file paths, and do:
+To compile and create executables for rbm, svd++, and user_avg, do:
 ```
 make
-./user_avg
 ```
 
-Helper functions for SVD added as well. This is in helper/. The functions
-compute global average and offset of each movie's average from the global
-average. Output is in data/. More to come...
+Once this is completed, you can run the executables in bin/.
