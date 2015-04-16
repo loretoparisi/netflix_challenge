@@ -234,6 +234,9 @@ void SVDPP::trainAndCache(const imat &data, const string &fileNameBUser,
  *              and the last column must contain the rating the user gave.
  *              All of these are assumed to be integers.
  *
+ * Precondition: "data" should be shuffled before the stochastic gradient
+ * descent runs.
+ *
  */
 
 void SVDPP::train(const imat &data)
@@ -282,12 +285,12 @@ void SVDPP::train(const imat &data)
         cout << "Cleared old internal data" << endl;
 #endif
     }
-
+    
 #ifndef NDEBUG
     time_point<system_clock> start, end;
     duration<float, ratio<60>> minutes_elapsed; 
 #endif
-
+    
     // Iterate for the specified number of iterations.
     for(int iterCount = 0; iterCount < numIterations; iterCount++)
     {

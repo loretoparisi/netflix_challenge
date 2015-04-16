@@ -26,7 +26,7 @@ using namespace netflix; // challenge-related constants/functions.
 /* Constants */
 
 // The indices of the dataset to use for training.
-const set<int> TRAINING_SET_INDICES = {BASE_SET};
+const set<int> TRAINING_SET_INDICES = {BASE_SET, HIDDEN_SET, VALID_SET};
 
 // The number of factors to use for SVD++.
 const int NUM_FACTORS = 60;
@@ -61,6 +61,10 @@ const string Y_MAT_FN =         "../data/svdppcached/y.mat";
 void testOnDataFile(SVDPP &predAlgo, const string &testFileName,
                     const string &outputFileName);
 
+// Function that shuffles rows of data in a vector in place. The vector is
+// treated as a 2D array with numRows rows and numCols columns.
+void shuffleVector(vector<int> &data, int numRows, int numCols);
+
 
 int main(void)
 {
@@ -87,6 +91,8 @@ int main(void)
     }
     else // If not using cached data, we need to train.
     {
+        
+
         // We'll temporarily read our data into a vector, and then convert
         // into an imat afterwards. The number of entries in this vector
         // will be a multiple of 3. Each triple corresponds to a (user,
@@ -159,9 +165,14 @@ int main(void)
         }
 
         cout << "\nRead in a total of " << inputsReadIn << " points" << endl;
+
+        // Shuffle the data before making an Armadillo matrix.
+        shuffleVector(tempData, inputsReadIn, 3);
+        cout << "Shuffled input data." << endl;
         
-        // This is the matrix where we'll store our training set. The three
-        // columns in this will correspond to (user, movie, rating).
+        // This is the matrix where we'll store our shuffled training set.
+        // The three columns in this will correspond to (user, movie,
+        // rating).
         imat trainingSet = conv_to<imat>::from(tempData);
 
         // Armadillo works in column-major order so we'll have to reshape
@@ -171,14 +182,14 @@ int main(void)
         
         SVDPP predAlgo(NUM_USERS, NUM_MOVIES, MEAN_RATING_TRAINING_SET,
                        NUM_FACTORS, NUM_ITERATIONS, N_FN);
-
+        
         // Check if we want to cache.
         if (WILL_CACHE_DATA)
         {
             // If so, train and then cache the results after training.
             cout << "\nTraining SVD++. The resulting matrices will be "
                     "cached." << endl;
-
+            
             predAlgo.trainAndCache(trainingSet, B_USER_FN, B_ITEM_FN,
                                    USER_FAC_MAT_FN, ITEM_FAC_MAT_FN,
                                    Y_MAT_FN);
@@ -195,6 +206,42 @@ int main(void)
         testOnDataFile(predAlgo, QUAL_DATA_FN, OUTPUT_FN);
     }
 
+}
+
+
+/**
+ * Use the Fisher-Yates algorithm to randomly shuffle rows of data in a
+ * vector (in place). We're treating the vector as a 2D array.
+ *
+ * @param data: The input vector.
+ * @param numRows: The number of rows in the vector.
+ * @param numCols: The number of columns in the vector.
+ *
+ */
+void shuffleVector(vector<int> &data, int numRows, int numCols)
+{
+    // Seed is dependent on program run-time.
+    srand(time(NULL));
+ 
+    // Consider rows 0 through i on each iteration, and swap row i with row
+    // j, where j is a randomly chosen index between 0 and i.  Decrement
+    // the index on each iteration so that the "end" of the vector is the
+    // shuffled part.
+    for (int i = numRows - 1; i > 0; i --)
+    {
+        // The random index we'll use for our swap. Ranges from 0 to i.
+        int j = rand() % (i + 1);
+
+        // Swap rows i and j. We'll treat our vector like a 2D array, so
+        // that the element at the mth row and nth column is given by 
+        // data[m * numCols + n].
+        for (int colNumber = 0; colNumber < numCols; colNumber ++)
+        {
+            int temp = data[i * numCols + colNumber];
+            data[i * numCols + colNumber] = data[j * numCols + colNumber];
+            data[j * numCols + colNumber] = temp;
+        }
+    }
 }
 
 
