@@ -30,8 +30,8 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
              int numIterations, const string &fileNameN) :
     numUsers(numUsers), numItems(numItems), meanRating(meanRating),
     numFactors(numFactors), numIterations(numIterations), bUser(numUsers),
-    bItem(numItems), userFacMat(numUsers, numFactors),
-    itemFacMat(numItems, numFactors), yMat(numItems, numFactors)
+    bItem(numItems), userFacMat(numFactors, numUsers),
+    itemFacMat(numFactors, numItems), yMat(numFactors, numItems)
 {
     // Populate N by reading from fileNameN.
     populateN(fileNameN);
@@ -77,8 +77,8 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
              const string &fileNameItemFacMat, const string &fileNameYMat) :
     numUsers(numUsers), numItems(numItems), meanRating(meanRating),
     numFactors(numFactors), numIterations(numIterations), bUser(numUsers),
-    bItem(numItems), userFacMat(numUsers, numFactors),
-    itemFacMat(numItems, numFactors), yMat(numItems, numFactors)
+    bItem(numItems), userFacMat(numFactors, numUsers),
+    itemFacMat(numFactors, numItems), yMat(numFactors, numItems)
 {
     // Populate N by reading from fileNameN.
     populateN(fileNameN);
@@ -146,15 +146,21 @@ void SVDPP::populateN(const string &fileNameN)
 /**
  *
  * This function initializes the internal data in this SVDPP object.
- * Currently, randomization is turned on, so this sets all of the
- * elements in bUser, bItem, userFacMat, itemFacMat, and yMat equal to
- * uniformly distributed random numbers between -0.05 and 0.05.
+ * Currently, randomization is turned on.
+ *
+ * See post #36 on 
+ *  http://www.netflixprize.com/community/viewtopic.php?id=1359&p=2
  *
  */
 void SVDPP::initInternalData()
 {
-    uniform_real_distribution<float> distr(-0.05, 0.05);
-    
+    // Different distributions based on the matrix being initialized.
+    uniform_real_distribution<float> distrBUser(-0.01, 0.1);
+    uniform_real_distribution<float> distrBItem(-0.01, 0.01);
+    uniform_real_distribution<float> distrUserFacMat(0.002, 0.02);
+    uniform_real_distribution<float> distrItemFacMat(-0.02, -0.002);
+    uniform_real_distribution<float> distrYMat(-0.1, 0.1);
+
     // Set the seed to a sequence of random numbers that's large enough to
     // fill the mt19937's state.
     array<int, mt19937::state_size> seedData;
@@ -165,12 +171,12 @@ void SVDPP::initInternalData()
     // Mersenne twister random number engine, based on the earlier seed.
     mt19937 engine(seedSeq);
     
-    bUser.imbue( [&]() { return distr(engine); } );
-    bItem.imbue( [&]() { return distr(engine); } );
-    userFacMat.imbue( [&]() { return distr(engine); } );
-    itemFacMat.imbue( [&]() { return distr(engine); } );
-    yMat.imbue( [&]() { return distr(engine); } );
-   
+    bUser.imbue( [&]() { return distrBUser(engine); } );
+    bItem.imbue( [&]() { return distrBItem(engine); } );
+    userFacMat.imbue( [&]() { return distrUserFacMat(engine); } );
+    itemFacMat.imbue( [&]() { return distrItemFacMat(engine); } );
+    yMat.imbue( [&]() { return distrItemFacMat(engine); } );
+     
     // Uncomment the lines below to set all of the data to zero instead.
     /*
     bUser.zeros();
@@ -228,14 +234,15 @@ void SVDPP::trainAndCache(const imat &data, const string &fileNameBUser,
  * the "trained" boolean will be set to true.
  *
  * @param data: This is the training data to use for our algorithm. This
- *              must be an N x 3 matrix, where N is the total number of
+ *              must be a 3 x N matrix, where N is the total number of
  *              ratings in the training set. NOTE: The first column must
  *              contain user IDs, the second column most contain item IDs,
  *              and the last column must contain the rating the user gave.
  *              All of these are assumed to be integers.
  *
- * Precondition: "data" should be shuffled before the stochastic gradient
- * descent runs.
+ * Precondition: "data" should be in column-major order as stated above.
+ *
+ * It might also be a good idea to shuffle "data" beforehand...
  *
  */
 
@@ -262,10 +269,10 @@ void SVDPP::train(const imat &data)
     // This minimization is accomplished via stochastic gradient descent on
     // the free parameters of b_u, b_i, q_i, p_u, and y_j.
     
-    // Check that the data does in fact have three columns!
-    if (data.n_cols != 3)
+    // Check that the data does in fact have three rows!
+    if (data.n_rows != 3)
     {
-        throw invalid_argument("Data array must have three columns!");
+        throw invalid_argument("Data array must have three rows!");
     }
 
     // If we're using cached data, we shouldn't be calling this method!
@@ -299,13 +306,13 @@ void SVDPP::train(const imat &data)
 #endif
         // Iterate through all elements of the training data, and predict a
         // rating. Use gradient descent to correct the relevant matrices.
-        for(unsigned int ratingNum = 0; ratingNum < data.n_rows; 
+        for(unsigned int ratingNum = 0; ratingNum < data.n_cols; 
             ratingNum ++)
         {
             // The user ID, item ID, and rating
-            int user = data(ratingNum, 0);
-            int item = data(ratingNum, 1);
-            int actualRating = data(ratingNum, 2);
+            int user = data(0, ratingNum);
+            int item = data(1, ratingNum);
+            int actualRating = data(2, ratingNum);
             
             // Check N(u) to see if this user has implicit feedback data.
             vector<int> nu = N[user];
@@ -324,17 +331,17 @@ void SVDPP::train(const imat &data)
             // Compute the factorized term (i.e. q_i^T * (p_u + ...)).
             // First find p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j, the
             // "userFactorTerm".
-            frowvec userFactorTerm = userFacMat.row(user); // p_u
+            fcolvec userFactorTerm = userFacMat.col(user); // p_u
 
             float nuNormFac = 1.0/sqrt(nu.size());
 
             // This is where we'll store |N(u)|^{-1/2} sum_{j in N(u)} y_j.
-            frowvec implicitTerm = zeros<frowvec>(numFactors);
+            fcolvec implicitTerm = zeros<fcolvec>(numFactors);
 
             for (vector<int>::size_type ind = 0; ind < nu.size(); ind++)
             {
                 int j = nu[ind];
-                implicitTerm += yMat.row(j);
+                implicitTerm += yMat.col(j);
             }
 
             implicitTerm *= nuNormFac;
@@ -343,7 +350,7 @@ void SVDPP::train(const imat &data)
             userFactorTerm += implicitTerm;
 
             // Add the factorized term (q_i^T * ...) to the prediction.
-            frowvec qi = itemFacMat.row(item);
+            fcolvec qi = itemFacMat.col(item);
             predictedRating += dot(qi, userFactorTerm);
             
             // Apply gradient descent on all of the free parameters in our
@@ -366,13 +373,13 @@ void SVDPP::train(const imat &data)
             // q_i <- q_i + gamma_2 * (e_{ui} * (p_u + |N(u)|^{-1/2} *
             //                                   sum_{j in N(u)} y_j)
             //                         - SVDPP_REG_2 * q_i)
-            itemFacMat.row(item) += SVDPP_GAMMA_2 * (eUI * userFactorTerm -
+            itemFacMat.col(item) += SVDPP_GAMMA_2 * (eUI * userFactorTerm -
                                                      SVDPP_REG_2 * qi);
             
             // p_u <- p_u + gamma_2 * (e_{ui} * q_i - SVDPP_REG_2 * p_u)
-            userFacMat.row(user) += SVDPP_GAMMA_2 * (eUI * qi - 
+            userFacMat.col(user) += SVDPP_GAMMA_2 * (eUI * qi - 
                                                      SVDPP_REG_2 *
-                                                     userFacMat.row(user));
+                                                     userFacMat.col(user));
 
             // For all j in N(u), we want to set:
             // y_j <- y_j + SVDPP_GAMMA_2 * (e_{ui} |N(u)|^{-1/2} * q_i
@@ -380,13 +387,12 @@ void SVDPP::train(const imat &data)
             for (vector<int>::size_type ind = 0; ind < nu.size(); ind++)
             {
                 int j = nu[ind];
-                yMat.row(j) += SVDPP_GAMMA_2 * (eUI * nuNormFac * qi -
-                                                SVDPP_REG_2 * yMat.row(j));
+                yMat.col(j) += SVDPP_GAMMA_2 * (eUI * nuNormFac * qi -
+                                                SVDPP_REG_2 * yMat.col(j));
             }
 
         }
-        
-        
+         
         // At the end of each iteration, decrease the gammas by the
         // constant factor declared in the header file.
         SVDPP_GAMMA_1 *= SVDPP_GAMMA_MULT_PER_ITER;
@@ -438,18 +444,18 @@ float SVDPP::predict(int user, int item)
     // Compute the factorized term (i.e. q_i^T * (p_u + ...)).
     // First find p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j, the
     // "userFactorTerm".
-    frowvec userFactorTerm = userFacMat.row(user); // p_u
+    fcolvec userFactorTerm = userFacMat.col(user); // p_u
     
     vector<int> nu = N[user];
     float nuNormFac = 1.0/sqrt(nu.size());
 
     // This is where we'll store |N(u)|^{-1/2} sum_{j in N(u)} y_j.
-    frowvec implicitTerm = zeros<frowvec>(numFactors);
+    fcolvec implicitTerm = zeros<fcolvec>(numFactors);
 
     for (vector<int>::size_type ind = 0; ind < nu.size(); ind++)
     {
         int j = nu[ind];
-        implicitTerm += yMat.row(j);
+        implicitTerm += yMat.col(j);
     }
 
     implicitTerm *= nuNormFac;
@@ -458,7 +464,7 @@ float SVDPP::predict(int user, int item)
     userFactorTerm += implicitTerm;
 
     // Add the factorized term (q_i^T * ...) to the prediction. 
-    frowvec qi = itemFacMat.row(item);
+    fcolvec qi = itemFacMat.col(item);
     predictedRating += dot(qi, userFactorTerm);
 
     // Put the rating between MIN_RATING and MAX_RATING! Otherwise, the

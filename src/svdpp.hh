@@ -70,23 +70,23 @@ private:
 
     // The bias for each user. Referred to as "b_u" in the Koren paper. The
     // uth element in this is the bias for user u.
-    frowvec bUser;
+    fcolvec bUser;
 
     // The bias for each item. Referred to as "b_i" in the Koren paper.
-    frowvec bItem;
+    fcolvec bItem;
 
-    // The user factor matrix. This is a numUsers x numFactors matrix. The
-    // nth row represents the user factor array p_n, using the convention
+    // The user factor matrix. This is a numFactors x numUsers matrix. The
+    // nth column represents the user factor array p_n, using the convention
     // of the Koren paper.
     fmat userFacMat;
 
-    // The item factor matrix. This is a numItems x numFactors matrix. The
-    // nth row represents the item factor array q_n, using the convention
-    // of the Koren paper.
+    // The item factor matrix. This is a numFactors x numItems matrix. The
+    // nth column represents the item factor array q_n, using the
+    // convention of the Koren paper.
     fmat itemFacMat;
 
-    // The "y" matrix. This is a numItems x numFactors matrix. The jth row
-    // of this is "y_j" in the convention of the Koren paper; it is
+    // The "y" matrix. This is a numFactors x numItems matrix. The jth
+    // column of this is "y_j" in the convention of the Koren paper; it is
     // supposed to weight the implicit preferences of the user (i.e. the
     // preferences in N(u)).
     fmat yMat;

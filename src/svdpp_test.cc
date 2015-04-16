@@ -166,20 +166,20 @@ int main(void)
 
         cout << "\nRead in a total of " << inputsReadIn << " points" << endl;
 
-        // Shuffle the data before making an Armadillo matrix.
-        shuffleVector(tempData, inputsReadIn, 3);
-        cout << "Shuffled input data." << endl;
+        // Shuffle the data before making an Armadillo matrix. NOTE:
+        // shuffling currently turned off, just to see how things work out.
+        //shuffleVector(tempData, inputsReadIn, 3);
+        //cout << "Shuffled input data." << endl;
         
         // This is the matrix where we'll store our shuffled training set.
-        // The three columns in this will correspond to (user, movie,
+        // The three rows in this will correspond to (user, movie,
         // rating).
         imat trainingSet = conv_to<imat>::from(tempData);
 
-        // Armadillo works in column-major order so we'll have to reshape
-        // the matrix to 3 x inputsReadIn before transposing it...
+        // Use column-major order, so the matrix is reshaped to 3 x
+        // inputsReadIn. Each column is a user's info.
         trainingSet.reshape(3, inputsReadIn);
-        inplace_trans(trainingSet);
-        
+
         SVDPP predAlgo(NUM_USERS, NUM_MOVIES, MEAN_RATING_TRAINING_SET,
                        NUM_FACTORS, NUM_ITERATIONS, N_FN);
         
