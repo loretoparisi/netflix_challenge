@@ -121,14 +121,15 @@ void RBM::train() {
 
     // Vector for storing user indices w/o cached rating indicator matrices
     std::vector<int> missing;
-    // Vector for marking indicator matrices as found
+    // Vector for marking indicator matrices as found; all are initialized as
+    // missing
     std::vector<bool> found(this->users, 0);
     DIR *directory;
     struct dirent *entity;
     // If the indicator data directory exists
     if ( (directory = opendir(INDICATOR_DATA_DIR)) ) {
-        // For every entry in the directory
-        while ( (entity = readdir(directory)) != NULL && 
+        // For every entry in the directory, which is not hidden
+        while ( (entity = readdir(directory)) && 
                 entity->d_name[0] != '.' ) {
             // Convert the filename into a string
             std::string filename = string(entity->d_name);
@@ -138,10 +139,16 @@ void RBM::train() {
             // Mark this indicator matrix as cached
             found[std::stoi(filename)] = 1;
         }
-    } 
-
-    // TODO: do something if the directory doesn't exist
-
+    // If it doesn't exist
+    } else {
+        // Try making the cache directory
+        if ( mkdir(INDICATOR_DATA_DIR, 
+                   S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) != 0 ) {
+            // Report that making the directory failed
+            throw runtime_error("Unable to make directory " 
+                                INDICATOR_DATA_DIR);
+        }
+    }
     // If any matrix is not found
     if ( std::accumulate(found.cbegin(), found.cend(), 0) != this->users ) {
         // For each user
@@ -209,6 +216,8 @@ void RBM::train() {
         // Load the data for this user
         data[i].load(userDataPath);
     }
+
+
 }
 
 void RBM::train(const imat &data) {
