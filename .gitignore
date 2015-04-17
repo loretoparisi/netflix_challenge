@@ -16,6 +16,8 @@ bin/*
 *.pyc
 *.o
 *.so
+*.cc~
+*.hh~
  
 # Packages #
 ############
