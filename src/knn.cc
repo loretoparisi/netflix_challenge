@@ -58,7 +58,7 @@ void KNN::initInternalData(const string &trainFilename)
 
     cout << "Finished building rating matrix." << endl;
 
-    userUser.resize(numUsers, numUsers);
+    //userUser.resize(numUsers, numUsers);
 
     fileTrain.close();
 }
@@ -115,8 +115,10 @@ void KNN::eachUser()
         for (int u2 = 0; u2 < numUsers; u2++)
         {
             similarity = simPearson(u1, u2);
-            userUser(u1, u2) = similarity;
+            userUser[u1][u2] = similarity;
         }
+        if (u1 % 1000000 == 0)
+            cout << "Processed 1000000 users." << endl;
     }
     cout << "Finished building the giant user-user matrix." << endl;
 }
@@ -131,7 +133,7 @@ float KNN::predict(int userId, int movieId)
     {
         // Don't compare the user to himself
         if (user == userId) continue;
-        sim = userUser(userId, user);
+        sim = userUser[userId][user];
         
         // Ignore scores of zero or lower.
         if (sim <= 0) continue;

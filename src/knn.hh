@@ -46,7 +46,7 @@ private:
     // averageUser[user] = average_rating
     unordered_map<int, float > averageUser;
     // giant <# of user> by <# of user> matrix
-    fmat userUser;
+    unordered_map<int, unordered_map<int, float> > userUser;
 
     void initInternalData(const string &trainFilename);
     float simPearson(int userId1, int userId2);
