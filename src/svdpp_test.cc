@@ -29,7 +29,7 @@ using namespace netflix; // challenge-related constants/functions.
 const set<int> TRAINING_SET_INDICES = {BASE_SET, HIDDEN_SET, VALID_SET};
 
 // The number of factors to use for SVD++.
-const int NUM_FACTORS = 60;
+const int NUM_FACTORS = 200;
 
 // The number of iterations of SVD++ to carry out.
 const int NUM_ITERATIONS = 30;
@@ -41,18 +41,19 @@ const string OUTPUT_FN = "../data/svdpppredictions.dta";
 const int RATING_SIG_FIGS = 4;
 
 // Whether the data will be cached after training.
-const bool WILL_CACHE_DATA = true;
+const bool WILL_CACHE_DATA = false;
 
 // Whether we're using cached data **instead of** training.
-const bool USING_CACHED_DATA = false;
+const bool USING_CACHED_DATA = true;
 
 // The locations of the files we'll use for caching (and read from if we're
 // using cached data). These must be in Armadillo binary format!
-const string B_USER_FN =        "../data/svdppcached/b_user.mat";
-const string B_ITEM_FN =        "../data/svdppcached/b_item.mat";
-const string USER_FAC_MAT_FN =  "../data/svdppcached/user_fac.mat";
-const string ITEM_FAC_MAT_FN =  "../data/svdppcached/item_fac.mat";
-const string Y_MAT_FN =         "../data/svdppcached/y.mat";
+const string B_USER_FN =            "../data/svdppcached/b_user.mat";
+const string B_ITEM_FN =            "../data/svdppcached/b_item.mat";
+const string USER_FAC_MAT_FN =      "../data/svdppcached/user_fac.mat";
+const string ITEM_FAC_MAT_FN =      "../data/svdppcached/item_fac.mat";
+const string Y_MAT_FN =             "../data/svdppcached/y.mat";
+const string SUM_MOVIE_WEIGHTS_FN = "../data/svdppcached/user_sum_y.mat";
 
 
 // Helper function that carries out "predAlgo" on the test file specified
@@ -84,7 +85,7 @@ int main(void)
         SVDPP predAlgo(NUM_USERS, NUM_MOVIES, MEAN_RATING_TRAINING_SET,
                        NUM_FACTORS, NUM_ITERATIONS, N_FN,
                        B_USER_FN, B_ITEM_FN, USER_FAC_MAT_FN,
-                       ITEM_FAC_MAT_FN, Y_MAT_FN);
+                       ITEM_FAC_MAT_FN, Y_MAT_FN, SUM_MOVIE_WEIGHTS_FN);
         
         // Go through qual.dta and produce a prediction file.
         testOnDataFile(predAlgo, QUAL_DATA_FN, OUTPUT_FN);
@@ -192,7 +193,7 @@ int main(void)
             
             predAlgo.trainAndCache(trainingSet, B_USER_FN, B_ITEM_FN,
                                    USER_FAC_MAT_FN, ITEM_FAC_MAT_FN,
-                                   Y_MAT_FN);
+                                   Y_MAT_FN, SUM_MOVIE_WEIGHTS_FN);
         }
         else
         {

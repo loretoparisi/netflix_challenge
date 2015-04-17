@@ -31,7 +31,8 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
     numUsers(numUsers), numItems(numItems), meanRating(meanRating),
     numFactors(numFactors), numIterations(numIterations), bUser(numUsers),
     bItem(numItems), userFacMat(numFactors, numUsers),
-    itemFacMat(numFactors, numItems), yMat(numFactors, numItems)
+    itemFacMat(numFactors, numItems), yMat(numFactors, numItems),
+    numItemsTrainingSet(numUsers), sumMovieWeights(numFactors, numUsers)
 {
     // Populate N by reading from fileNameN.
     populateN(fileNameN);
@@ -39,6 +40,9 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
     // Initialize bUser, bItem, userFacMat, itemFacMat, and yMat.
     initInternalData();
 
+#ifndef NDEBUG
+    cout << "Initialized data for SVD++ predictor.\n" << endl;
+#endif
 }
 
 
@@ -49,47 +53,53 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
  *
  * Note: This constructor should be used for blending, not the other one!
  *
- * @param numUsers:             Number of users in the entire data set (not
- *                              just training set).
- * @param numItems:             Number of items in the entire data set (not
- *                              just training set).
- * @param meanRating:           The mean rating of items in the training
- *                              set.
- * @param numFactors:           The number of factors to use for the SVD.
- * @param numIterations:        The number of iterations to use for SVD++.
- * @param fileNameN:            Name of the file that contains the
- *                              information needed to populate the N
- *                              mapping. This should be a plain text .dta
- *                              file (or equivalent).
- * @param fileNameBUser:        Name of file containing data for bUser, in
- *                              Armadillo's machine-dependent binary
- *                              format.
- * @param fileNameBItem:        Same as above, but for bItem.
- * @param fileNameUserFacMat:   Same as above, but for userFacMat.
- * @param fileNameItemFacMat:   Same as above, but for itemFacMat.
- * @param fileNameYMat:         Same as above, but for yMat.
+ * @param numUsers:                 Number of users in the entire data set
+ *                                  (not just training set).
+ * @param numItems:                 Number of items in the entire data set (not
+ *                                  just training set).
+ * @param meanRating:               The mean rating of items in the training
+ *                                  set.
+ * @param numFactors:               The number of factors to use for the
+ *                                  SVD.
+ * @param numIterations:            The number of iterations to use for
+ *                                  SVD++.
+ * @param fileNameN:                Name of the file that contains the
+ *                                  information needed to populate the N
+ *                                  mapping. This should be a plain text
+ *                                  .dta file (or equivalent).
+ * @param fileNameBUser:            Name of file containing data for bUser,
+ *                                  in Armadillo's machine-dependent binary
+ *                                  format.
+ * @param fileNameBItem:            Same as above, but for bItem.
+ * @param fileNameUserFacMat:       Same as above, but for userFacMat.
+ * @param fileNameItemFacMat:       Same as above, but for itemFacMat.
+ * @param fileNameYMat:             Same as above, but for yMat.
+ * @param fileNameSumMovieWeights:  Same as above, but for sumMovieWeights.
  *
  */
 SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
              int numIterations, const string &fileNameN,
              const string &fileNameBUser, const string &fileNameBItem,
              const string &fileNameUserFacMat,
-             const string &fileNameItemFacMat, const string &fileNameYMat) :
+             const string &fileNameItemFacMat, const string &fileNameYMat,
+             const string &fileNameSumMovieWeights) :
     numUsers(numUsers), numItems(numItems), meanRating(meanRating),
     numFactors(numFactors), numIterations(numIterations), bUser(numUsers),
     bItem(numItems), userFacMat(numFactors, numUsers),
-    itemFacMat(numFactors, numItems), yMat(numFactors, numItems)
+    itemFacMat(numFactors, numItems), yMat(numFactors, numItems),
+    numItemsTrainingSet(numUsers), sumMovieWeights(numFactors, numUsers)
 {
     // Populate N by reading from fileNameN.
     populateN(fileNameN);
 
-    // Initialize bUser, bItem, userFacMat, itemFacMat, and yMat by reading
-    // from their binary files.
+    // Initialize bUser, bItem, userFacMat, itemFacMat, yMat, and
+    // sumMovieWeights by reading from their binary files.
     bUser.load(fileNameBUser, arma_binary);
     bItem.load(fileNameBItem, arma_binary);
     userFacMat.load(fileNameUserFacMat, arma_binary);
     itemFacMat.load(fileNameItemFacMat, arma_binary);
     yMat.load(fileNameYMat, arma_binary);
+    sumMovieWeights.load(fileNameSumMovieWeights, arma_binary);
     
     trained = true;
     usingCachedData = true;
@@ -144,6 +154,29 @@ void SVDPP::populateN(const string &fileNameN)
 
 
 /**
+ * Given a training set, this function updates numItemsTrainingSet -- an
+ * array that stores the number of items in the training set that a given
+ * user rated.
+ *
+ * @param data: This is the training data to use for our algorithm. See
+ *              train() for more details.
+ *
+ */
+void SVDPP::populateNumItemsTrainingSet(const imat &data)
+{
+    for(unsigned int i = 0; i < data.n_cols; i++)
+    {
+        // Based on the user that this rating was by, increment the
+        // appropriate element of numItemsTrainingSet.
+        int user = data(USER_ROW, i);
+        
+        numItemsTrainingSet(user) ++;
+    }
+    
+}
+
+
+/**
  *
  * This function initializes the internal data in this SVDPP object.
  * Currently, randomization is turned on.
@@ -156,10 +189,10 @@ void SVDPP::initInternalData()
 {
     // Different distributions based on the matrix being initialized.
     uniform_real_distribution<float> distrBUser(-0.01, 0.1);
-    uniform_real_distribution<float> distrBItem(-0.01, 0.01);
-    uniform_real_distribution<float> distrUserFacMat(0.002, 0.02);
-    uniform_real_distribution<float> distrItemFacMat(-0.02, -0.002);
-    uniform_real_distribution<float> distrYMat(-0.1, 0.1);
+    uniform_real_distribution<float> distrBItem(-0.5, -0.1);
+    uniform_real_distribution<float> distrUserFacMat(-0.01, -0.002);
+    uniform_real_distribution<float> distrItemFacMat(0.01, 0.02);
+    uniform_real_distribution<float> distrYMat(0.0, 0.1);
 
     // Set the seed to a sequence of random numbers that's large enough to
     // fill the mt19937's state.
@@ -176,6 +209,13 @@ void SVDPP::initInternalData()
     userFacMat.imbue( [&]() { return distrUserFacMat(engine); } );
     itemFacMat.imbue( [&]() { return distrItemFacMat(engine); } );
     yMat.imbue( [&]() { return distrItemFacMat(engine); } );
+
+    // This is the count of the number of items rated by users in the given
+    // training set. We'll set this to zero for now.
+    numItemsTrainingSet.zeros();
+
+    // Don't worry about sum_{j in N(u)} y_j (i.e. sumMovieWeights) for
+    // now, since this will be set up while training.
      
     // Uncomment the lines below to set all of the data to zero instead.
     /*
@@ -192,22 +232,25 @@ void SVDPP::initInternalData()
  * This function trains on a given set of data, and then caches the
  * internal data of this SVDPP object.
  *
- * @param data:                 This is the training data to use for our
- *                              algorithm. See train() for more details.
- * @param fileNameBUser:        Name of file where we'll save bUser (in
- *                              Armadillo's machine-dependent binary
- *                              format).
- * @param fileNameBItem:        Same as above, but for bItem.
- * @param fileNameUserFacMat:   Same as above, but for userFacMat.
- * @param fileNameItemFacMat:   Same as above, but for itemFacMat.
- * @param fileNameYMat:         Same as above, but for yMat.
+ * @param data:                     This is the training data to use for
+ *                                  our algorithm. See train() for more
+ *                                  details.
+ * @param fileNameBUser:            Name of file where we'll save bUser (in
+ *                                  Armadillo's machine-dependent binary
+ *                                  format).
+ * @param fileNameBItem:            Same as above, but for bItem.
+ * @param fileNameUserFacMat:       Same as above, but for userFacMat.
+ * @param fileNameItemFacMat:       Same as above, but for itemFacMat.
+ * @param fileNameYMat:             Same as above, but for yMat.
+ * @param fileNameSumMovieWeights:  Same as above, but for sumMovieWeights.
  * 
  */
 void SVDPP::trainAndCache(const imat &data, const string &fileNameBUser,
                           const string &fileNameBItem,
                           const string &fileNameUserFacMat,
                           const string &fileNameItemFacMat,
-                          const string &fileNameYMat)
+                          const string &fileNameYMat,
+                          const string &fileNameSumMovieWeights)
 {
     // Train the SVD++ algorithm, then save internal data to file.
     train(data);
@@ -217,14 +260,60 @@ void SVDPP::trainAndCache(const imat &data, const string &fileNameBUser,
     userFacMat.save(fileNameUserFacMat, arma_binary);
     itemFacMat.save(fileNameItemFacMat, arma_binary);
     yMat.save(fileNameYMat, arma_binary);
-
+    sumMovieWeights.save(fileNameSumMovieWeights, arma_binary);
+    
 #ifndef NDEBUG
     cout << "Saved bUser to " << fileNameBUser << endl;
     cout << "Saved bItem to " << fileNameBItem << endl;
     cout << "Saved userFacMat to " << fileNameUserFacMat << endl;
     cout << "Saved itemFacMat to " << fileNameItemFacMat << endl;
     cout << "Saved yMat to " << fileNameYMat << endl;
+    cout << "Saved sumMovieWeights to " << fileNameSumMovieWeights << endl;
 #endif
+}
+
+
+/**
+ * This function updates the sum of movie weights (i.e. sum_{j in N(u)}
+ * y_j) for each user u between lowUserNum (inclusive) and highUserNum
+ * (exclusive). It is assumed that both of these user IDs are valid!
+ *
+ * @param lowUserNum:   The lower bound on user IDs to update.
+ * @param highUserNum:  The upper bound (exclusive) on user IDs to update.
+ *
+ */
+void SVDPP::updateSumMovieWeights(int lowUserNum, int highUserNum)
+{
+    // Iterate over all users, get N[u], and compute.
+    for(int user = lowUserNum; user < highUserNum; user++)
+    {
+        updateUserSumMovieWeights(user);
+    }
+}
+
+
+/**
+ * This function updates the sum of movie weights (i.e. sum_{j in N(u)}
+ * y_j) for a single user.
+ *
+ * @param user:     The user ID of interest.
+ *
+ */
+inline void SVDPP::updateUserSumMovieWeights(int user)
+{
+    // Get N[u] and compute the desired sum.
+    vector<int> nu = N[user];
+    
+    // Each column in sumMovieWeights has numFactors rows.
+    fcolvec sumColVec = zeros<fcolvec>(numFactors);
+
+    for (vector<int>::size_type ind = 0; ind < nu.size(); ind++)
+    {
+        int j = nu[ind];
+        sumColVec += yMat.col(j);
+    }
+
+    sumMovieWeights.col(user) = sumColVec;
 }
 
 
@@ -241,8 +330,8 @@ void SVDPP::trainAndCache(const imat &data, const string &fileNameBUser,
  *              All of these are assumed to be integers.
  *
  * Precondition: "data" should be in column-major order as stated above.
- *
- * It might also be a good idea to shuffle "data" beforehand...
+ * Also, the users should be sorted by their user ID (i.e. no shuffling
+ * should take place).
  *
  */
 
@@ -258,9 +347,11 @@ void SVDPP::train(const imat &data)
     // function with respect to q_*, p_*, y_*, and b_*:
     //
     //      min sum_{(u, i) in K} ( (r_{ui} - rHat_{ui})^2 +
-    //                              SVDPP_REG_1 * (b_u^2 + b_i^2) +
-    //                              SVDPP_REG_2 * (|q_i|^2 + |p_u|^2 + 
-    //                                          sum_{j in N(u)} |y_j|^2)) )
+    //                              SVDPP_LAM_B_U * b_u^2 +
+    //                              SVDPP_LAM_B_I * b_i^2 +
+    //                              SVDPP_LAM_Q_I * |q_i|^2 +
+    //                              SVDPP_LAM_P_U * |p_u|^2 + 
+    //                              SVDPP_LAM_Y_J * sum_{j in N(u)} |y_j|^2 )
     //
     // Where "K" is the training set and r_{ui} is the actual rating that
     // the user gave. The regularization terms here are used to prevent
@@ -292,6 +383,12 @@ void SVDPP::train(const imat &data)
         cout << "Cleared old internal data" << endl;
 #endif
     }
+
+    
+    // We want to find the number of items rated by each user in the
+    // training set, since this will help us go through our training data
+    // in a more organized fashion.
+    populateNumItemsTrainingSet(data);
     
 #ifndef NDEBUG
     time_point<system_clock> start, end;
@@ -304,99 +401,156 @@ void SVDPP::train(const imat &data)
 #ifndef NDEBUG
         start = system_clock::now();
 #endif
-        // Iterate through all elements of the training data, and predict a
-        // rating. Use gradient descent to correct the relevant matrices.
-        for(unsigned int ratingNum = 0; ratingNum < data.n_cols; 
-            ratingNum ++)
+        
+        // The rating number that we're looking at right now (i.e. the
+        // column in our training set).
+        unsigned int ratingNum = 0;
+        
+        // Iterate through all users in the training data. We're assuming
+        // that the data is sorted (column-wise) by user ID!
+        for (unsigned int user = 0; user < (unsigned int) numUsers;
+             user ++)
         {
-            // The user ID, item ID, and rating
-            int user = data(0, ratingNum);
-            int item = data(1, ratingNum);
-            int actualRating = data(2, ratingNum);
-            
+            // Update sumMovieWeights for this user.
+            updateUserSumMovieWeights(user);
+
             // Check N(u) to see if this user has implicit feedback data.
             vector<int> nu = N[user];
+            int nuSize = nu.size();
             
-            if (nu.size() == 0)
+            if (nuSize == 0)
             {
                 // If they don't, ignore them. After all, we're not gonna
                 // predict anything for them anyways.
                 continue;
             }
+            
+            // Norm factor put in front of userSumMovieWeights, etc.
+            float nuNormFac = 1.0/sqrt((float) nu.size());
+            
+            // Find the number of items rated by this user in the training
+            // set, so we know how many entries to parse.
+            int numItemsUserTrainSet = numItemsTrainingSet[user];
 
-            // Get the predicted rating for this user and item, using the
-            // aforementioned formula for rHat_{ui}.
-            float predictedRating = meanRating + bUser(user) + bItem(item);
+            // The value of sum_{j in N(u)} y_j for this user.
+            fcolvec userSumMovieWeights = 
+                fcolvec(sumMovieWeights.col(user));
+            
+            // The sum of all values of e_{ui} |N(u)|^{-1/2} * q_i over all
+            // items watched by this user. This is used to update yMat via
+            // gradient descent at the very end.
+            fcolvec sumErrNuNormQi = zeros<fcolvec>(numFactors);
+            
+            // Increment ratingNum as we iterate over items rated by the
+            // user.
+            for(int itemNum = 0; itemNum < numItemsUserTrainSet; itemNum++,
+                                                                 ratingNum++)
+            {
+                int item = data(ITEM_ROW, ratingNum);
+                int actualRating = data(RATING_ROW, ratingNum);
+                
+                // Get the predicted rating for this user and item, using the
+                // aforementioned formula for rHat_{ui}.
+                float predictedRating = meanRating + bUser(user) + bItem(item);
+                
+                // Compute the factorized term (i.e. q_i^T * (p_u + ...)).
+                // First find p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j, the
+                // "userFactorTerm". Start off by making a copy of
+                // p_u.
+                fcolvec userFactorTerm = fcolvec(userFacMat.col(user));
 
-            // Compute the factorized term (i.e. q_i^T * (p_u + ...)).
-            // First find p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j, the
-            // "userFactorTerm".
-            fcolvec userFactorTerm = userFacMat.col(user); // p_u
+                // sumMovieWeights should already have sum_{j in N(u)} y_j
+                // cached (from the previous iteration), so use that old
+                // value.
+                userFactorTerm += userSumMovieWeights * nuNormFac;
+                
+                // Add the factorized term (q_i^T * userFactorTerm) to the
+                // prediction.
+                fcolvec qi = fcolvec(itemFacMat.col(item));
+                predictedRating += dot(qi, userFactorTerm);
 
-            float nuNormFac = 1.0/sqrt(nu.size());
+                // Apply gradient descent on all of the free parameters in our
+                // algorithm EXCEPT FOR yMat (which only needs to be updated at
+                // the end for this user). This just involves subtracting off
+                // the gradient of the error metric (which we're trying to
+                // minimize) with respect to each free parameter. Note that
+                // factors of 2 have been absorbed into the "gamma" step
+                // sizes.
+                
+                // The error in our prediction for this user and item.
+                float eUI = (float) actualRating - predictedRating;
 
-            // This is where we'll store |N(u)|^{-1/2} sum_{j in N(u)} y_j.
-            fcolvec implicitTerm = zeros<fcolvec>(numFactors);
+                // b_u <- b_u + gamma_b_u * (e_{ui} - SVDPP_LAM_B_U * b_u)
+                bUser(user) += SVDPP_GAMMA_B_U * (eUI - SVDPP_LAM_B_U *
+                                                      bUser(user));
+                
+                // b_i <- b_i + gamma_b_i * (e_{ui} - SVDPP_LAM_B_I * b_i)
+                bItem(item) += SVDPP_GAMMA_B_I * (eUI - SVDPP_LAM_B_I *
+                                                        bItem(item));
 
+                // q_i <- q_i + gamma_2 * (e_{ui} * (p_u + |N(u)|^{-1/2} *
+                //                                   sum_{j in N(u)} y_j)
+                //                         - SVDPP_LAM_Q_I * q_i)
+                itemFacMat.col(item) += SVDPP_GAMMA_Q_I * (eUI * 
+                        userFactorTerm - SVDPP_LAM_Q_I * qi);
+                
+                // p_u <- p_u + gamma_2 * (e_{ui} * q_i - SVDPP_LAM_P_U * 
+                //                                        p_u)
+                userFacMat.col(user) += SVDPP_GAMMA_P_U * (eUI * qi - 
+                        SVDPP_LAM_P_U * userFacMat.col(user));
+                
+                // Ideally, for all j in N(u) (for each rating), we'd want
+                // to set:
+                //
+                // y_j <- y_j + SVDPP_GAMMA_Y_J * (e_{ui} |N(u)|^{-1/2} * q_i
+                //                                  - SVDPP_LAM_Y_J * y_j)
+                // 
+                // However, repeatedly changing all y_j for j in N(u) is
+                // very expensive. Instead, we just note that the term
+                // e_{ui} |N(u)|^{-1/2} * q_i is independent of j, and so
+                // we can actually update yMat's columns at the very end by
+                // adding the sum of all e_{ui} |N(u)|^{-1/2} * q_i
+                // (multiplied by the learning rate). This is what
+                // sumErrNuNormQi is. Of course, we also need to modify the
+                // regularization constant on y_j since we're adding a much
+                // bigger quantity on each SGD update step.
+                //
+                // This is pretty hacky and not going to give an accurate
+                // result as per the gradient. But it's fast.
+                //
+                // For now, just update sumErrNuNormQi.
+                sumErrNuNormQi += eUI * nuNormFac * qi;
+                
+            }
+
+            
+            // Go through each item in N[u] and update yMat for those
+            // columns. Don't update sumMovieWeights for this user yet;
+            // that'll happen on the next iteration.
             for (vector<int>::size_type ind = 0; ind < nu.size(); ind++)
             {
                 int j = nu[ind];
-                implicitTerm += yMat.col(j);
+                yMat.col(j) += SVDPP_GAMMA_Y_J * (sumErrNuNormQi -
+                                                SVDPP_LAM_Y_J * yMat.col(j));
             }
 
-            implicitTerm *= nuNormFac;
-
-            // Now we've computed p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j.
-            userFactorTerm += implicitTerm;
-
-            // Add the factorized term (q_i^T * ...) to the prediction.
-            fcolvec qi = itemFacMat.col(item);
-            predictedRating += dot(qi, userFactorTerm);
-            
-            // Apply gradient descent on all of the free parameters in our
-            // algorithm. This just involves subtracting off the gradient
-            // of the error metric (which we're trying to minimize) with
-            // respect to each free parameter. Note that factors of 2 have
-            // been absorbed into the "gamma" step sizes.
-            
-            // The error in our prediction for this user and item.
-            float eUI = (float) actualRating - predictedRating;
-
-            // b_u <- b_u + gamma_1 * (e_{ui} - SVDPP_REG_1 * b_u)
-            bUser(user) += SVDPP_GAMMA_1 * (eUI - SVDPP_REG_1 *
-                                                  bUser(user));
-            
-            // b_i <- b_i + gamma_1 * (e_{ui} - SVDPP_REG_1 * b_i)
-            bItem(item) += SVDPP_GAMMA_1 * (eUI - SVDPP_REG_1 *
-                                                  bItem(item));
-
-            // q_i <- q_i + gamma_2 * (e_{ui} * (p_u + |N(u)|^{-1/2} *
-            //                                   sum_{j in N(u)} y_j)
-            //                         - SVDPP_REG_2 * q_i)
-            itemFacMat.col(item) += SVDPP_GAMMA_2 * (eUI * userFactorTerm -
-                                                     SVDPP_REG_2 * qi);
-            
-            // p_u <- p_u + gamma_2 * (e_{ui} * q_i - SVDPP_REG_2 * p_u)
-            userFacMat.col(user) += SVDPP_GAMMA_2 * (eUI * qi - 
-                                                     SVDPP_REG_2 *
-                                                     userFacMat.col(user));
-
-            // For all j in N(u), we want to set:
-            // y_j <- y_j + SVDPP_GAMMA_2 * (e_{ui} |N(u)|^{-1/2} * q_i
-            //                               - SVDPP_REG_2 * y_j)
-            for (vector<int>::size_type ind = 0; ind < nu.size(); ind++)
+#if 0
+            if (user % 10000 == 0)
             {
-                int j = nu[ind];
-                yMat.col(j) += SVDPP_GAMMA_2 * (eUI * nuNormFac * qi -
-                                                SVDPP_REG_2 * yMat.col(j));
+                cout << "Finished processing user #" << user << "." 
+                     << endl;
             }
-
+#endif
         }
-         
+
         // At the end of each iteration, decrease the gammas by the
         // constant factor declared in the header file.
-        SVDPP_GAMMA_1 *= SVDPP_GAMMA_MULT_PER_ITER;
-        SVDPP_GAMMA_2 *= SVDPP_GAMMA_MULT_PER_ITER;
+        SVDPP_GAMMA_B_U *= SVDPP_GAMMA_MULT_PER_ITER;
+        SVDPP_GAMMA_B_I *= SVDPP_GAMMA_MULT_PER_ITER;
+        SVDPP_GAMMA_Q_I *= SVDPP_GAMMA_MULT_PER_ITER;
+        SVDPP_GAMMA_P_U *= SVDPP_GAMMA_MULT_PER_ITER; 
+        SVDPP_GAMMA_Y_J *= SVDPP_GAMMA_MULT_PER_ITER;
+
 
 #ifndef NDEBUG
         end = system_clock::now();
@@ -406,12 +560,17 @@ void SVDPP::train(const imat &data)
 #endif
     }
 
+    // Update sumMovieWeights for the last time, so that the data used by
+    // predict() (and the data cached to file) is accurate!
+    updateSumMovieWeights(0, numUsers);
+
+    trained = true;
+
 #ifndef NDEBUG
     cout << endl;
 #endif
-
-    trained = true;
 }
+
 
 /** 
  * This function predicts a rating for a given user and item. If the SVDPP
@@ -422,6 +581,9 @@ void SVDPP::train(const imat &data)
  *
  * @return A prediction of the user's rating for the given item. This will
  *         always end up being between MIN_RATING and MAX_RATING.
+ *
+ * Precondition: It is assumed that sumMovieWeights has been accurately set
+ * after training!
  *
  */
 float SVDPP::predict(int user, int item)
@@ -444,27 +606,16 @@ float SVDPP::predict(int user, int item)
     // Compute the factorized term (i.e. q_i^T * (p_u + ...)).
     // First find p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j, the
     // "userFactorTerm".
-    fcolvec userFactorTerm = userFacMat.col(user); // p_u
+    fcolvec userFactorTerm = fcolvec(userFacMat.col(user)); // p_u
     
     vector<int> nu = N[user];
     float nuNormFac = 1.0/sqrt(nu.size());
 
-    // This is where we'll store |N(u)|^{-1/2} sum_{j in N(u)} y_j.
-    fcolvec implicitTerm = zeros<fcolvec>(numFactors);
+    // Get sum_{j in N(u)} y_j and multiply by nuNormFac.
+    userFactorTerm += sumMovieWeights.col(user) * nuNormFac;
 
-    for (vector<int>::size_type ind = 0; ind < nu.size(); ind++)
-    {
-        int j = nu[ind];
-        implicitTerm += yMat.col(j);
-    }
-
-    implicitTerm *= nuNormFac;
-
-    // Now we've computed p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j.
-    userFactorTerm += implicitTerm;
-
-    // Add the factorized term (q_i^T * ...) to the prediction. 
-    fcolvec qi = itemFacMat.col(item);
+    // Add the factorized term (q_i^T * userFactorTerm) to the prediction.
+    fcolvec qi = fcolvec(itemFacMat.col(item));
     predictedRating += dot(qi, userFactorTerm);
 
     // Put the rating between MIN_RATING and MAX_RATING! Otherwise, the

@@ -1,11 +1,7 @@
 # This script creates the N(u) data file for all users in the dataset. For
 # a given user u, N(u) is defined as the set of items that "u" showed an
 # implicit preference for. In the context of the Netflix challenge, this is
-# the set of movies that the user voted for that are in the "qual" dataset
-# (i.e. that have an unknown rating). After all, the user must have had
-# some preference for that movie in order to watch it in the first place.
-# The implicitness comes from the fact that we do not know that user's
-# vote.
+# the set of movies that the user voted for across *all* datasets.
 #
 # Each line of the output file will contain the following information:
 #
@@ -17,25 +13,24 @@
 
 # Constants
 
-# Delimiter to use between value
+# Delimiter to use between values
 DELIMITER = " "
 
 # The input data files.
-QUAL_DTA = "../../data/um/new_qual.dta"
+ALL_DTA = "../../data/um/new_all.dta"
 
 # The file to output to
 OUTPUT_N_FILE_NAME = "../../data/N.dta"
 
 
-# A mapping from a user ID to a list of items in "qual" that that user has
-# shown an implicit preference for (i.e. they've rated that item, but the
-# rating is unknown).
+# A mapping from a user ID to a list of items in "all" that that user has
+# voted on (and hence has some implicit opinion on).
 userToImpPrefItems = dict()
 
-# Iterate through all entries in the "qual" data file.
-with open(QUAL_DTA, "r") as qualFile:
+# Iterate through all entries in the "all" data file.
+with open(ALL_DTA, "r") as allFile:
 
-    for line in qualFile:
+    for line in allFile:
         thisLineSplit = line.split()
 
         userID = int(thisLineSplit[0])
