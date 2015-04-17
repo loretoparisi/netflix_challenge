@@ -4,6 +4,7 @@ data/um/*
 data/mu/*
 *.mat
 data/svdpppredictions.dta
+data/N.dta
 
 # Library/Binary Directories #
 ##############################
