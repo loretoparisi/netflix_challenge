@@ -12,10 +12,13 @@
 #ifndef NETFLIX_NAMESPACE_HH
 #define NETFLIX_NAMESPACE_HH
 
-#include <vector>
+#include <armadillo>
+#include <array>
+#include <set>
 #include <string>
+#include <vector>
 
-using namespace std;
+using namespace arma;
 
 namespace netflix
 {
@@ -38,18 +41,18 @@ namespace netflix
     // Name of the file containing all of the data. Note that we are using
     // the version where user IDs, item IDs, and time IDs are all
     // zero-indexed. 
-    const string ALL_DATA_FN = "../data/um/new_all.dta";
+    const std::string DATA_PATH = "data/um/new_all.dta";
 
     // Name of the file containing corresponding set indexes for "all.dta"
     // (and "new_all.dta" too).
-    const string ALL_IDX_FN = "../data/um/all.idx";
+    const std::string INDEX_PATH = "data/um/all.idx";
 
     // Name of the file containing "qual" set data only. The user IDs, item
     // IDs, and time IDs in this have also been zero-indexed.
-    const string QUAL_DATA_FN = "../data/um/new_qual.dta";
+    const std::string QUAL_DATA_FN = "data/um/new_qual.dta";
 
     // Name of the file containing the "N" matrix.
-    const string N_FN = "../data/N.dta";
+    const std::string N_FN = "../data/N.dta";
     
     // These indices represent the different kinds of data in all.dta (and
     // in "new_all.dta" too).
@@ -59,14 +62,24 @@ namespace netflix
     constexpr int PROBE_SET = 4;
     constexpr int QUAL_SET = 5;
     
+    // The number of columns in the data file
+    constexpr int COLUMNS = 4;
+
+    // These are row indices in the data matrix (passed to MLAlgorithm::train)
+    constexpr int USER_ROW = 0;
+    constexpr int MOVIE_ROW = 1;
+    constexpr int DATE_ROW = 2;
+    constexpr int RATING_ROW = 3;
+
     // The delimiter used in our data files (e.g. in the data file containing
     // N).
-    const string NETFLIX_FILES_DELIMITER = " ";
-    
+    const std::string DELIMITER = " ";
     
     /* Convenience functions */
-    void splitIntoInts(const string &str, const string &delimiter,
-                       vector<int>& output);
+    void splitIntoInts(const std::string &str, const std::string &delimiter,
+                       std::vector<int> &output);
+    imat parseData(const std::string &indexPath, const std::string &dataPath, 
+                   const std::set<int> &indices);
 }
 
 

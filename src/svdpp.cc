@@ -136,7 +136,7 @@ void SVDPP::populateN(const string &fileNameN)
     {
         // Split the string around the specified delimiter.
         vector<int> thisLineVec;
-        splitIntoInts(line, NETFLIX_FILES_DELIMITER, thisLineVec);
+        splitIntoInts(line, DELIMITER, thisLineVec);
         
         // The first int should be the user's ID. This should be
         // zero-indexed!

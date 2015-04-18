@@ -24,7 +24,7 @@ bindir = bin
 
 
 # Default compiler flags (for C and C++)
-override CFLAGS += -Wall -O3 -march=native -mtune=generic -I$(includedir) \
+override CFLAGS += -Wall -I$(includedir) -O3 -march=native -mtune=generic \
 -Wno-reorder
 # -pipe -fstack-protector --param=ssp-buffer-size=4 -Wno-sign-compare -Wno-unused-function
 # Default compiler flags for C++
