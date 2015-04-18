@@ -104,6 +104,18 @@ int main(void)
         ifstream allIdxFile(ALL_IDX_FN);
         ifstream allDataFile(ALL_DATA_FN);
         
+        if (allIdxFile.fail())
+        {
+            throw runtime_error("Couldn't find index information file at "
+                                + ALL_IDX_FN);
+        }
+
+        if (allDataFile.fail())
+        {
+            throw runtime_error("Couldn't find \"all data\" file at "
+                                + ALL_DATA_FN);
+        }
+        
         // Lines from the above two files will be stored in these.
         string allDataLine;
         int thisLineInd;
@@ -250,8 +262,19 @@ void testOnDataFile(SVDPP &predAlgo, const string &testFileName,
                     const string &outputFileName)
 {
     ifstream qualDataFile(testFileName);
-    ofstream outputFile(outputFileName, ios::out); 
+    ofstream outputFile(outputFileName); 
     
+    if (qualDataFile.fail())
+    {
+        throw runtime_error("Couldn't find test file at " + testFileName);
+    }
+
+    if (outputFile.fail())
+    {
+        throw runtime_error("Couldn't open output file at " 
+                            + outputFileName);
+    }
+
     string qualDataLine;
     
     cout << "\nTesting on data in " << testFileName << "..." << endl;

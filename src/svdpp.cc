@@ -123,6 +123,13 @@ SVDPP::SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
 void SVDPP::populateN(const string &fileNameN)
 {
     ifstream fileN(fileNameN);
+
+    if (fileN.fail())
+    {
+        throw runtime_error("Couldn't find file containing N at " +
+                            fileNameN);
+    }
+
     string line;
 
     while (getline(fileN, line))
