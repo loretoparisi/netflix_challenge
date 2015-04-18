@@ -92,8 +92,6 @@ int main(void)
     }
     else // If not using cached data, we need to train.
     {
-        
-
         // We'll temporarily read our data into a vector, and then convert
         // into an imat afterwards. The number of entries in this vector
         // will be a multiple of 3. Each triple corresponds to a (user,
@@ -147,8 +145,8 @@ int main(void)
                                   "delimiter-separated entries!");
             }
             
-            // Insert the (user, movie, time, rating) information for this entry
-            // into trainingSet. The user IDs, movie IDs, and time IDs should be
+            // Insert the (user, movie, date, rating) information for this entry
+            // into trainingSet. The user IDs, movie IDs, and date IDs should be
             // zero-indexed in the data file!
             tempData.insert(tempData.end(), thisDataLineVec.begin(),
                             thisDataLineVec.end());
@@ -178,9 +176,6 @@ int main(void)
         // inputsReadIn. Each column is a user's info.
         trainingSet.reshape(4, inputsReadIn);
 
-        cout << trainingSet.col(0) << endl;
-        cout << trainingSet.col(1) << endl;
-        
         SVDPP predAlgo(NUM_USERS, NUM_MOVIES, MEAN_RATING_TRAINING_SET,
                        NUM_FACTORS, NUM_ITERATIONS, N_FN);
         

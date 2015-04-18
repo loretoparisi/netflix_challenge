@@ -62,9 +62,10 @@ private:
 
     // What the different rows in the data matrix are expected to
     // correspond to.
-    static const int USER_ROW = 0;
-    static const int ITEM_ROW = 1;
-    static const int RATING_ROW = 2;
+    static const int USER_ROW =     0;
+    static const int ITEM_ROW =     1;
+    static const int DATE_ROW =     2;
+    static const int RATING_ROW =   3;
     
     // The number of factors used in matrix factorization.
     const int numFactors;

@@ -323,11 +323,12 @@ inline void SVDPP::updateUserSumMovieWeights(int user)
  * the "trained" boolean will be set to true.
  *
  * @param data: This is the training data to use for our algorithm. This
- *              must be a 3 x N matrix, where N is the total number of
+ *              must be a 4 x N matrix, where N is the total number of
  *              ratings in the training set. NOTE: The first column must
- *              contain user IDs, the second column most contain item IDs,
- *              and the last column must contain the rating the user gave.
- *              All of these are assumed to be integers.
+ *              contain user IDs, the second column must contain item IDs,
+ *              the third column must contain date IDs, and the last column
+ *              must contain the rating the user gave.  All of these are
+ *              assumed to be integers.
  *
  * Precondition: "data" should be in column-major order as stated above.
  * Also, the users should be sorted by their user ID (i.e. no shuffling
@@ -360,8 +361,8 @@ void SVDPP::train(const imat &data)
     // This minimization is accomplished via stochastic gradient descent on
     // the free parameters of b_u, b_i, q_i, p_u, and y_j.
     
-    // Check that the data does in fact have three rows!
-    if (data.n_rows != 3)
+    // Check that the data does in fact have four rows!
+    if (data.n_rows != 4)
     {
         throw invalid_argument("Data array must have three rows!");
     }
@@ -383,7 +384,6 @@ void SVDPP::train(const imat &data)
         cout << "Cleared old internal data" << endl;
 #endif
     }
-
     
     // We want to find the number of items rated by each user in the
     // training set, since this will help us go through our training data
