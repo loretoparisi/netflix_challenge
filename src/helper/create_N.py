@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # This script creates the N(u) data file for all users in the dataset. For
 # a given user u, N(u) is defined as the set of items that "u" showed an
 # implicit preference for. In the context of the Netflix challenge, this is

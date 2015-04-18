@@ -433,8 +433,7 @@ void SVDPP::train(const imat &data)
             int numItemsUserTrainSet = numItemsTrainingSet[user];
 
             // The value of sum_{j in N(u)} y_j for this user.
-            fcolvec userSumMovieWeights = 
-                fcolvec(sumMovieWeights.col(user));
+            fcolvec userSumMovieWeights(sumMovieWeights.col(user));
             
             // The sum of all values of e_{ui} |N(u)|^{-1/2} * q_i over all
             // items watched by this user. This is used to update yMat via
@@ -457,7 +456,7 @@ void SVDPP::train(const imat &data)
                 // First find p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j, the
                 // "userFactorTerm". Start off by making a copy of
                 // p_u.
-                fcolvec userFactorTerm = fcolvec(userFacMat.col(user));
+                fcolvec userFactorTerm(userFacMat.col(user));
 
                 // sumMovieWeights should already have sum_{j in N(u)} y_j
                 // cached (from the previous iteration), so use that old
@@ -466,7 +465,7 @@ void SVDPP::train(const imat &data)
                 
                 // Add the factorized term (q_i^T * userFactorTerm) to the
                 // prediction.
-                fcolvec qi = fcolvec(itemFacMat.col(item));
+                fcolvec qi(itemFacMat.col(item));
                 predictedRating += dot(qi, userFactorTerm);
 
                 // Apply gradient descent on all of the free parameters in our
@@ -606,7 +605,7 @@ float SVDPP::predict(int user, int item)
     // Compute the factorized term (i.e. q_i^T * (p_u + ...)).
     // First find p_u + |N(u)|^{-1/2} sum_{j in N(u)} y_j, the
     // "userFactorTerm".
-    fcolvec userFactorTerm = fcolvec(userFacMat.col(user)); // p_u
+    fcolvec userFactorTerm(userFacMat.col(user)); // p_u
     
     vector<int> nu = N[user];
     float nuNormFac = 1.0/sqrt(nu.size());
@@ -615,7 +614,7 @@ float SVDPP::predict(int user, int item)
     userFactorTerm += sumMovieWeights.col(user) * nuNormFac;
 
     // Add the factorized term (q_i^T * userFactorTerm) to the prediction.
-    fcolvec qi = fcolvec(itemFacMat.col(item));
+    fcolvec qi(itemFacMat.col(item));
     predictedRating += dot(qi, userFactorTerm);
 
     // Put the rating between MIN_RATING and MAX_RATING! Otherwise, the
