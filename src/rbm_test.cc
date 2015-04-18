@@ -2,9 +2,6 @@
 
 #include "rbm.hh"
 
-#define INDEX_PATH "data/um/all.idx"
-#define DATA_PATH "data/um/new_all.dta"
-
 // The indices of the dataset to use for training.
 const std::set<int> TRAINING_SET_INDICES = {BASE_SET};
 

@@ -3,7 +3,7 @@
 
 #include <armadillo>
 
-#include "mlalgorithm.hh"
+#include "singlealgorithm.hh"
 #include "netflix.hh"
 
 #define EPSILON 0.001
@@ -12,19 +12,10 @@
 using namespace arma;
 using namespace netflix;
 
-// TODO: add momentum, sparse cube class (operators?)
+// TODO: add momentum
 
-class RBM : public MLAlgorithm {
+class RBM : public SingleAlgorithm {
 private:
-    // Weights between the hidden & visible units (W)
-    fcube weights;
-
-    // Shared biases of visible units
-    fmat visibleBias;
-
-    // Shared biases of the hidden units
-    frowvec hiddenBias;
-
     // Number of users in the data set
     int users;
 
@@ -37,13 +28,21 @@ private:
     // Learning rate
     float rate;
 
+    // Weights between the hidden & visible units (W)
+    fcube weights;
+
+    // Shared biases of visible units
+    fmat visibleBias;
+
+    // Shared biases of the hidden units
+    frowvec hiddenBias;
+
 public:
     RBM(int users, int movies, int hidden, float rate);
     ~RBM();
 
-    void train();
     void train(const imat &data);
-    float predict(int user, int item);
+    float predict(int user, int item, int date);
 };
 
 #endif
