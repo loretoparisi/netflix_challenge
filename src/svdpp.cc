@@ -577,6 +577,7 @@ void SVDPP::train(const imat &data)
  *
  * @param user: the user ID of interest.
  * @param item: the item ID of interest.
+ * @param date: the date ID of interest (not used in SVD++).
  *
  * @return A prediction of the user's rating for the given item. This will
  *         always end up being between MIN_RATING and MAX_RATING.
@@ -585,7 +586,7 @@ void SVDPP::train(const imat &data)
  * after training!
  *
  */
-float SVDPP::predict(int user, int item)
+float SVDPP::predict(int user, int item, int date)
 {
     if (!trained)
     {

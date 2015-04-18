@@ -5,7 +5,7 @@
 #ifndef KNN_HH
 #define KNN_HH
 
-#include "mlalgorithm.hh"
+#include "singlealgorithm.hh"
 #include "netflix.hh"
 #include <armadillo>
 #include <vector>
@@ -87,7 +87,7 @@ struct s_neighbors {
     float weight;
 };
 
-class KNN : public MLAlgorithm
+class KNN : public SingleAlgorithm
 {
 private:
     // Testing data set.
@@ -114,7 +114,7 @@ private:
     s_pear P[NUM_MOVIES][NUM_MOVIES];
     float movieAvg[NUM_MOVIES];
 
-    float predict(int user, int item);
+    float predict(int user, int item, int date);
 
 public:
     KNN(const string &trainFilenameUM, const string &trainFilenameMU,

@@ -34,17 +34,17 @@ const int NUM_FACTORS = 200;
 // The number of iterations of SVD++ to carry out.
 const int NUM_ITERATIONS = 30;
 
-// The name of the output file to use.
+// The name of the output file to use (for predictions on "qual").
 const string OUTPUT_FN = "../data/svdpppredictions.dta";
 
 // Sig-figs for output file.
 const int RATING_SIG_FIGS = 4;
 
 // Whether the data will be cached after training.
-const bool WILL_CACHE_DATA = false;
+const bool WILL_CACHE_DATA = true;
 
 // Whether we're using cached data **instead of** training.
-const bool USING_CACHED_DATA = true;
+const bool USING_CACHED_DATA = false;
 
 // The locations of the files we'll use for caching (and read from if we're
 // using cached data). These must be in Armadillo binary format!
@@ -147,14 +147,11 @@ int main(void)
                                   "delimiter-separated entries!");
             }
             
-            // Insert the (user, movie, rating) information for this entry
-            // into trainingSet. The user IDs and movie IDs should be
+            // Insert the (user, movie, time, rating) information for this entry
+            // into trainingSet. The user IDs, movie IDs, and time IDs should be
             // zero-indexed in the data file!
-            int thisEntry[3] = {thisDataLineVec[0],     // user
-                                thisDataLineVec[1],     // movie
-                                thisDataLineVec[3]};    // rating
-            
-            tempData.insert(tempData.end(), thisEntry, thisEntry + 3);
+            tempData.insert(tempData.end(), thisDataLineVec.begin(),
+                            thisDataLineVec.end());
             
             inputsReadIn ++;
 
@@ -177,10 +174,13 @@ int main(void)
         // rating).
         imat trainingSet = conv_to<imat>::from(tempData);
 
-        // Use column-major order, so the matrix is reshaped to 3 x
+        // Use column-major order, so the matrix is reshaped to 4 x
         // inputsReadIn. Each column is a user's info.
-        trainingSet.reshape(3, inputsReadIn);
+        trainingSet.reshape(4, inputsReadIn);
 
+        cout << trainingSet.col(0) << endl;
+        cout << trainingSet.col(1) << endl;
+        
         SVDPP predAlgo(NUM_USERS, NUM_MOVIES, MEAN_RATING_TRAINING_SET,
                        NUM_FACTORS, NUM_ITERATIONS, N_FN);
         
@@ -275,13 +275,15 @@ void testOnDataFile(SVDPP &predAlgo, const string &testFileName,
                               "entries!");
         }
         
-        // The first entry is the user ID, and the second entry is the item
-        // ID. Both of these should be zero-indexed!
+        // The first entry is the user ID, the second entry is the item ID,
+        // and the third entry is the date. All of these should be
+        // zero-indexed!
         int user = thisLineVec[0];
         int item = thisLineVec[1];
-
+        int date = thisLineVec[2];
+        
         // Output the prediction to file.
-        float prediction = predAlgo.predict(user, item);
+        float prediction = predAlgo.predict(user, item, date);
         outputFile << setprecision(RATING_SIG_FIGS) << prediction << endl;
     }
     

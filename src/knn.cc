@@ -277,7 +277,7 @@ void KNN::loadP() {
 
 }
 
-float KNN::predict(int user, int item) {
+float KNN::predict(int user, int item, int date) {
     // NOTE: making item and n unsigned ints might make it easier for the compiler
     // to implement branchless min()
     float prediction = 0;
@@ -422,10 +422,15 @@ void KNN::output() {
         exit(-1);
     }
     while (getline(qual, line)) {
+        // TODO: use splitIntoInts from the netflix namespace, just for
+        // consistency.
         memcpy(c_line, line.c_str(), 20);
         userId = atoi(strtok(c_line, " "));
         movieId = (short) atoi(strtok(NULL, " "));
-        rating = predict(userId, movieId);
+
+        // TODO (from Laksh): I know this doesn't use times, but it's
+        // probably a good idea to pass in "time" anyways, and not just -1.
+        rating = predict(userId, movieId, -1);
         out << rating << '\n';
     }
 

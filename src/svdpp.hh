@@ -13,7 +13,7 @@
 #ifndef SVDPP_HH
 #define SVDPP_HH
 
-#include "mlalgorithm.hh"
+#include "singlealgorithm.hh"
 #include "netflix.hh"
 #include <armadillo>
 #include <vector>
@@ -32,7 +32,7 @@ using namespace std;
 using namespace arma;
 using namespace netflix; // challenge-related constants/functions.
 
-class SVDPP : public MLAlgorithm
+class SVDPP : public SingleAlgorithm
 {
 private:
     // Regularization constants for each internal variable. See the train()
@@ -44,7 +44,7 @@ private:
     static constexpr float SVDPP_LAM_B_U = 0.030;
     static constexpr float SVDPP_LAM_Q_I = 0.006;
     static constexpr float SVDPP_LAM_P_U = 0.080;
-    static constexpr float SVDPP_LAM_Y_J = 0.080; // different
+    static constexpr float SVDPP_LAM_Y_J = 0.030;
     
     // Step sizes used for stochastic gradient descent. See the train()
     // method for more on which parameters these apply to. These came from
@@ -152,7 +152,7 @@ public:
                        const string &fileNameYMat,
                        const string &fileNameSumMovieWeights);
     
-    float predict(int user, int item);
+    float predict(int user, int item, int date);
 };
 
 #endif // SVDPP_HH
