@@ -42,18 +42,18 @@ namespace netflix
     // the version where user IDs, item IDs, and time IDs are all
     // zero-indexed. 
     const std::string DATA_PATH = "data/um/new_all.dta";
-
+    
     // Name of the file containing corresponding set indexes for "all.dta"
     // (and "new_all.dta" too).
     const std::string INDEX_PATH = "data/um/all.idx";
-
+    
     // Name of the file containing "qual" set data only. The user IDs, item
     // IDs, and time IDs in this have also been zero-indexed.
     const std::string QUAL_DATA_FN = "data/um/new_qual.dta";
-
-    // Name of the file containing the "N" matrix.
-    const std::string N_FN = "../data/N.dta";
     
+    // Name of the file containing the "N" matrix.
+    const std::string N_FN = "data/N.dta";
+
     // These indices represent the different kinds of data in all.dta (and
     // in "new_all.dta" too).
     constexpr int BASE_SET = 1;
@@ -62,7 +62,37 @@ namespace netflix
     constexpr int PROBE_SET = 4;
     constexpr int QUAL_SET = 5;
     
-    // The number of columns in the data file
+    // Various subsets of the training dataset (i.e. not including
+    // "qual").
+    const std::set<int> BASE_IDX                = {BASE_SET};
+    const std::set<int> HIDDEN_IDX              = {HIDDEN_SET};
+    const std::set<int> VALID_IDX               = {VALID_SET};
+    const std::set<int> PROBE_IDX               = {PROBE_SET};
+    const std::set<int> BASE_HIDDEN_IDX         = {BASE_SET, HIDDEN_SET};
+    const std::set<int> BASE_HIDDEN_VALID_IDX   = {BASE_SET, HIDDEN_SET,
+                                                   VALID_SET};
+    const std::set<int> ALL_TRAIN_IDX           = {BASE_SET, HIDDEN_SET,
+                                                   VALID_SET, PROBE_SET};
+
+
+    // These are the file names of where we're storing various subsets of
+    // the dataset in Armadillo's binary format (as fmats). We don't
+    // include "qual" among these subsets since qual should not be used for
+    // testing. The contents of these matrices should be self-explanatory.
+    // Run the helper code in "binarize_data.cc" to create them once.
+    const std::string BASE_BIN                  = "data/um/base.mat";
+    const std::string HIDDEN_BIN                = "data/um/hidden.mat";
+    const std::string VALID_BIN                 = "data/um/valid.mat";
+    const std::string PROBE_BIN                 = "data/um/probe.mat";
+    const std::string BASE_HIDDEN_BIN           = "data/um/base_"
+                                                  "hidden.mat";
+    const std::string BASE_HIDDEN_VALID_BIN     = "data/um/base_hidden_"
+                                                  "valid.mat";
+    const std::string ALL_TRAIN_BIN             = "data/um/base_hidden_valid_"
+                                                  "probe.mat";
+
+    
+    // The number of columns in the data files (not including qual).
     constexpr int COLUMNS = 4;
 
     // These are row indices in the data matrix (passed to MLAlgorithm::train)
@@ -78,8 +108,20 @@ namespace netflix
     /* Convenience functions */
     void splitIntoInts(const std::string &str, const std::string &delimiter,
                        std::vector<int> &output);
-    imat parseData(const std::string &indexPath, const std::string &dataPath, 
+    fmat parseData(const std::string &indexPath, const std::string &dataPath, 
                    const std::set<int> &indices);
+    
+    /**
+     * Rounds a float to an int without truncating. Used to convert user
+     * IDs, item IDs, and date IDs in our fmats into integers. For
+     * instance, an item ID of 16.9999 really should be recorded as item ID
+     * 17, not item ID 16.
+     *
+     */
+    inline int roundToInt(float x)
+    {
+        return int(x + 0.5);
+    }
 }
 
 

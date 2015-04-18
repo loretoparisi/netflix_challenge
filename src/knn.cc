@@ -403,6 +403,8 @@ float KNN::predict(int user, int item, int date) {
 
 }
 
+
+// TODO: refactor.
 void KNN::output() {
     string line;
     char c_line[20];
@@ -422,8 +424,6 @@ void KNN::output() {
         exit(-1);
     }
     while (getline(qual, line)) {
-        // TODO: use splitIntoInts from the netflix namespace, just for
-        // consistency.
         memcpy(c_line, line.c_str(), 20);
         userId = atoi(strtok(c_line, " "));
         movieId = (short) atoi(strtok(NULL, " "));
@@ -437,7 +437,37 @@ void KNN::output() {
     cout << "Output generated" << endl;
 }
 
-void KNN::train(const imat &data) {}
+
+/**
+ * TODO: Move training here! Also describe the format that you expect
+ * "data" to be. It should be in column-major format with a shape of 4 x
+ * NUM_RATINGS.
+ */
+
+void KNN::train(const fmat &data)
+{
+    
+}
+
+
+/**
+ * This function also trains, but it first loads a file from fileNameData.
+ * This file must be an Armadillo binary of an fmat.
+ *
+ * @param fileNameData: The file where "data" is stored. This binary file
+ *                      must hold matrix data in the format specified in
+ *                      the train(const fmat &data) function.
+ *
+ */
+void KNN::train(const string &fileNameData)
+{
+    fmat data;
+
+    data.load(fileNameData, arma_binary);
+    train(data);
+}
+
+
 
 KNN::~KNN()
 {

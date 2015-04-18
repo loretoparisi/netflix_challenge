@@ -41,4 +41,4 @@ CYTHON_FLAGS = -2
 # Compiler flags for compiling with Cython
 CYTHON_CFLAGS = -I/usr/include/python3.4m -Wno-strict-aliasing
 # Linker flags for linking object files compiled from Cython-generated code
-CYTHON_LDFLAGS = -lpython3.4m
+CYTHON_LDFLAGS = -I/usr/include/python3.4m -lpython3.4m

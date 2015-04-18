@@ -15,6 +15,7 @@ bin/*
 
 # Compiled source #
 ###################
+src/interface.cc
 *.pyc
 *.o
 *.so

@@ -169,13 +169,13 @@ void SVDPP::populateN(const string &fileNameN)
  *              train() for more details.
  *
  */
-void SVDPP::populateNumItemsTrainingSet(const imat &data)
+void SVDPP::populateNumItemsTrainingSet(const fmat &data)
 {
     for(unsigned int i = 0; i < data.n_cols; i++)
     {
         // Based on the user that this rating was by, increment the
         // appropriate element of numItemsTrainingSet.
-        int user = data(USER_ROW, i);
+        int user = roundToInt(data(USER_ROW, i));
         
         numItemsTrainingSet(user) ++;
     }
@@ -252,7 +252,7 @@ void SVDPP::initInternalData()
  * @param fileNameSumMovieWeights:  Same as above, but for sumMovieWeights.
  * 
  */
-void SVDPP::trainAndCache(const imat &data, const string &fileNameBUser,
+void SVDPP::trainAndCache(const fmat &data, const string &fileNameBUser,
                           const string &fileNameBItem,
                           const string &fileNameUserFacMat,
                           const string &fileNameItemFacMat,
@@ -278,6 +278,37 @@ void SVDPP::trainAndCache(const imat &data, const string &fileNameBUser,
     cout << "Saved sumMovieWeights to " << fileNameSumMovieWeights << endl;
 #endif
 }
+
+
+/**
+ * This function also trains and caches, but it first loads a file from
+ * fileNameData. This file must be an Armadillo binary of an fmat.
+ *
+ * @param fileNameData: The file where "data" is stored. This binary file
+ *                      must hold matrix data in the format specified in
+ *                      the train(const fmat &data) function.
+ *
+ * The other params are the same as in the other trainAndCache()
+ * function.
+ *
+ */
+void SVDPP::trainAndCache(const string &fileNameData,
+                          const string &fileNameBUser,
+                          const string &fileNameBItem,
+                          const string &fileNameUserFacMat,
+                          const string &fileNameItemFacMat,
+                          const string &fileNameYMat,
+                          const string &fileNameSumMovieWeights)
+{
+    fmat data;
+
+    data.load(fileNameData, arma_binary);
+    trainAndCache(data, fileNameBUser, fileNameBItem, fileNameUserFacMat,
+                  fileNameItemFacMat, fileNameYMat,
+                  fileNameSumMovieWeights);
+}
+
+
 
 
 /**
@@ -343,7 +374,7 @@ inline void SVDPP::updateUserSumMovieWeights(int user)
  *
  */
 
-void SVDPP::train(const imat &data)
+void SVDPP::train(const fmat &data)
 {
     // The predicted rating given by SVD++ for user u and item i is:
     //
@@ -452,8 +483,8 @@ void SVDPP::train(const imat &data)
             for(int itemNum = 0; itemNum < numItemsUserTrainSet; itemNum++,
                                                                  ratingNum++)
             {
-                int item = data(ITEM_ROW, ratingNum);
-                int actualRating = data(RATING_ROW, ratingNum);
+                int item = roundToInt(data(ITEM_ROW, ratingNum));
+                int actualRating = roundToInt(data(RATING_ROW, ratingNum));
                 
                 // Get the predicted rating for this user and item, using the
                 // aforementioned formula for rHat_{ui}.
@@ -576,6 +607,25 @@ void SVDPP::train(const imat &data)
     cout << endl;
 #endif
 }
+
+
+/**
+ * This function also trains, but it first loads a file from fileNameData.
+ * This file must be an Armadillo binary of an fmat.
+ *
+ * @param fileNameData: The file where "data" is stored. This binary file
+ *                      must hold matrix data in the format specified in
+ *                      the train(const fmat &data) function.
+ *
+ */
+void SVDPP::train(const string &fileNameData)
+{
+    fmat data;
+
+    data.load(fileNameData, arma_binary);
+    train(data);
+}
+
 
 
 /** 

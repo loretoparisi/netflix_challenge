@@ -25,8 +25,8 @@ using namespace netflix; // challenge-related constants/functions.
 
 /* Constants */
 
-// The indices of the dataset to use for training.
-const set<int> TRAINING_SET_INDICES = {BASE_SET, HIDDEN_SET, VALID_SET};
+// The Armadillo binary file to use for training.
+const string SVDPP_TRAIN_FILE = BASE_HIDDEN_VALID_BIN;
 
 // The number of factors to use for SVD++.
 const int NUM_FACTORS = 200;
@@ -35,7 +35,7 @@ const int NUM_FACTORS = 200;
 const int NUM_ITERATIONS = 30;
 
 // The name of the output file to use (for predictions on "qual").
-const string OUTPUT_FN = "../data/svdpppredictions.dta";
+const string OUTPUT_FN = "data/svdpppredictions.dta";
 
 // Sig-figs for output file.
 const int RATING_SIG_FIGS = 4;
@@ -48,12 +48,12 @@ const bool USING_CACHED_DATA = false;
 
 // The locations of the files we'll use for caching (and read from if we're
 // using cached data). These must be in Armadillo binary format!
-const string B_USER_FN =            "../data/svdppcached/b_user.mat";
-const string B_ITEM_FN =            "../data/svdppcached/b_item.mat";
-const string USER_FAC_MAT_FN =      "../data/svdppcached/user_fac.mat";
-const string ITEM_FAC_MAT_FN =      "../data/svdppcached/item_fac.mat";
-const string Y_MAT_FN =             "../data/svdppcached/y.mat";
-const string SUM_MOVIE_WEIGHTS_FN = "../data/svdppcached/user_sum_y.mat";
+const string B_USER_FN =            "data/svdppcached/b_user.mat";
+const string B_ITEM_FN =            "data/svdppcached/b_item.mat";
+const string USER_FAC_MAT_FN =      "data/svdppcached/user_fac.mat";
+const string ITEM_FAC_MAT_FN =      "data/svdppcached/item_fac.mat";
+const string Y_MAT_FN =             "data/svdppcached/y.mat";
+const string SUM_MOVIE_WEIGHTS_FN = "data/svdppcached/user_sum_y.mat";
 
 
 // Helper function that carries out "predAlgo" on the test file specified
@@ -92,9 +92,10 @@ int main(void)
     }
     else // If not using cached data, we need to train.
     {
-        imat trainingSet = parseData(INDEX_PATH, DATA_PATH, 
-                                     TRAINING_SET_INDICES);
-
+        // Load from binary.
+        fmat trainingSet;
+        trainingSet.load(SVDPP_TRAIN_FILE, arma_binary);
+        
         SVDPP predAlgo(NUM_USERS, NUM_MOVIES, MEAN_RATING_TRAINING_SET,
                        NUM_FACTORS, NUM_ITERATIONS, N_FN);
         

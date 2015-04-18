@@ -62,15 +62,14 @@ mkbin:
 
 # Generate a C++ file from a Cython file
 %.cc: %.pyx mklib
-	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o $(srcdir)/$@
+	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o $@
 
 # Additional compiler flags for all object files go here (using EXTRA_CFLAGS)
 lib/svdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 lib/svdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-
-# Additional compiler flags for all object files go here (using EXTRA_CFLAGS)
 lib/knn.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 lib/knn_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+lib/interface.o: private EXTRA_CFLAGS += $(CYTHON_CFLAGS)
 
 # Implicit rule to generate object files
 $(libdir)/%.o: %.cc mklib
@@ -78,8 +77,10 @@ $(libdir)/%.o: %.cc mklib
 	$(CXX) $(CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
 
 # Dependencies for all library targets go here
+interface.so: src/interface.cc lib/interface.o lib/svdpp.o lib/netflix.o
 
 # Additional linker flags for all library targets go here (using EXTRA_LDFLAGS)
+interface.so: private EXTRA_LDFLAGS += $(CYTHON_LDFLAGS) $(ARMA_LDFLAGS)
 
 # Implicit rule matching the C/C++ dynamic library naming convention
 lib%.so: $(libdir)/%.o
@@ -90,15 +91,18 @@ lib%.so: $(libdir)/%.o
 # assumed to be a Cython extension; shared objects must match the name of the
 # Cython interfaces to avoid runtime errors
 %.so: $(libdir)/%.o
-	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $^ -o $(libdir)/$@ \
-	$(EXTRA_LDFLAGS)
+	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $(filter-out %.cc,$^) \
+	-o $(libdir)/$@ $(EXTRA_LDFLAGS)
 	@# Link the extension back to our source directory for use
-	ln -s $(libdir)/$@ $(srcdir)
+	@# The .. gets directories right (for now)
+	$(RM) $(srcdir)/$@
+	ln -s ../$(libdir)/$@ $(srcdir)
 
 # Dependencies for all binary targets go here
 rbm_test: lib/rbm.o lib/netflix.o
 svdpp_test: lib/svdpp.o lib/netflix.o
 knn_test: lib/knn.o lib/netflix.o
+binarize_data: lib/netflix.o
 
 # Additional linker flags for all binary targets go here (using EXTRA_LDFLAGS)
 rbm_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)

@@ -48,16 +48,24 @@ namespace netflix
         }
     }
 
-    imat parseData(const std::string &indexPath, const std::string &dataPath, 
+    fmat parseData(const std::string &indexPath, const std::string &dataPath, 
                    const std::set<int> &indices) {
         // Open the index file
         std::ifstream indexFile(indexPath);
+
+        if (indexFile.fail())
+        {
+            throw std::runtime_error("Couldn't find index file at " +
+                                     indexPath);
+        }
+
         // Line buffer
         std::string line;
         // Line count
         int lines = 0;
         // Count the number of lines in the data file
         while ( std::getline(indexFile, line) != 0 ) ++lines;
+
         // Clear the eofbit
         indexFile.clear();
         // Reset the index file's stream to the beginning of the file
@@ -65,28 +73,45 @@ namespace netflix
 
         // Open the data file
         std::ifstream dataFile(dataPath);
+        
+        if (dataFile.fail())
+        {
+            throw std::runtime_error("Couldn't find data file at " +
+                                     dataPath);
+        }
+        
         // Armadillo matrix for storing data
-        imat data(COLUMNS, lines, fill::zeros);
+        fmat data(COLUMNS, lines, fill::zeros);
         // Start loading the 0th column
         int col = 0;
         // Temporary variables for reading index & data of a row
-        int index, user, movie, date, rating;
+        int index, user, movie, date;
+        float rating;
         // For each row, read the index
         while ( indexFile >> index ) {
             // Get the data for this row
             dataFile >> user >> movie >> date >> rating;
             // Skip the row if its index is not in our set of desired indices
             if ( indices.count(index) == 0 ) continue;
-            // Store it in our data matrix
-            data.at(USER_ROW, col) = user;
-            data.at(MOVIE_ROW, col) = movie;
-            data.at(DATE_ROW, col) = date;
+            // Store it in our data matrix as floats
+            data.at(USER_ROW, col) = (float) user;
+            data.at(MOVIE_ROW, col) = (float) movie;
+            data.at(DATE_ROW, col) = (float) date;
             data.at(RATING_ROW, col) = rating;
             // Write to the next column
             ++col;
+            
+#ifndef NDEBUG
+            if (col % 1000000 == 0)
+            {
+                std::cout << "Finished adding entry " << col << "." <<
+                    std::endl;
+            }
+#endif
+
         }
 #ifndef NDEBUG
-        std::cout << col << " columns parsed" << std::endl;
+        std::cout << col << " columns added to data" << std::endl;
 #endif
         // Remove unused columns
         data.shed_cols(col, lines - 1);
@@ -96,4 +121,5 @@ namespace netflix
 
         return data;
     }
+
 }

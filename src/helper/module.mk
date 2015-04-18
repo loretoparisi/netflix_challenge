@@ -1,1 +1,1 @@
-BINS += user_avg
+BINS += user_avg binarize_data

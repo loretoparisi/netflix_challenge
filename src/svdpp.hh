@@ -129,7 +129,7 @@ private:
 
     void initInternalData();
     void populateN(const string &fileNameN);
-    void populateNumItemsTrainingSet(const imat &data);
+    void populateNumItemsTrainingSet(const fmat &data);
     void updateSumMovieWeights(int lowUserNum, int highUserNum);
     inline void updateUserSumMovieWeights(int user);
 
@@ -145,13 +145,24 @@ public:
      
     ~SVDPP();
     
-    void train(const imat &data);
-    void trainAndCache(const imat &data, const string &fileNameBUser,
+    void train(const fmat &data);
+    void train(const string &fileNameData);
+
+    void trainAndCache(const fmat &data, const string &fileNameBUser,
                        const string &fileNameBItem,
                        const string &fileNameUserFacMat,
                        const string &fileNameItemFacMat,
                        const string &fileNameYMat,
                        const string &fileNameSumMovieWeights);
+    
+    void trainAndCache(const string &fileNameData,
+                       const string &fileNameBUser,
+                       const string &fileNameBItem,
+                       const string &fileNameUserFacMat,
+                       const string &fileNameItemFacMat,
+                       const string &fileNameYMat,
+                       const string &fileNameSumMovieWeights);
+    
     
     float predict(int user, int item, int date);
 };

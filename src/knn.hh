@@ -120,7 +120,8 @@ public:
     KNN(const string &trainFilenameUM, const string &trainFilenameMU,
         const string &pFilename, const string &qualFilename,
         const string &outputFilename, bool test);
-    void train(const imat &data);
+    void train(const fmat &data);
+    void train(const string &fileNameData);
     ~KNN();
     void loadData();
     void calcP();
