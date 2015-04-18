@@ -20,198 +20,419 @@
  *                              we do not have answers and wish to output.
  *
  */
-KNN::KNN(int numUsers, int numItems, const string &trainFilename,
-    const string &qualFilename, const string &outputFilename, bool test) :
-    numUsers(numUsers), numItems(numItems), qualFilename(qualFilename), 
+KNN::KNN(const string &trainFilenameUM, const string &trainFilenameMU,
+    const string &pFilename, const string &qualFilename,
+    const string &outputFilename, bool test) :
+    trainFilenameUM(trainFilenameUM), trainFilenameMU(trainFilenameMU),
+    pFilename(pFilename), qualFilename(qualFilename),
     outputFilename(outputFilename)
-{
-    initInternalData(trainFilename);
+{}
+
+// Comparison operator for s_neighors
+int operator<(const s_neighbors &a, const s_neighbors &b) {
+    return a.weight > b.weight;
 }
 
-void KNN::initInternalData(const string &trainFilename)
-{
-    ifstream fileTrain(trainFilename);
+void KNN::loadData() {
     string line;
-    int userId, movieId, rating, latestUser = 0, movieCount = 0;
-    float sum = 0.0;
+    char c_line[20];
+    int userId;
+    int movieId;
+    int time;
+    int rating;
 
-    while (getline(fileTrain, line))
-    {
-        // Split the string around the specified delimiter.
-        vector<int> thisLineVec;
-        splitIntoInts(line, NETFLIX_FILES_DELIMITER, thisLineVec);
+    int i = -1;
+    int last_seen = 0;
 
-        userId = thisLineVec[0];
-        movieId = thisLineVec[1];
-        rating = thisLineVec[3];
-        rateMatrix[userId][movieId] = rating;
-        if (userId != latestUser)
-        {
-            averageUser[latestUser] = sum / movieCount;
-            sum = 0.0;
-            movieCount = 0;
-            latestUser = userId;
-        }
-        sum += rating;
-        movieCount += 1;
+    // Used for movie avgs
+    int num_ratings = 0;
+    int avg = 0;
+
+    ifstream trainingDta (trainFilenameUM); 
+    if (trainingDta.fail()) {
+        cout << "train um file open failed.\n";
+        exit(-1);
     }
-
-    cout << "Finished building rating matrix." << endl;
-
-    //userUser.resize(numUsers, numUsers);
-
-    fileTrain.close();
-}
-
-float KNN::simPearson(int userId1, int userId2)
-{
-    if (userId1 == userId2) return 1;
-    unordered_map<int, float> common;
-    unordered_map<int, int>::const_iterator sim;
-    for (auto movie = rateMatrix[userId1].begin();
-        movie != rateMatrix[userId1].end(); movie++) {
-        sim = rateMatrix[userId2].find(movie->first);
-        if (sim != rateMatrix[userId2].end())
-            common[movie->first] = 1;
-    }
-
-    int n = common.size();
-    if (n == 0) return 0;
-
-    // Means of users.
-    float mean1 = averageUser[userId1], mean2 = \
-        averageUser[userId2];
-  
-    // Sums of the squares
-    unordered_map<int, float>::const_iterator it;
-    float sum1Sq = 0, sum2Sq = 0, pSum = 0;
-    for (auto item = common.begin();
-        item != common.end(); item++)
-    {
-        sum1Sq += pow(rateMatrix[userId1][item->first] - mean1, 2);
-        sum2Sq += pow(rateMatrix[userId2][item->first] - mean2, 2);
-    }
-
-    // Sum of the products
-    for (auto item = common.begin();
-        item != common.end(); item++)
-    {
-        pSum += (rateMatrix[userId1][item->first] - mean1) * \
-            (rateMatrix[userId2][item->first] - mean2);
-    }
-
-    // Calculate Pearson score
-    float den = sqrt(sum1Sq * sum2Sq);
-    if (den == 0) return 0;
-
-    return pSum / den;
-}
-
-void KNN::eachUser()
-{
-    float similarity;
-    for(int u1 = 0; u1 < numUsers; u1++)
-    {
-        for (int u2 = 0; u2 < numUsers; u2++)
-        {
-            similarity = simPearson(u1, u2);
-            userUser[u1][u2] = similarity;
-        }
-        if (u1 % 1000000 == 0)
-            cout << "Processed 1000000 users." << endl;
-    }
-    cout << "Finished building the giant user-user matrix." << endl;
-}
-
-float KNN::predict(int userId, int movieId)
-{
-    float simSum = 0;
-    float total  = 0;
-    float sim = 0, predictResult = 0;
-    unordered_map<int, int>::const_iterator rated;
-    for (int user = 0; user < numUsers; user++)
-    {
-        // Don't compare the user to himself
-        if (user == userId) continue;
-        sim = userUser[userId][user];
+    while (getline(trainingDta, line)) {
+        memcpy(c_line, line.c_str(), 20);
+        userId = atoi(strtok(c_line, " "));
+        movieId = (short) atoi(strtok(NULL, " "));
+        time = atoi(strtok(NULL, " ")); 
+        rating = (char) atoi(strtok(NULL, " "));
         
-        // Ignore scores of zero or lower.
-        if (sim <= 0) continue;
+        if (last_seen == userId) {
+            i++;
+        }
+        else {
+            i = 0;
+            last_seen = userId;
+        }
 
-        rated = rateMatrix[user].find(movieId);
-        if (rated == rateMatrix[user].end())
-            continue;
-        // Only calculate those who have rated.
-        total += (rateMatrix[user][movieId] - averageUser[user]) * sim;
-        // Sum of similarities
-        simSum += sim;
+        um[userId].push_back(um_pair());
+        um[userId][i].movie = movieId;
+        um[userId][i].rating = rating;
     }
+    trainingDta.close();
 
-    // Create the normalized list
-    if (simSum != 0)
-        predictResult = averageUser[userId] + (1 / simSum) * total;
-    else
-        predictResult = averageUser[userId];
+    cout << "Loaded train um file." << endl;
 
-    return predictResult;
+    i = -1;
+    last_seen = 0;
+
+    // Repeat again, now for mu dta
+    ifstream trainingDtaMu (trainFilenameMU); 
+    if (trainingDtaMu.fail()) {
+        cout << "train mu file open failed.\n";
+        exit(-1);
+    }
+    while (getline(trainingDtaMu, line)) {
+        memcpy(c_line, line.c_str(), 20);
+        userId = atoi(strtok(c_line, " "));
+        movieId = (short) atoi(strtok(NULL, " "));
+        time = atoi(strtok(NULL, " ")); 
+        rating = (char) atoi(strtok(NULL, " "));
+
+        // If we're still on the same movie
+        if (last_seen == movieId) {
+            i++;
+            num_ratings += 1;
+            avg += rating;
+        }
+        else {
+            i = 0;
+            last_seen = movieId;
+            movieAvg[movieId] = float(avg) / num_ratings;
+            num_ratings = 1;
+            avg = rating;
+        }
+        
+        mu[movieId].push_back(mu_pair());
+        mu[movieId][i].user = userId;
+        mu[movieId][i].rating = rating;
+    }
+    trainingDtaMu.close();
+    cout << "Loaded train mu file." << endl;
+
 }
 
-void KNN::beginKNN()
-{
-    clock_t time;
-    stringstream fname;
-    fname << outputFilename;
-    ofstream out (fname.str().c_str(), ios::trunc); 
-    ifstream fileQual(qualFilename);
-    string line;
-    int userId, movieId, count = 0;
-    float predictedRating;
+void KNN::calcP() {
+    int i, u, m, user, z;
+    short movie;
+    float x, y, xy, xx, yy;
+    unsigned int n;
 
-    // if "test" mode
-    float ae = 0, se = 0;
-    int testNum = 0;
+    char rating_i, rating_j;
 
-    while (getline(fileQual, line))
-    {
-        // Split the string around the specified delimiter.
-        vector<int> thisLineVec;
-        splitIntoInts(line, NETFLIX_FILES_DELIMITER, thisLineVec);
+    // Vector size
+    int size1, size2;
 
-        userId = thisLineVec[0];
-        movieId = thisLineVec[1];
-        predictedRating = predict(userId, movieId);
-        out << predictedRating << '\n';
-        count += 0;
-        if (count % 100000 == 0)
-            cout << "Completed " << count << " lines." << endl;
-        if (test)
+    // Intermediates for every movie pair
+    s_inter tmp[NUM_MOVIES];
+
+    cout << "Calculating P..." << endl;
+
+    float tmp_f;
+
+    // Compute intermediates
+    for (i = 0; i < NUM_MOVIES; i++) {
+        // Zero out intermediates
+        for (z = 0; z < NUM_MOVIES; z++) {
+            tmp[z].x = 0;
+            tmp[z].y = 0;
+            tmp[z].xy = 0;
+            tmp[z].xx = 0;
+            tmp[z].yy = 0;
+            tmp[z].n = 0;
+        }
+
+        size1 = mu[i].size();
+
+        if ((i % 100) == 0) {
+            cout << i << endl;
+        }
+
+        // For each user that rated movie i
+        for (u = 0; u < size1; u++)
         {
-            ae += abs(predictedRating - (float)thisLineVec[3]);
-            se += pow((predictedRating - (float)thisLineVec[3]), 2);
-            testNum += 1;
+            user = mu[i][u].user;
+            size2 = um[user].size();
+            // For each movie j rated by current user
+            for (m = 0; m < size2; m++)
+            {
+                movie = um[user][m].movie; // id of movie j
+
+                // At this point, we know that user rated both movie i
+                // AND movie. Thus we can update the pearson coeff for
+                // the pair XY
+
+                // Rating of movie i
+                rating_i = mu[i][u].rating;
+
+                // Rating of movie j
+                rating_j = um[user][m].rating;
+
+                // Increment rating of movie i
+                tmp[movie].x += rating_i;
+
+                // Increment rating of movie j
+                tmp[movie].y += rating_j;
+
+                tmp[movie].xy += rating_i * rating_j;
+                tmp[movie].xx += rating_i * rating_i;
+                tmp[movie].yy += rating_j * rating_j;
+
+                // Increment number of viewers of movies i AND j
+                tmp[movie].n += 1;
+            }
+        }
+
+        // Calculate Pearson coeff. based on: 
+        // https://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient
+        for (z = 0; z < NUM_MOVIES; z++)
+        {
+            x = tmp[z].x;
+            y = tmp[z].y;
+            xy = tmp[z].xy;
+            xx = tmp[z].xx;
+            yy = tmp[z].yy;
+            n = tmp[z].n;
+            if (n == 0)
+            {
+                P[i][z].p = 0;
+            }
+            else
+            {
+                tmp_f = (n * xy - x * y) / (sqrt(n * xx - x*x) * sqrt(n * yy - y*y));
+                // Test for NaN
+                if (tmp_f != tmp_f)
+                {
+                    tmp_f = 0.0;
+                }
+                P[i][z].p = tmp_f;
+                P[i][z].common = n;
+            }
+        }
+
+    }
+    cout << "P calculated." << endl;
+}
+
+void KNN::saveP() {
+    int i, j;
+
+    cout << "Saving P..." << endl;
+
+    ofstream pfile(pFilename, ios::app);
+    if (!pfile.is_open())
+    {
+        cout << "Cannot save p values.\n";
+        exit(-1);
+    }
+    
+    for (i = 0; i < NUM_MOVIES; i++)
+    {
+        for (j = i; j < NUM_MOVIES; j++)
+        {
+            if (P[i][j].common != 0)
+            {
+                pfile << i << " " << j << " " << P[i][j].p << " " << P[i][j].common << endl;
+            }
+        }
+    }
+    pfile.close();
+    cout << "P saved." << endl;
+}
+
+void KNN::loadP() {
+    int i, j, common;
+    float p;
+    char c_line[20];
+    string line;
+
+    cout << "Loading P..." << endl;
+
+    ifstream pfile("pFilename", ios::app);
+    if (!pfile.is_open()) {
+        cout << "Cannot open p file.\n";
+        exit(-1);
+    }
+    
+    while (getline(pfile, line)) {
+        memcpy(c_line, line.c_str(), 20);
+        i = atoi(strtok(c_line, " "));
+        j = atoi(strtok(NULL, " "));
+        p = (float) atof(strtok(NULL, " "));
+        common = atof(strtok(NULL, " "));
+        if (isinf(p)) {
+            P[i][j].p = 0;
+        }
+        else {
+            P[i][j].p = p;
+        }
+        P[i][j].common = common;
+    }
+
+    pfile.close();
+    cout << "P loaded." << endl;
+
+}
+
+float KNN::predict(int user, int item) {
+    // NOTE: making item and n unsigned ints might make it easier for the compiler
+    // to implement branchless min()
+    float prediction = 0;
+    float denom = 0;
+    float diff;
+    float result;
+
+    int n;
+
+    s_pear tmp;
+
+    s_neighbors neighbors[NUM_MOVIES];
+
+    priority_queue<s_neighbors> q;
+    
+    s_neighbors tmp_pair;
+
+    float p_lower, pearson;
+
+    int common_users;
+
+    // Len neighbors
+    unsigned int i, size, j = 0;
+    
+    int n_item_1 = 0, n_item_2 = 0;
+
+    // For each item rated by user
+    size = um[user].size();
+    
+    for (i = 0; i < size; i++) {
+        n = um[user][i].movie; // n: item watched by user
+
+        n_item_1 = (item < n) ? item : n;
+        n_item_2 = (item > n) ? item : n;
+        tmp = P[n_item_1][n_item_2];
+        common_users = tmp.common;
+
+        // If item and m2 have >= MIN_COMMON viewers
+        if (common_users >= MIN_COMMON) {
+            neighbors[j].common = common_users;
+            neighbors[j].m_avg = movieAvg[item];
+            neighbors[j].n_avg = movieAvg[n];
+
+            neighbors[j].n_rating = um[user][i].rating;
+
+            pearson = tmp.p;
+            neighbors[j].pearson = pearson;
+
+            // Fisher and inverse-fisher transform (from wikipedia)
+            p_lower = tanh(atanh(pearson) - 1.96 / sqrt(common_users - 3));
+//             p_lower = pearson;
+            neighbors[j].p_lower = p_lower;
+            neighbors[j].weight = p_lower * p_lower * log(common_users);
+            j++;
         }
 
     }
 
-    fileQual.close();
+    // Add the dummy element described in the blog
+    neighbors[j].common = 0;
+    neighbors[j].m_avg = movieAvg[item];
+    neighbors[j].n_avg = 0;
 
-    // Output time and RMSE info if on probe set.
-    time = clock() - time;
-    if (test) {
-        cout << "MAE is: " << (ae / testNum) << endl;
-        cout << "RMSE is: " << (se / testNum) << endl;
+    neighbors[j].n_rating = 0;
+
+    neighbors[j].pearson = 0;
+
+    neighbors[j].p_lower = 0;
+    neighbors[j].weight = log(MIN_COMMON);
+    j++;
+
+
+
+    // At this point we have an array of neighbors, length j. Let's find the
+    // MAX_W elements of the array using 
+
+    // For each item-pair in neighbors
+    for (i = 0; i < j; i++) {
+        // If there is place in queue, just push it
+        if (q.size() < MAX_W) {
+            q.push(neighbors[i]);
+        }
+
+        // Else, push it only if this pair has a higher weight than the top
+        // (smallest in top-MAX_W).
+        // Remove the current top first
+        else {
+            if (q.top().weight < neighbors[i].weight) {
+                q.pop();
+                q.push(neighbors[i]);
+            }
+        }
     }
-    cout << "Time Spent: " << ((float) time) / CLOCKS_PER_SEC / 60 << endl;
 
+    // Now we can go ahead and calculate rating
+    size = q.size();
+    for (i = 0; i < size; i++) {
+        tmp_pair = q.top();
+        q.pop();
+        diff = tmp_pair.n_rating - tmp_pair.n_avg;
+        if (tmp_pair.pearson < 0) {
+            diff = -diff;
+        }
+        prediction += tmp_pair.pearson * (tmp_pair.m_avg + diff);
+        denom += tmp_pair.pearson;
+
+    }
+
+    result = ((float) prediction) / denom;
+
+    // If result is nan, return avg
+    if (result != result) {
+        return MEAN_RATING_TRAINING_SET;
+    }
+    else if (result < 1) {
+        return 1;
+    }
+    else if (result > 5) {
+        return 5;
+    }
+
+    return result;
+
+}
+
+void KNN::output() {
+    string line;
+    char c_line[20];
+    int userId;
+    int movieId;
+    float rating;
+    stringstream fname;
+
+    cout << "Generating output" << endl;
+
+    fname << outputFilename;
+
+    ifstream qual (qualFilename);
+    ofstream out (fname.str().c_str(), ios::trunc); 
+    if (qual.fail() || out.fail()) {
+        cout << "qual file cannot be opened.\n";
+        exit(-1);
+    }
+    while (getline(qual, line)) {
+        memcpy(c_line, line.c_str(), 20);
+        userId = atoi(strtok(c_line, " "));
+        movieId = (short) atoi(strtok(NULL, " "));
+        rating = predict(userId, movieId);
+        out << rating << '\n';
+    }
+
+    cout << "Output generated" << endl;
 }
 
 void KNN::train(const imat &data) {}
-
-void KNN::run()
-{
-    eachUser();
-    beginKNN();
-}
 
 KNN::~KNN()
 {

@@ -23,15 +23,26 @@ using namespace arma;
 using namespace netflix; // challenge-related constants/functions.
 
 // The file path we use to train, to test, and to output.
-const string TRAIN_PATH =    "data/small_test.dta";
-const string QUAL_PATH =     "data/probe.dta";
-const string OUTPUT_PATH =   "data/output_knn_sharon.dta";
+const string TRAIN_PATH_UM =    "data/train.dta";
+const string TRAIN_PATH_MU =    "data/train-mu.dta";
+const string P_PATH =           "data/knn-p.dta";
+const string QUAL_PATH =        "data/um/new_qual.dta";
+const string OUTPUT_PATH =      "data/output_knn_sharon.dta";
+const bool SAVE_P = true;
 const bool TEST = true;
 
 int main(void)
 {
     // Initializing the KNN.
-    KNN *knn = new KNN(NUM_USERS, NUM_MOVIES, TRAIN_PATH, QUAL_PATH,
-        OUTPUT_PATH, TEST);
-    knn->run();
+    KNN *knn = new KNN(TRAIN_PATH_UM, TRAIN_PATH_MU, P_PATH,
+    	QUAL_PATH, OUTPUT_PATH, TEST);
+    knn->loadData();
+    if (SAVE_P)
+    {
+    	knn->calcP();
+    	knn->saveP();
+    }
+    knn->loadP();
+    knn->output();
+    cout << "KNN completed.\n";
 }
