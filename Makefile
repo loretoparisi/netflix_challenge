@@ -69,6 +69,8 @@ lib/svdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 lib/svdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 lib/knn.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 lib/knn_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+lib/svd.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+lib/svd_only_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 lib/interface.o: private EXTRA_CFLAGS += $(CYTHON_CFLAGS)
 
 # Implicit rule to generate object files
@@ -102,12 +104,14 @@ lib%.so: $(libdir)/%.o
 rbm_test: lib/rbm.o lib/netflix.o
 svdpp_test: lib/svdpp.o lib/netflix.o
 knn_test: lib/knn.o lib/netflix.o
+svd_only_test: lib/knn.o lib/netflix.o
 binarize_data: lib/netflix.o
 
 # Additional linker flags for all binary targets go here (using EXTRA_LDFLAGS)
 rbm_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 svdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 knn_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+svd_only_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 
 # Default rule for compiling binaries
 $(BINS): %: $(libdir)/%.o mkbin
