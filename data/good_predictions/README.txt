@@ -29,3 +29,8 @@ following constants were used:
         * SVDPP_GAMMA_Y_J = 0.001
     * Learning rate decay (common to all rates):
         * SVDPP_GAMMA_MULT_PER_ITER = 0.9
+
+SVD with 200 features and 60 iterations: 0.91416 (3.91% above water)
+    * alpha1, alpha2 are 0.008
+    * beta1, beta2 are 0.01
+

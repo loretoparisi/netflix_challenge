@@ -217,6 +217,31 @@ void KNN::calcP() {
     cout << "P calculated." << endl;
 }
 
+/* Generate out of sample RMSE for the current number of features, then
+write this to a rmseOut. */
+void KNN::outputRMSE(short numFeats) {
+    string line;
+    char c_line[20];
+    int userId, movieId, time;
+    double predicted, actual; // ratings
+    double err, sq, rmse;
+    ifstream probe("../../netflix_challenge/data/probe.dta");
+    sq = 0;
+    while (getline(probe, line)) {
+        memcpy(c_line, line.c_str(), 20);
+        userId = atoi(strtok(c_line, " "));
+        movieId = atoi(strtok(NULL, " "));
+        time = atoi(strtok(NULL, " "));
+        actual = (double) atoi(strtok(NULL, " "));
+        predicted = predict(userId, movieId, -1);
+        err = actual - predicted;
+        sq += err * err;
+    }
+    rmse = sqrt(sq/1374739);
+    cout << "RMSE is: " << rmse << endl;
+}
+
+
 void KNN::saveP() {
     int i, j;
 
@@ -246,19 +271,19 @@ void KNN::saveP() {
 void KNN::loadP() {
     int i, j, common;
     float p;
-    char c_line[20];
+    char c_line[100];
     string line;
 
     cout << "Loading P..." << endl;
 
-    ifstream pfile("pFilename", ios::app);
+    ifstream pfile(pFilename, ios::app);
     if (!pfile.is_open()) {
         cout << "Cannot open p file.\n";
         exit(-1);
     }
     
     while (getline(pfile, line)) {
-        memcpy(c_line, line.c_str(), 20);
+        memcpy(c_line, line.c_str(), 100);
         i = atoi(strtok(c_line, " "));
         j = atoi(strtok(NULL, " "));
         p = (float) atof(strtok(NULL, " "));
@@ -435,6 +460,7 @@ void KNN::output() {
     }
 
     cout << "Output generated" << endl;
+    outputRMSE(200);
 }
 
 

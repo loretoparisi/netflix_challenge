@@ -23,12 +23,12 @@ using namespace arma;
 using namespace netflix; // challenge-related constants/functions.
 
 // The file path we use to train, to test, and to output.
-const string TRAIN_PATH_UM =    "data/train.dta";
-const string TRAIN_PATH_MU =    "data/train-mu.dta";
-const string P_PATH =           "data/knn-p.dta";
-const string QUAL_PATH =        "data/um/new_qual.dta";
-const string OUTPUT_PATH =      "data/output_knn_sharon.dta";
-const bool SAVE_P = true;
+const string TRAIN_PATH_UM =    "../../netflix_challenge/data/train.dta";
+const string TRAIN_PATH_MU =    "../../netflix_challenge/data/train-mu.dta";
+const string P_PATH =           "../../netflix_challenge/data/knn-p-35.dta";
+const string QUAL_PATH =        "../../netflix_challenge/data/um/new_qual.dta";
+const string OUTPUT_PATH =      "data/output_knn_sharon_q17770.dta";
+const bool SAVE_P = false;
 const bool TEST = true;
 
 int main(void)

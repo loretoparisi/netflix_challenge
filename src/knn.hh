@@ -29,10 +29,10 @@
 #include <queue>
 
 // Minimum common neighbors required for decent prediction
-#define MIN_COMMON 16
+#define MIN_COMMON 35
 
 // Max weight elements to consider when predicting
-#define MAX_W 10
+#define MAX_W 17770
 
 // Idea of optimization, speed up is from:
 // http://dmnewbie.blogspot.com/2009/06/calculating-316-million-movie.html
@@ -115,6 +115,7 @@ private:
     float movieAvg[NUM_MOVIES];
 
     float predict(int user, int item, int date);
+    void outputRMSE(short numFeats);
 
 public:
     KNN(const string &trainFilenameUM, const string &trainFilenameMU,
