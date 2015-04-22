@@ -609,25 +609,6 @@ void SVDPP::train(const fmat &data)
 }
 
 
-/**
- * This function also trains, but it first loads a file from fileNameData.
- * This file must be an Armadillo binary of an fmat.
- *
- * @param fileNameData: The file where "data" is stored. This binary file
- *                      must hold matrix data in the format specified in
- *                      the train(const fmat &data) function.
- *
- */
-void SVDPP::train(const string &fileNameData)
-{
-    fmat data;
-
-    data.load(fileNameData, arma_binary);
-    train(data);
-}
-
-
-
 /** 
  * This function predicts a rating for a given user and item. If the SVDPP
  * has not been trained yet, a logic_error is thrown.

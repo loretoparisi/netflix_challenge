@@ -21,8 +21,16 @@ public:
      * -- the 4 x NUM_TRAINING_PTS array mentioned above. The data must be
      * stored in Armadillo's binary format.
      *
+     * @param dataPath: The file where "data" is stored. This binary file
+     *                  must hold matrix data in the format specified in
+     *                  the train(const fmat &data) function.
+     *
      */
-    virtual void train(const std::string &fileNameData) = 0;
+    virtual void train(const std::string &dataPath) {
+        fmat data;
+        data.load(dataPath);
+        this->train(data);
+    }
 
     /**
      * Note: Some algorithms do not use the date aspect, but this has been

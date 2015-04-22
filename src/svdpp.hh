@@ -146,7 +146,7 @@ public:
     ~SVDPP();
     
     void train(const fmat &data);
-    void train(const string &fileNameData);
+    // void train(const string &fileNameData);
 
     void trainAndCache(const fmat &data, const string &fileNameBUser,
                        const string &fileNameBItem,
