@@ -13,20 +13,21 @@
 #ifndef SVDPP_HH
 #define SVDPP_HH
 
-#include "singlealgorithm.hh"
-#include "netflix.hh"
-#include <armadillo>
-#include <vector>
-#include <string>
-#include <unordered_map>
-#include <fstream>
-#include <stdexcept>
-#include <cmath>
 #include <algorithm>
-#include <random>
+#include <armadillo>
+#include <array>
+#include <cmath>
+#include <fstream>
 #include <functional>
 #include <iterator>
-#include <array>
+#include <random>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include <netflix.hh>
+#include <singlealgorithm.hh>
 
 using namespace std;
 using namespace arma;

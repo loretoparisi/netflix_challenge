@@ -7,16 +7,17 @@
  *
  */
 
-#include "svdpp.hh"
-#include "netflix.hh"
+#include <armadillo>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <set>
+#include <stdexcept>
 #include <string>
 #include <vector>
-#include <set>
-#include <armadillo>
-#include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <stdexcept>
+
+#include <netflix.hh>
+#include <svdpp.hh>
 
 using namespace std;
 using namespace arma;

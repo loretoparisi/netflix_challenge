@@ -1,3 +1,6 @@
+#include <cmath>
+#include <cstdint>
+#include <dirent.h>
 #ifndef NDEBUG
 #include <iostream>
 #endif
@@ -6,15 +9,10 @@
 #include <random>
 #include <sstream>
 #include <string>
+#include <sys/stat.h>
 #include <vector>
 
-#include <cmath>
-#include <cstdint>
-
-#include <dirent.h>
-#include <sys/stat.h>
-
-#include "rbm.hh"
+#include <rbm.hh>
 
 #define CACHE_EXT ".mat"
 #define DATA_DIR "data/rbmcached/"
@@ -36,9 +34,9 @@ inline static void toBernoulli(fmat &probabilities) {
     // Indices of probabilities greater than a (uniform) random value
     uvec greater = find(probabilities > uniform);
     // Zero the probability matrix
-    uniform.zeros();
+    probabilities.zeros();
     // Set the randomly selected elements to one
-    uniform.elem(greater).ones();
+    probabilities.elem(greater).ones();
 }
 
 // Compute & cache an indicator matrix

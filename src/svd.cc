@@ -1,7 +1,7 @@
 #ifndef SVD_CC_
 #define SVD_CC_
 
-#include "svd.hh"
+#include <svd.hh>
 
 namespace svd
 {

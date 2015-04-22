@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "rbm.hh"
+#include <rbm.hh>
 
 // The indices of the dataset to use for training.
 const std::set<int> TRAINING_SET_INDICES = {BASE_SET};

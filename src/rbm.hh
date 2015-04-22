@@ -4,8 +4,8 @@
 #include <armadillo>
 #include <functional>
 
-#include "singlealgorithm.hh"
-#include "netflix.hh"
+#include <singlealgorithm.hh>
+#include <netflix.hh>
 
 #define HIDDEN 100
 #define EPSILON 0.001

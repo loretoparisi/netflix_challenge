@@ -5,28 +5,29 @@
 #ifndef KNN_HH
 #define KNN_HH
 
-#include "singlealgorithm.hh"
-#include "netflix.hh"
+#include <algorithm>
 #include <armadillo>
-#include <vector>
+#include <array>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <iterator>
+#include <math.h>
+#include <queue>
+#include <random>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
-#include <fstream>
-#include <stdexcept>
-#include <cmath>
-#include <algorithm>
-#include <random>
-#include <functional>
-#include <iterator>
-#include <array>
-#include <math.h>
-#include <sstream>
-#include <iostream>
-#include <string.h>
-#include <stdio.h>
-#include <cstdlib>
-#include <time.h>
-#include <queue>
+#include <vector>
+
+#include <netflix.hh>
+#include <singlealgorithm.hh>
 
 // Minimum common neighbors required for decent prediction
 #define MIN_COMMON 35

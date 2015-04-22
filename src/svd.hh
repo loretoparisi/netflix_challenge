@@ -1,21 +1,21 @@
 #ifndef SVD_HH_
 #define SVD_HH_
 
-#include <iostream>
-#include <string>
-#include <string.h>
-#include <vector>
-#include <math.h>
-#include <map>
-#include <sstream>
-#include <fstream>
-#include <stdlib.h>
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <ctime>
 #include <dirent.h>
-#include <malloc.h>
 #include <errno.h>
-#include <time.h>
+#include <fstream>
+#include <iostream>
+#include <malloc.h>
+#include <map>
+#include <sstream>
+#include <string>
+#include <vector>
 
 using namespace std;
 
