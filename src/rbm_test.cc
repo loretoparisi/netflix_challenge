@@ -9,11 +9,11 @@ int main() {
 #ifndef NDEBUG
     std::cout << "Loading data" << std::endl;
 #endif
-    imat data = parseData(INDEX_PATH, DATA_PATH, TRAINING_SET_INDICES);
+    fmat data = parseData(INDEX_PATH, DATA_PATH, TRAINING_SET_INDICES);
 #ifndef NDEBUG
     std::cout << "Intializing RBM" << std::endl;
 #endif
-    RBM rbm(NUM_USERS, NUM_MOVIES, HIDDEN, EPSILON);
+    RBM rbm(NUM_USERS, NUM_MOVIES, HIDDEN, EPSILON, MOMENTUM);
 #ifndef NDEBUG
     std::cout << "Training RBM" << std::endl;
 #endif

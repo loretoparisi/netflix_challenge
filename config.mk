@@ -25,8 +25,8 @@ bindir = bin
 
 # Default compiler flags (for C and C++)
 override CFLAGS += -Wall -I$(includedir) -O3 -march=native -mtune=generic \
--Wno-reorder
-# -pipe -fstack-protector --param=ssp-buffer-size=4 -Wno-sign-compare -Wno-unused-function
+-Wno-reorder -Wno-unused-function
+# -pipe -fstack-protector --param=ssp-buffer-size=4 -Wno-sign-compare
 # Default compiler flags for C++
 override CXXFLAGS += $(CFLAGS) -std=c++11 -Wno-write-strings
 # Default linker flags
