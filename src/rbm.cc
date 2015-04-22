@@ -27,18 +27,6 @@ RBM::RBM (int users, int movies, int hidden, float rate, float momentum) :
 
 RBM::~RBM () { }
 
-// Convert a probability matrix to a Bernoulli matrix
-inline static void toBernoulli(fmat &probabilities) {
-    // Generate a uniform random matrix w/ values in the range [0, 1]
-    fmat uniform = randu<fmat>(probabilities.n_rows, probabilities.n_cols);
-    // Indices of probabilities greater than a (uniform) random value
-    uvec greater = find(probabilities > uniform);
-    // Zero the probability matrix
-    probabilities.zeros();
-    // Set the randomly selected elements to one
-    probabilities.elem(greater).ones();
-}
-
 // Compute & cache an indicator matrix
 inline static void cacheIndicator(const fmat &data, int &col, int movies, 
                                   int user) {
@@ -58,6 +46,22 @@ inline static void cacheIndicator(const fmat &data, int &col, int movies,
     cachePath << INDICATOR_DATA_DIR << user << CACHE_EXT;
     // Cache the matrix
     indicator.save(cachePath.str());
+}
+
+static inline mat sigmoid(mat x) {
+    return 1 / (1 + exp(x))
+}
+
+// Convert a probability matrix to a Bernoulli matrix
+static void toBernoulli(fmat &probabilities) {
+    // Generate a uniform random matrix w/ values in the range [0, 1]
+    fmat uniform = randu<fmat>(probabilities.n_rows, probabilities.n_cols);
+    // Indices of probabilities greater than a (uniform) random value
+    uvec greater = find(probabilities > uniform);
+    // Zero the probability matrix
+    probabilities.zeros();
+    // Set the randomly selected elements to one
+    probabilities.elem(greater).ones();
 }
 
 void RBM::train(const fmat &data) {
@@ -124,13 +128,15 @@ void RBM::train(const fmat &data) {
     // Vector for marking indicator matrices as found; all are initialized as
     // missing
     std::vector<bool> found(this->users, 0);
-    DIR *directory;
+    // Try opening the indicator data directory
+    DIR *directory = opendir(INDICATOR_DATA_DIR);
     struct dirent *entity;
     // If the indicator data directory exists
-    if ( (directory = opendir(INDICATOR_DATA_DIR)) ) {
-        // For every entry in the directory, which is not hidden
-        while ( (entity = readdir(directory)) && 
-                entity->d_name[0] != '.' ) {
+    if ( directory != NULL ) {
+        // For every entry in the directory
+        while ( entity = readdir(directory) ) {
+            // Ignore hidden files
+            if ( entity->d_name[0] == '.' ) continue;
             // Convert the filename into a string
             std::string filename = std::string(entity->d_name);
             // Trim the file's extension (see CACHE_EXT macro)
@@ -138,6 +144,8 @@ void RBM::train(const fmat &data) {
             // Mark this indicator matrix as cached
             found[std::stoi(filename)] = 1;
         }
+        // Close directory
+        closedir(directory);
     // If it doesn't exist
     } else {
         // Try making the cache directory
@@ -150,6 +158,7 @@ void RBM::train(const fmat &data) {
     }
     // The number of cached indicator matrices present in the filesystem
     int present = std::accumulate(found.cbegin(), found.cend(), 0);
+    std::cout << present << " indicator matrices found" << std::endl;
     // If no matrices are found
     if ( present == 0 ) {
 #ifndef NDEBUG
@@ -174,18 +183,19 @@ void RBM::train(const fmat &data) {
         // and 0 otherwise (key == uid)
         const std::function<int(fmat, int, int)> probe = 
         [&] (fmat data, int key, int index) {
-            return ( key < data(USER_ROW, index) ) ? -1 : 
-                   (( key > data(USER_ROW, index) ) ? 1 : 0 );
+            return ( key < data.at(USER_ROW, index) ) ? -1 : 
+                   (( key > data.at(USER_ROW, index) ) ? 1 : 0 );
         };
         int col;
         // For each user
-        for ( int user = 0; user < this->users; ++users ) {
+        for ( int user = 0; user < this->users; ++user ) {
             // If their indicator matrix is cached, skip them
             if ( found[user] ) continue;
             // Otherwise, serch for a rating by this user in the data
-            col = binary_search<fmat, int>(data, user, probe, 0, data.n_cols);
+            col = binary_search<fmat, int>(data, user, probe, 0, 
+                                           data.n_cols - 1);
             // Rewind past their first rating
-            while ( col > 0 && data(USER_ROW, --col) == user ) { }
+            while ( col > 0 && data.at(USER_ROW, --col) == user ) { }
             // Move to the user's first rating if necessary
             col += col > 0;
             // Cache the indicator matrix for this user

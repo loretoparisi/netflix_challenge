@@ -15,9 +15,8 @@ using namespace arma;
 using namespace netflix;
 
 template <typename T, typename K>
-inline static int binary_search(
-    const T &data, K key, std::function<int(T, K, int)> probe, int min, 
-    int max) {
+int binary_search(const T &data, K key, std::function<int(T, K, int)> probe, 
+                  int min, int max) {
     // Midpoint of the range
     int mid;
     // Direction returned by the probe; must be one of -1, 0, or 1
@@ -47,6 +46,11 @@ inline static int binary_search(
     }
     // The item was not found; return an invalid index
     return -1;
+}
+
+template <typename T>
+T sigmoid(T x) {
+    return 1 / (1 + exp(x))
 }
 
 class RBM : public SingleAlgorithm {
