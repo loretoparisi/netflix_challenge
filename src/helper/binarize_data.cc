@@ -6,7 +6,7 @@
  */
 
 #include <iostream>
-#include "../netflix.hh" // Must be in the directory above this one!
+#include <netflix.hh>
 
 using namespace std;
 using namespace arma;

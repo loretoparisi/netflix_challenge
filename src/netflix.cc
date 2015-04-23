@@ -3,7 +3,7 @@
 #include <iostream>
 #endif
 
-#include "netflix.hh"
+#include <netflix.hh>
 
 namespace netflix
 {

@@ -7,8 +7,6 @@
  *
  */
 
-#include "knn.hh"
-#include "netflix.hh"
 #include <string>
 #include <vector>
 #include <set>
@@ -17,6 +15,9 @@
 #include <iomanip>
 #include <fstream>
 #include <stdexcept>
+
+#include <knn.hh>
+#include <netflix.hh>
 
 using namespace std;
 using namespace arma;
