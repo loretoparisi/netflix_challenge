@@ -63,4 +63,4 @@ from interface import *
 # TODO: Implement APT2 for tuning parameters.
 
 
-svdpp = PySVDPP(1, 2, 3.0, 4, 5, "data/N.dta")
+svdpp = PySVDPP(1, 2, 3.0, 4, 5, "../data/N.dta".encode("UTF-8"))
