@@ -6,6 +6,7 @@ data/mu/*
 data/svdpppredictions.dta
 data/N.dta
 data/R.dta
+data/hat_dev_u_t.dta
 data/probe_um.dta
 
 # Library/Binary Directories #

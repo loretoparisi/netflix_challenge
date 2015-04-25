@@ -16,7 +16,7 @@ srcdir = src
 # Directories containing source files
 modules = $(filter-out %__pycache__,$(shell find $(srcdir) -type d))
 # Directory containing header files
-includedir = src
+incdir = src
 # Destination directory for object files and libraries
 libdir = lib
 # Destination directory for binaries
@@ -24,8 +24,8 @@ bindir = bin
 
 
 # Default compiler flags (for C and C++)
-override CFLAGS += -Wall -I$(includedir) -O3 -march=native -mtune=generic \
--Wno-reorder -Wno-unused-function -Wno-parentheses
+override CFLAGS += -Wall -I$(incdir) -O3 -march=native -mtune=generic -flto \
+-pipe -Wno-reorder -Wno-unused-function
 # Default compiler flags for C++
 override CXXFLAGS += $(CFLAGS) -std=c++11 -Wno-write-strings
 # Default linker flags

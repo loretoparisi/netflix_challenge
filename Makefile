@@ -30,7 +30,7 @@ BIN_FILES = $(foreach bin, $(BINS), $(bindir)/$(bin))
 
 
 # All (final) targets
-all: $(LIBS) $(EXTS) $(BINS)
+all: $(LIB_FILES) $(EXT_FILES) $(BIN_FILES)
 
 # Clean up all files
 clean:
@@ -42,11 +42,11 @@ clean:
 	done
 	@# If libdir is empty, remove it
 	if [[ -d $(libdir) && -z "`ls -A $(libdir)`" ]]; then \
-	    $(RM) -rf $(libdir); \
+		$(RM) -rf $(libdir); \
 	fi
 	@# If bindir is empty, remove it
 	if [[ -d $(bindir) && -z "`ls -A $(bindir)`" ]]; then \
-	    $(RM) -rf $(bindir); \
+		$(RM) -rf $(bindir); \
 	fi
 
 # Create directory for containing object files and libraries
@@ -61,59 +61,59 @@ mkbin:
 
 
 # Generate a C++ file from a Cython file
-%.cc: %.pyx mklib
+%.cc: %.pyx
 	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o $@
 
 # Additional compiler flags for all object files go here (using EXTRA_CFLAGS)
-lib/svdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-lib/svdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-lib/knn.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-lib/knn_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-lib/svd.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-lib/svd_only_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-lib/interface.o: private EXTRA_CFLAGS += $(CYTHON_CFLAGS)
+$(libdir)/svdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/svdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/knn.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/knn_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/svd.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/svd_only_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/interface.o: private EXTRA_CFLAGS += $(CYTHON_CFLAGS)
 
 # Implicit rule to generate object files
-$(libdir)/%.o: %.cc mklib
+$(libdir)/%.o: %.cc | mklib
 	@# Everything is compiled with -fPIC so they can be dynamically linked
 	$(CXX) $(CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
 
 # Dependencies for all library targets go here
-interface.so: src/interface.cc lib/interface.o lib/svdpp.o lib/netflix.o
+$(libdir)/interface.so: $(libdir)/interface.o $(libdir)/svdpp.o \
+$(libdir)/netflix.o
 
 # Additional linker flags for all library targets go here (using EXTRA_LDFLAGS)
-interface.so: private EXTRA_LDFLAGS += $(CYTHON_LDFLAGS) $(ARMA_LDFLAGS)
+$(libdir)/interface.so: private EXTRA_LDFLAGS += $(CYTHON_LDFLAGS) \
+$(ARMA_LDFLAGS)
 
 # Implicit rule matching the C/C++ dynamic library naming convention
-lib%.so: $(libdir)/%.o
-	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $^ -o $(libdir)/$@ \
-	$(EXTRA_LDFLAGS)
+$(libdir)/lib%.so: $(libdir)/%.o | mklib
+	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $^ -o $@ $(EXTRA_LDFLAGS)
 
 # Any shared object not matching the C/C++ library naming convention is
 # assumed to be a Cython extension; shared objects must match the name of the
 # Cython interfaces to avoid runtime errors
-%.so: $(libdir)/%.o
-	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $(filter-out %.cc,$^) \
-	-o $(libdir)/$@ $(EXTRA_LDFLAGS)
+$(libdir)/%.so: $(libdir)/%.o
+	$(CXX) $(LD_FLAGS) -shared -Wl,-soname,$@ $^ -o $@ $(EXTRA_LDFLAGS)
+	@# Remove any existing link to an old extension, and the generated source
+	$(RM) $(@:$(libdir)%=$(srcdir)%) $(@:$(libdir)/%.so=%.cc)
 	@# Link the extension back to our source directory for use
-	@# The .. gets directories right (for now)
-	$(RM) $(srcdir)/$@
-	ln -s ../$(libdir)/$@ $(srcdir)
+	ln -s $@ $(srcdir)
 
 # Dependencies for all binary targets go here
-rbm_test: lib/rbm.o lib/netflix.o
-svdpp_test: lib/svdpp.o lib/netflix.o
-knn_test: lib/knn.o lib/netflix.o
-svd_only_test: lib/knn.o lib/netflix.o
-binarize_data: lib/netflix.o
+$(bindir)/rbm_test: $(libdir)/rbm.o $(libdir)/netflix.o
+$(bindir)/svdpp_test: $(libdir)/svdpp.o $(libdir)/netflix.o
+$(bindir)/knn_test: $(libdir)/knn.o $(libdir)/netflix.o
+$(bindir)/svd_only_test: $(libdir)/knn.o $(libdir)/netflix.o
+$(bindir)/binarize_data: $(libdir)/netflix.o
 
 # Additional linker flags for all binary targets go here (using EXTRA_LDFLAGS)
-rbm_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
-svdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
-knn_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
-svd_only_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+$(bindir)/rbm_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+$(bindir)/svdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+$(bindir)/knn_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+$(bindir)/svd_only_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 
 # Default rule for compiling binaries
-$(BINS): %: $(libdir)/%.o mkbin
-	$(CXX) $(LD_FLAGS) $(filter-out mkbin,$^) -o $(bindir)/$@ $(EXTRA_LDFLAGS)
+$(bindir)/%: $(libdir)/%.o | mkbin
+	$(CXX) $(LD_FLAGS) $(filter-out mkbin,$^) -o $@ $(EXTRA_LDFLAGS)
 
