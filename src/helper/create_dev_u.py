@@ -16,9 +16,11 @@
 # entire viewing history. We also don't have to recompute dev_u(t).
 #
 # For each user u, we then center all of these time deviations dev_u(t) by
-# subtracting off the **median** dev_u(t) for that user. This gives us
-# "centered" values hat{dev_u(t)}. We then output these centered deviations
-# to a file, which has lines of the form:
+# subtracting off the **mean** dev_u(t) for that user. This gives us
+# "centered" values hat{dev_u(t)}.
+#
+# We then output these centered deviations to a file, which has lines of
+# the form:
 #
 #   <USER ID> <DATE ID> <hat{dev_u(t)} FOR THAT RATING>
 #
@@ -48,12 +50,12 @@ userToRatingDates = dict()
 # A mapping from a user ID to the mean rating date t_u for that user.
 userToMeanRatingDate = dict()
 
-# A mapping from a user ID to the median dev_u(t) for that user.
-userToMedianDevUT = dict()
+# A mapping from a user ID to the mean dev_u(t) for that user.
+userToMeanDevUT = dict()
 
 # A mapping from a user ID and date ID to dev_u(t) for that rating. This
 # will later become a mapping from (user, date) to hat{dev_u(t)}, after we
-# subtract off the median dev_u(t) for that user.
+# subtract off the mean dev_u(t) for that user.
 userDateToDevUT = dict()
 
 
@@ -100,10 +102,10 @@ for userID in userToRatingDates:
 print("Finished populating userDateToDevUT.")
 #print(userDateToDevUT[(2, 2073)])
 
-# Find the median dev_u(t) for each user.
+# Find the mean dev_u(t) for each user.
 for userID in userToRatingDates:
     # Note: this isn't converted into a set since we do want to allow for
-    # repeating dates in computing the median.
+    # repeating dates in computing the mean.
     thisUserRatingDates = userToRatingDates[userID]
 
     # This is where we'll store all of the dev_u(t) values for this user.
@@ -113,23 +115,24 @@ for userID in userToRatingDates:
         thisDevUT = userDateToDevUT[(userID, dateID)]
         thisUserDevUTs.append(thisDevUT)
 
-    # Take the median and store it in userToMedianDevUT
-    userToMedianDevUT[userID] = np.median(thisUserDevUTs)
+    # Take the mean and store it in userToMeanDevUT
+    userToMeanDevUT[userID] = np.mean(thisUserDevUTs)
 
-print("Finished populating userToMedianDevUT.")
-#print(userToMedianDevUT[2])
+print("Finished populating userToMeanDevUT.")
+#print(userToMeanDevUT[2])
 
-# Subtract off the median from the entries in userDateToDevUT.
+# Subtract off the mean from the entries in userDateToDevUT.
 for userID in userToRatingDates:
     # This is a set since we only want to update entries in userDateToDevUT
     # once for each (user, date) tuple.
     thisUserRatingDates = set(userToRatingDates[userID])
-    thisUserMedianDevUT = userToMedianDevUT[userID]
+    thisUserMeanDevUT = userToMeanDevUT[userID]
 
     for dateID in thisUserRatingDates:
         currentDevUT = userDateToDevUT[(userID, dateID)]
-        userDateToDevUT[(userID, dateID)] = currentDevUT - \
-                                            thisUserMedianDevUT
+        newDevUT = currentDevUT - thisUserMeanDevUT
+
+        userDateToDevUT[(userID, dateID)] = newDevUT
 
 print("Centered dev_u(t) values for each user.")
 #print(userDateToDevUT[(2, 2073)])
@@ -149,7 +152,7 @@ for userID in sorted(userToRatingDates.keys()):
         fout.write(str(userID) + DELIMITER)
         fout.write(str(dateID) + DELIMITER)
 
-        fout.write(str(userDateToDevUT[(userID, dateID)]) + DELIMITER)
+        fout.write(str("%.6f" % userDateToDevUT[(userID, dateID)]))
         fout.write("\n")
 
 print("\nOutputted hat{dev_u(t)} file to", OUTPUT_HAT_DEV_U_FN)
