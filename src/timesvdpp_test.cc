@@ -46,10 +46,10 @@ const string OUTPUT_FN = "data/timesvdpp_predictions.dta";
 const int RATING_SIG_FIGS = 4;
 
 // Whether the data will be cached after training.
-const bool WILL_CACHE_DATA = false;
+const bool WILL_CACHE_DATA = true;
 
 // Whether we're using cached data **instead of** training.
-const bool USING_CACHED_DATA = true;
+const bool USING_CACHED_DATA = false;
 
 // The locations of the files we'll use for caching (and read from if we're
 // using cached data). These must be in Armadillo binary format!

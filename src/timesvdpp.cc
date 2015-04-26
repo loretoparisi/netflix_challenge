@@ -133,7 +133,7 @@ TimeSVDPP::TimeSVDPP(int numUsers, int numItems, int numTimes,
     bUserTime(numTimes, numUsers), bItemConst(numItems),
     bItemTimewise(numTimeBins, numItems), userFacMat(numFactors, numUsers),
     userFacMatAlpha(numFactors, numUsers), yMat(numFactors, numItems),
-    itemFacMat(numFactors, numItems), numItemsTrainingSet(numUsers), /* unused */
+    itemFacMat(numFactors, numItems), numItemsTrainingSet() /* unused */,
     sumMovieWeights(numFactors, numUsers)
 {
     // Populate N by reading from fileNameN.
