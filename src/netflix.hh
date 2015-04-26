@@ -31,10 +31,11 @@ namespace netflix
     // Represents an entry with no rating (or rather, an unknown rating).
     constexpr int NO_RATING = 0;
 
-    // The total number of users and movies in the dataset.
+    // The total number of users, movies, and dates in the dataset.
     constexpr int NUM_USERS = 458293;
     constexpr int NUM_MOVIES = 17770;
-
+    constexpr int NUM_DATES = 2243;
+    
     // The mean rating in the training set.
     constexpr float MEAN_RATING_TRAINING_SET = 3.60951619727;
     
@@ -53,6 +54,9 @@ namespace netflix
     
     // Name of the file containing the "N" matrix.
     const std::string N_FN = "data/N.dta";
+    
+    // Name of the file containing the hat{dev_u(t)} mapping.
+    const std::string HAT_DEV_U_T_FN = "data/hat_dev_u_t.dta";
 
     // These indices represent the different kinds of data in all.dta (and
     // in "new_all.dta" too).

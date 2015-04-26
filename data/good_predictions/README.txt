@@ -9,7 +9,54 @@ correspondence between blend names and their contents should be included
 below.
 
 
+
 Further details on predictions in this folder:
+
+TIMESVDPP_QUAL_6.829: This was generated on April 25 at 5:05 pm. TimeSVD++
+was carried out for 30 iterations with 200 factors and 30 time bins (for
+item biases). Training was carried out on the "base", "hidden", and "valid"
+sets, and testing was done on the "qual" set (the reported RMSE is actually
+the "quiz" RMSE of course). To initialize the internal data of the
+TimeSVDPP, we used the following approach:
+    * Initialize bUserConst, bUserAlpha, userFacMatAlpha, bItemConst,
+      bItemTimewise, and yMat to all zeros. It makes sense for most of
+      these to be zero since they're essentially item biases, user biases,
+      and time biases.
+    * The matrix bUserTime is a sparse matrix, but we batch-initialize its
+      nonzero entries to 0.0000001 at the beginning of our training method
+      (this cuts down on the first iteration's time; otherwise, we'd have
+      to update the sparse matrix one by one).
+    * The matrices userFacMat and itemFacMat have all of their entries
+      initialized to std::rand() % 14000 + 2000) * 0.000001235 *
+      std::copysign(1.0, coinFlip(engine), where the "copysign" part
+      essentially just produces a random sign based on a "coin flip". This
+      method was suggested in a Netflix forum post (see code).
+
+As for our regularization constants and learning rates, we chose:
+    * Regularization:
+        * TIMESVDPP_LAM_B_U = 0.005
+        * TIMESVDPP_LAM_ALPHA_B_U = 0.0004
+        * TIMESVDPP_LAM_B_U_T = 0.005 
+        * TIMESVDPP_LAM_B_I = 0.005
+        * TIMESVDPP_LAM_B_I_T = 0.005
+        * TIMESVDPP_LAM_Q_I = 0.015
+        * TIMESVDPP_LAM_P_U = 0.015
+        * TIMESVDPP_LAM_ALPHA_P_U = 0.0004
+        * TIMESVDPP_LAM_Y_J = 0.015
+    * Learning rates:
+        * TIMESVDPP_GAMMA_B_U = 0.007;
+        * TIMESVDPP_GAMMA_ALPHA_B_U = 0.00001;
+        * TIMESVDPP_GAMMA_B_U_T = 0.007;
+        * TIMESVDPP_GAMMA_B_I = 0.007;
+        * TIMESVDPP_GAMMA_B_I_T = 0.007;
+        * TIMESVDPP_GAMMA_Q_I = 0.007;
+        * TIMESVDPP_GAMMA_P_U = 0.007;
+        * TIMESVDPP_GAMMA_ALPHA_P_U = 0.00001;
+        * TIMESVDPP_GAMMA_Y_J = 0.007;
+    * Learning rate decay (common to all rates):
+        * TIMESVDPP_GAMMA_MULT_PER_ITER = 0.9
+
+
 
 SVDPP_QUAL_6.193: This was generated on April 17 at 3:17 am. SVD++ was run
 for 30 iterations with 200 factors. Training was carried out on the "base",
@@ -29,6 +76,8 @@ following constants were used:
         * SVDPP_GAMMA_Y_J = 0.001
     * Learning rate decay (common to all rates):
         * SVDPP_GAMMA_MULT_PER_ITER = 0.9
+
+
 
 SVD with 200 features and 60 iterations: 0.91416 (3.91% above water)
     * alpha1, alpha2 are 0.008

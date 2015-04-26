@@ -14,10 +14,11 @@ namespace netflix
      * parts of the string between delimiters are converted into ints, and are
      * returned in a vector of ints.
      *
-     * @param str: The input string.
-     * @param delimiter: The delimiter string that separates data.
-     * @param output: A vector containing the ints that were in the original
-     *                string, after separating around "delimiter".
+     * @param str:          The input string.
+     * @param delimiter:    The delimiter string that separates data.
+     * @param output:       A vector containing the ints that were in the
+     *                      original string, after separating around
+     *                      "delimiter".
      *
      */
     void splitIntoInts(const std::string &str, const std::string &delimiter,
@@ -47,6 +48,7 @@ namespace netflix
             }
         }
     }
+
 
     fmat parseData(const std::string &indexPath, const std::string &dataPath, 
                    const std::set<int> &indices) {
