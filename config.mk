@@ -24,8 +24,8 @@ bindir = bin
 
 
 # Default compiler flags (for C and C++)
-override CFLAGS += -Wall -I$(incdir) -O3 -march=native -mtune=generic -flto \
--pipe -Wno-reorder -Wno-unused-function
+override CFLAGS += -Wall -Wextra -I$(incdir) -O3 -march=native -mtune=generic \
+-flto -pipe -Wno-reorder -Wno-unused-function -Wno-parentheses
 # Default compiler flags for C++
 override CXXFLAGS += $(CFLAGS) -std=c++11 -Wno-write-strings
 # Default linker flags
