@@ -30,7 +30,7 @@ using namespace netflix; // challenge-related constants/functions.
 const string TIMESVDPP_TRAIN_FILE = BASE_HIDDEN_VALID_BIN;
 
 // The number of factors to use for Time-SVD++.
-const int NUM_FACTORS = 200;
+const int NUM_FACTORS = 500;
 
 // The number of iterations of Time-SVD++ to carry out.
 const int NUM_ITERATIONS = 30;

@@ -12,6 +12,18 @@ below.
 
 Further details on predictions in this folder:
 
+
+TIMESVDPP_QUAL_6.904: This was generated on April 26 at 7:49 am. The
+parameters are the same as the ones in TIMESVDPP_QUAL_6.829, except the
+number of factors was increased to 500. Surprisingly, overfitting was
+avoided (even though there are ~800 million parameters at this point, of
+which ~770 million are user/movie features). Both the probe error and the
+quiz error went down (by approximately the same RMSE of ~0.0007) relative
+to the 200-factor case. This might be the best performance we can get out
+of TimeSVD++, without adding even more sophistication (which would take up
+too much memory).
+
+
 TIMESVDPP_QUAL_6.829: This was generated on April 25 at 5:05 pm. TimeSVD++
 was carried out for 30 iterations with 200 factors and 30 time bins (for
 item biases). Training was carried out on the "base", "hidden", and "valid"
@@ -57,7 +69,6 @@ As for our regularization constants and learning rates, we chose:
         * TIMESVDPP_GAMMA_MULT_PER_ITER = 0.9
 
 
-
 SVDPP_QUAL_6.193: This was generated on April 17 at 3:17 am. SVD++ was run
 for 30 iterations with 200 factors. Training was carried out on the "base",
 "hidden", and "valid" sets, and testing was done on the "qual" set. The
@@ -76,7 +87,6 @@ following constants were used:
         * SVDPP_GAMMA_Y_J = 0.001
     * Learning rate decay (common to all rates):
         * SVDPP_GAMMA_MULT_PER_ITER = 0.9
-
 
 
 SVD with 200 features and 60 iterations: 0.91416 (3.91% above water)
