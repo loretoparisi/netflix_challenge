@@ -61,13 +61,6 @@ private:
     // iteration (as recommended in the Koren paper).
     static constexpr float SVDPP_GAMMA_MULT_PER_ITER = 0.9;
 
-    // What the different rows in the data matrix are expected to
-    // correspond to.
-    static const int USER_ROW =     0;
-    static const int ITEM_ROW =     1;
-    static const int DATE_ROW =     2;
-    static const int RATING_ROW =   3;
-    
     // The number of factors used in matrix factorization.
     const int numFactors;
     
@@ -83,8 +76,9 @@ private:
 
     // A mapping from a user's ID to the items that the user indicated an
     // implicit preference for. These are essentially just the items that
-    // we know the user rated (i.e. they show up in the data file), but we
-    // don't know their rating. This is called N(u) in the Koren paper.
+    // we know the user rated (i.e. they show up in the data file), even if
+    // we might not know their rating. This is called N(u) in the Koren
+    // paper.
     unordered_map<int, vector<int> > N;
 
     // The bias for each user. Referred to as "b_u" in the Koren paper. The
@@ -137,6 +131,7 @@ private:
 public:
     SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
           int numIterations, const string &fileNameN);
+
     SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
           int numIterations, const string &fileNameN,
           const string &fileNameBUser, const string &fileNameBItem,
@@ -147,7 +142,6 @@ public:
     ~SVDPP();
     
     void train(const fmat &data);
-    // void train(const string &fileNameData);
 
     void trainAndCache(const fmat &data, const string &fileNameBUser,
                        const string &fileNameBItem,
@@ -162,8 +156,7 @@ public:
                        const string &fileNameUserFacMat,
                        const string &fileNameItemFacMat,
                        const string &fileNameYMat,
-                       const string &fileNameSumMovieWeights);
-    
+                       const string &fileNameSumMovieWeights); 
     
     float predict(int user, int item, int date);
 };

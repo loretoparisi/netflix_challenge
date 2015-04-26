@@ -199,7 +199,7 @@ void SVDPP::initInternalData()
     uniform_real_distribution<float> distrBItem(-0.5, -0.1);
     uniform_real_distribution<float> distrUserFacMat(-0.01, -0.002);
     uniform_real_distribution<float> distrItemFacMat(0.01, 0.02);
-    uniform_real_distribution<float> distrYMat(0.0, 0.1);
+    uniform_real_distribution<float> distrYMat(0.01, 0.02);
 
     // Set the seed to a sequence of random numbers that's large enough to
     // fill the mt19937's state.
@@ -215,7 +215,7 @@ void SVDPP::initInternalData()
     bItem.imbue( [&]() { return distrBItem(engine); } );
     userFacMat.imbue( [&]() { return distrUserFacMat(engine); } );
     itemFacMat.imbue( [&]() { return distrItemFacMat(engine); } );
-    yMat.imbue( [&]() { return distrItemFacMat(engine); } );
+    yMat.imbue( [&]() { return distrYMat(engine); } );
 
     // This is the count of the number of items rated by users in the given
     // training set. We'll set this to zero for now.
@@ -366,7 +366,7 @@ inline void SVDPP::updateUserSumMovieWeights(int user)
  *              contain user IDs, the second column must contain item IDs,
  *              the third column must contain date IDs, and the last column
  *              must contain the rating the user gave.  All of these are
- *              assumed to be integers.
+ *              assumed to be floats.
  *
  * Precondition: "data" should be in column-major order as stated above.
  * Also, the users should be sorted by their user ID (i.e. no shuffling
@@ -402,7 +402,7 @@ void SVDPP::train(const fmat &data)
     // Check that the data does in fact have four rows!
     if (data.n_rows != 4)
     {
-        throw invalid_argument("Data array must have three rows!");
+        throw invalid_argument("Data array must have four rows!");
     }
 
     // If we're using cached data, we shouldn't be calling this method!
@@ -483,8 +483,8 @@ void SVDPP::train(const fmat &data)
             for(int itemNum = 0; itemNum < numItemsUserTrainSet; itemNum++,
                                                                  ratingNum++)
             {
-                int item = roundToInt(data(ITEM_ROW, ratingNum));
-                int actualRating = roundToInt(data(RATING_ROW, ratingNum));
+                int item = roundToInt(data(MOVIE_ROW, ratingNum));
+                float actualRating = data(RATING_ROW, ratingNum);
                 
                 // Get the predicted rating for this user and item, using the
                 // aforementioned formula for rHat_{ui}.
@@ -515,7 +515,7 @@ void SVDPP::train(const fmat &data)
                 // sizes.
                 
                 // The error in our prediction for this user and item.
-                float eUI = (float) actualRating - predictedRating;
+                float eUI = actualRating - predictedRating;
 
                 // b_u <- b_u + gamma_b_u * (e_{ui} - SVDPP_LAM_B_U * b_u)
                 bUser(user) += SVDPP_GAMMA_B_U * (eUI - SVDPP_LAM_B_U *
@@ -546,11 +546,10 @@ void SVDPP::train(const fmat &data)
                 // very expensive. Instead, we just note that the term
                 // e_{ui} |N(u)|^{-1/2} * q_i is independent of j, and so
                 // we can actually update yMat's columns at the very end by
-                // adding the sum of all e_{ui} |N(u)|^{-1/2} * q_i
-                // (multiplied by the learning rate). This is what
-                // sumErrNuNormQi is. Of course, we also need to modify the
-                // regularization constant on y_j since we're adding a much
-                // bigger quantity on each SGD update step.
+                // adding the sum of all e_{ui} |N(u)|^{-1/2} * q_i. This
+                // is what sumErrNuNormQi is. Of course, we also need to
+                // modify the regularization constant on y_j since we're
+                // adding a much bigger quantity on each SGD update step.
                 //
                 // This is pretty hacky and not going to give an accurate
                 // result as per the gradient. But it's fast.

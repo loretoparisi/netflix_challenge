@@ -36,7 +36,7 @@ const int NUM_FACTORS = 200;
 const int NUM_ITERATIONS = 30;
 
 // The name of the output file to use (for predictions on "qual").
-const string OUTPUT_FN = "data/svdpppredictions.dta";
+const string OUTPUT_FN = "data/svdpp_predictions.dta";
 
 // Sig-figs for output file.
 const int RATING_SIG_FIGS = 4;
@@ -49,12 +49,12 @@ const bool USING_CACHED_DATA = false;
 
 // The locations of the files we'll use for caching (and read from if we're
 // using cached data). These must be in Armadillo binary format!
-const string B_USER_FN =            "data/svdppcached/b_user.mat";
-const string B_ITEM_FN =            "data/svdppcached/b_item.mat";
-const string USER_FAC_MAT_FN =      "data/svdppcached/user_fac.mat";
-const string ITEM_FAC_MAT_FN =      "data/svdppcached/item_fac.mat";
-const string Y_MAT_FN =             "data/svdppcached/y.mat";
-const string SUM_MOVIE_WEIGHTS_FN = "data/svdppcached/user_sum_y.mat";
+const string B_USER_FN =            "data/svdpp_cached/b_user.mat";
+const string B_ITEM_FN =            "data/svdpp_cached/b_item.mat";
+const string USER_FAC_MAT_FN =      "data/svdpp_cached/user_fac.mat";
+const string ITEM_FAC_MAT_FN =      "data/svdpp_cached/item_fac.mat";
+const string Y_MAT_FN =             "data/svdpp_cached/y.mat";
+const string SUM_MOVIE_WEIGHTS_FN = "data/svdpp_cached/user_sum_y.mat";
 
 
 // Helper function that carries out "predAlgo" on the test file specified
