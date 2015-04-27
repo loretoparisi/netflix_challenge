@@ -66,15 +66,18 @@ def main():
     probe.close()
 
     # Create function's data
-    _funct1 = np.array([0 for i in xrange(PROBE_SIZE)], dtype=np.float32)
+    _svd_plus = np.array([0 for i in xrange(PROBE_SIZE)], dtype=np.float32)
+    _svd = np.array([0 for i in xrange(PROBE_SIZE)], dtype=np.float32)
     # ... more
 
     # Open probe files according to function
-    funct1_probe = open("<probe_file_path>", "r")
+    svd_plus = open("../../data/good_predictions/SVD_QUAL_6.193.dta", "r")
+    svd = open("../../data/good_predictions/SVD_QUAL_3.91.dta", "r")
     # ... more
 
     for i in xrange(PROBE_SIZE):
-        _funct1[i] = float(funct1_probe.readline().rstrip())
+        _funct1[i] = float(svd_plus.readline().rstrip())
+        _funct1[i] = float(svd.readline().rstrip())
         # ... more
 
     # Close the files

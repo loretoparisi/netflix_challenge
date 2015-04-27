@@ -15,18 +15,14 @@
  *                              testing data set. This should be a plain
  *                              text .dta file (or equivalent).
  * @param outputFilename:       Name of the path that we wish to store.
- * @param test:                 Indicating whether the "qual" data is
- *                              merely for testing (aka has "answers") or
- *                              we do not have answers and wish to output.
  *
  */
 KNN::KNN(const string &trainFilenameUM, const string &trainFilenameMU,
     const string &pFilename, const string &qualFilename,
-    const string &outputFilename, bool test) :
+    const string &outputFilename) :
     trainFilenameUM(trainFilenameUM), trainFilenameMU(trainFilenameMU),
     pFilename(pFilename), qualFilename(qualFilename),
-    outputFilename(outputFilename)
-{}
+    outputFilename(outputFilename) {}
 
 // Comparison operator for s_neighors
 int operator<(const s_neighbors &a, const s_neighbors &b) {
@@ -365,16 +361,11 @@ float KNN::predict(int user, int item, int date) {
     neighbors[j].common = 0;
     neighbors[j].m_avg = movieAvg[item];
     neighbors[j].n_avg = 0;
-
     neighbors[j].n_rating = 0;
-
     neighbors[j].pearson = 0;
-
     neighbors[j].p_lower = 0;
     neighbors[j].weight = log(MIN_COMMON);
     j++;
-
-
 
     // At this point we have an array of neighbors, length j. Let's find the
     // MAX_W elements of the array using 
@@ -408,7 +399,6 @@ float KNN::predict(int user, int item, int date) {
         }
         prediction += tmp_pair.pearson * (tmp_pair.m_avg + diff);
         denom += tmp_pair.pearson;
-
     }
 
     result = ((float) prediction) / denom;

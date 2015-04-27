@@ -30,7 +30,7 @@
 #include <singlealgorithm.hh>
 
 // Minimum common neighbors required for decent prediction
-#define MIN_COMMON 35
+#define MIN_COMMON 16
 
 // Max weight elements to consider when predicting
 #define MAX_W 17770
@@ -98,10 +98,6 @@ private:
     const string &qualFilename;
     const string &outputFilename;
 
-    // In test mode => test data has "answers."
-    // For qual data, test mode is "false."
-    bool test;
-
     // um: for every user, stores (movie, rating) pairs.
     vector<um_pair> um[NUM_USERS];
 
@@ -121,7 +117,7 @@ private:
 public:
     KNN(const string &trainFilenameUM, const string &trainFilenameMU,
         const string &pFilename, const string &qualFilename,
-        const string &outputFilename, bool test);
+        const string &outputFilename);
     void train(const fmat &data);
     void train(const string &fileNameData);
     ~KNN();
