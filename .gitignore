@@ -5,6 +5,7 @@ data/mu/*
 *.mat
 data/svdpp_predictions.dta
 data/timesvdpp_predictions.dta
+data/timesvdpp_cached/*.dta
 data/N.dta
 data/R.dta
 data/hat_dev_u_t.dta

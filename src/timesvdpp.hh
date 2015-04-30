@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <armadillo>
 #include <array>
+#include <cassert>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
@@ -44,7 +45,7 @@ using std::endl;
 struct UserDate
 {
     int userID;
-    int dateID;
+    unsigned short dateID;
 
     // An equality function used for hashing.
     bool operator==(const UserDate &other) const
@@ -88,6 +89,7 @@ private:
     static constexpr float TIMESVDPP_LAM_Q_I = 0.015;
     static constexpr float TIMESVDPP_LAM_P_U = 0.015;
     static constexpr float TIMESVDPP_LAM_ALPHA_P_U = 0.0004;
+    static constexpr float TIMESVDPP_LAM_P_U_T = 0.015;
     static constexpr float TIMESVDPP_LAM_Y_J = 0.015;
     
     // Step sizes used for stochastic gradient descent. See the train()
@@ -101,6 +103,7 @@ private:
     float TIMESVDPP_GAMMA_Q_I = 0.007;
     float TIMESVDPP_GAMMA_P_U = 0.007;
     float TIMESVDPP_GAMMA_ALPHA_P_U = 0.00001;
+    float TIMESVDPP_GAMMA_P_U_T = 0.003;
     float TIMESVDPP_GAMMA_Y_J = 0.007;
     
     // The fraction by which the step sizes will be multiplied on each
@@ -189,6 +192,13 @@ private:
     // this is also a numFactors x numUsers matrix.
     fmat userFacMatAlpha;
 
+    // A mapping from UserDates to a time-dependent user factor vector of
+    // size numFactors. This is called p_{ut} in the BellKor paper. Note:
+    // to see the format that this is stored in on disk, refer to
+    // loadUserFacMatTime().
+    std::unordered_map<UserDate, std::vector<float>, UserDateHasher> 
+        userFacMatTime;
+
     // The item factor matrix. This is a numFactors x numItems matrix. The
     // nth column represents the item factor array q_n, using the
     // convention of the BellKor paper.
@@ -212,6 +222,9 @@ private:
     void populateNumItemsTrainingSet(const fmat &data);
     void updateSumMovieWeights(int lowUserNum, int highUserNum);
     inline void updateUserSumMovieWeights(int user);
+    void loadUserFacMatTime(const std::string &fileNameUserFacMatTime);
+    void saveUserFacMatTime(const std::string &fileNameUserFacMatTime);
+    float computeRMSE(const std::string &testFileName);
 
 public:
     TimeSVDPP(int numUsers, int numItems, int numTimes, float meanRating,
@@ -230,6 +243,7 @@ public:
               const std::string &fileNameBItemTimewise,
               const std::string &fileNameUserFacMat,
               const std::string &fileNameUserFacMatAlpha,
+              const std::string &fileNameUserFacMatTime,
               const std::string &fileNameItemFacMat,
               const std::string &fileNameYMat,
               const std::string &fileNameSumMovieWeights);
@@ -246,6 +260,7 @@ public:
                        const std::string &fileNameBItemTimewise,
                        const std::string &fileNameUserFacMat,
                        const std::string &fileNameUserFacMatAlpha,
+                       const std::string &fileNameUserFacMatTime,
                        const std::string &fileNameItemFacMat,
                        const std::string &fileNameYMat,
                        const std::string &fileNameSumMovieWeights);
@@ -258,6 +273,7 @@ public:
                        const std::string &fileNameBItemTimewise,
                        const std::string &fileNameUserFacMat,
                        const std::string &fileNameUserFacMatAlpha,
+                       const std::string &fileNameUserFacMatTime,
                        const std::string &fileNameItemFacMat,
                        const std::string &fileNameYMat,
                        const std::string &fileNameSumMovieWeights);
