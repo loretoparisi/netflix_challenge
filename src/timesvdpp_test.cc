@@ -30,7 +30,7 @@ using namespace netflix; // challenge-related constants/functions.
 const string TIMESVDPP_TRAIN_FILE = BASE_HIDDEN_VALID_BIN;
 
 // The number of factors to use for Time-SVD++.
-const int NUM_FACTORS = 500;
+const int NUM_FACTORS = 130;
 
 // The number of iterations of Time-SVD++ to carry out.
 const int NUM_ITERATIONS = 30;
@@ -67,6 +67,8 @@ const string USER_FAC_MAT_FN =          "data/timesvdpp_cached/"
                                         "user_fac.mat";
 const string USER_FAC_MAT_ALPHA_FN =    "data/timesvdpp_cached/"
                                         "user_fac_alpha.mat";
+const string USER_FAC_MAT_TIME_FN =     "data/timesvdpp_cached/"
+                                        "user_fac_time.dta";
 const string ITEM_FAC_MAT_FN =          "data/timesvdpp_cached/"
                                         "item_fac.mat";
 const string Y_MAT_FN =                 "data/timesvdpp_cached/y.mat";
@@ -109,6 +111,7 @@ int main(void)
                            B_USER_TIME_FN,
                            B_ITEM_CONST_FN, B_ITEM_TIMEWISE_FN,
                            USER_FAC_MAT_FN, USER_FAC_MAT_ALPHA_FN,
+                           USER_FAC_MAT_TIME_FN,
                            ITEM_FAC_MAT_FN, Y_MAT_FN,
                            SUM_MOVIE_WEIGHTS_FN);
          
@@ -146,6 +149,7 @@ int main(void)
                                    B_USER_TIME_FN,
                                    B_ITEM_CONST_FN, B_ITEM_TIMEWISE_FN,
                                    USER_FAC_MAT_FN, USER_FAC_MAT_ALPHA_FN,
+                                   USER_FAC_MAT_TIME_FN,
                                    ITEM_FAC_MAT_FN, Y_MAT_FN,
                                    SUM_MOVIE_WEIGHTS_FN);
         }
