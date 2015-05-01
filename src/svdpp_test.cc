@@ -33,7 +33,7 @@ const string SVDPP_TRAIN_FILE = BASE_HIDDEN_VALID_BIN;
 const int NUM_FACTORS = 200;
 
 // The number of iterations of SVD++ to carry out.
-const int NUM_ITERATIONS = 30;
+const int NUM_ITERATIONS = 25;
 
 // The name of the output file to use (for predictions on "qual").
 const string OUTPUT_FN = "data/svdpp_predictions.dta";

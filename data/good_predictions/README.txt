@@ -12,6 +12,42 @@ below.
 
 Further details on predictions in this folder:
 
+SVDPP_QUAL_6.239: This was generated on April 30 at 6:28 pm. SVD++ was run
+for 25 iterations with 200 factors. Fewer iterations were chosen since 30
+iterations were found to cause overfitting. Training was carried out on the
+"base", "hidden", and "valid" sets, and testing was done on the "qual" set.
+
+The regularization parameters, learning rates, and learning rate decays
+were unchanged from before. All that was changed was initialization, as
+follows:
+    * bUser, bItem, and yMat were initialized to all zeros.
+    * userFacMat and itemFacMat were initialized according to
+      http://www.netflixprize.com/community/viewtopic.php?id=1342&p=3.
+
+
+TIMESVDPP_QUAL_6.963: This was generated on April 30 at 3:48 pm. Unlike
+previous versions, we used SVD++^(3) for this. We ran 130 factors for 30
+iterations and with 30 time bins. Training was done on "base", "hidden",
+and "valid", and testing was done on the "qual" set (the reported RMSE is
+the "quiz" RMSE). To initialize the internal data of the TimeSVDPP, we used
+the following approach:
+    * Initialize bUserConst, bUserAlpha, userFacMatAlpha, bItemConst,
+      bItemTimewise, and yMat to all zeros.
+    * Initialize userFacMat and itemFacMat according to the suggestions in
+      http://www.netflixprize.com/community/viewtopic.php?id=1342&p=3.
+    * Batch-initialize bUserTime as before.
+    * Fill the corresponding entries in userFacMatTime at the very
+      beginning of train(). The vectors are filled with zeros.
+
+As for our regularization parameters and learning rates, we used:
+    * Regularization:
+        * Same as before, with the addition of:
+        * TIMESVDPP_LAM_P_U_T = 0.015;
+    * Learning rates:
+        * Same as before, with the addition of:
+        * TIMESVDPP_GAMMA_P_U_T = 0.003
+    * Learning rate decay (common to all rates): Same as before
+
 
 TIMESVDPP_QUAL_6.904: This was generated on April 26 at 7:49 am. The
 parameters are the same as the ones in TIMESVDPP_QUAL_6.829, except the

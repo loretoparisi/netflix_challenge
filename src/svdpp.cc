@@ -195,11 +195,13 @@ void SVDPP::populateNumItemsTrainingSet(const fmat &data)
 void SVDPP::initInternalData()
 {
     // Different distributions based on the matrix being initialized.
-    uniform_real_distribution<float> distrBUser(-0.01, 0.1);
-    uniform_real_distribution<float> distrBItem(-0.5, -0.1);
-    uniform_real_distribution<float> distrUserFacMat(-0.01, -0.002);
-    uniform_real_distribution<float> distrItemFacMat(0.01, 0.02);
-    uniform_real_distribution<float> distrYMat(0.01, 0.02);
+    //uniform_real_distribution<float> distrBUser(-0.01, 0.1);
+    //uniform_real_distribution<float> distrBItem(-0.5, -0.1);
+    //uniform_real_distribution<float> distrUserFacMat(-0.01, -0.002);
+    //uniform_real_distribution<float> distrItemFacMat(0.01, 0.02);
+    //uniform_real_distribution<float> distrYMat(0.01, 0.02);
+
+    uniform_real_distribution<float> coinFlip(-1.0, 1.0);
 
     // Set the seed to a sequence of random numbers that's large enough to
     // fill the mt19937's state.
@@ -210,12 +212,30 @@ void SVDPP::initInternalData()
     
     // Mersenne twister random number engine, based on the earlier seed.
     mt19937 engine(seedSeq);
+
+    srand(time(NULL));
     
-    bUser.imbue( [&]() { return distrBUser(engine); } );
-    bItem.imbue( [&]() { return distrBItem(engine); } );
-    userFacMat.imbue( [&]() { return distrUserFacMat(engine); } );
-    itemFacMat.imbue( [&]() { return distrItemFacMat(engine); } );
-    yMat.imbue( [&]() { return distrYMat(engine); } );
+    userFacMat.imbue( [&]()
+            {
+                // From post #55 of 
+                // http://www.netflixprize.com/community/viewtopic.php?id=1342&p=3
+                // Note that copysign(1.0, coinFlip) gives a random sign
+                // (either -1 or +1) with 50% probability of each case.
+                return (rand() % 14000 + 2000) * 0.000001235 *
+                       copysign(1.0, coinFlip(engine)); 
+            });
+    itemFacMat.imbue( [&]()
+            {
+                // From same source as above.
+                return (rand() % 14000 + 2000) * 0.000001235 *
+                       copysign(1.0, coinFlip(engine)); 
+            });
+    
+    //bUser.imbue( [&]() { return distrBUser(engine); } );
+    //bItem.imbue( [&]() { return distrBItem(engine); } );
+    //userFacMat.imbue( [&]() { return distrUserFacMat(engine); } );
+    //itemFacMat.imbue( [&]() { return distrItemFacMat(engine); } );
+    //yMat.imbue( [&]() { return distrYMat(engine); } );
 
     // This is the count of the number of items rated by users in the given
     // training set. We'll set this to zero for now.
@@ -223,15 +243,9 @@ void SVDPP::initInternalData()
 
     // Don't worry about sum_{j in N(u)} y_j (i.e. sumMovieWeights) for
     // now, since this will be set up while training.
-     
-    // Uncomment the lines below to set all of the data to zero instead.
-    /*
     bUser.zeros();
     bItem.zeros();
-    userFacMat.zeros();
-    itemFacMat.zeros();
     yMat.zeros();
-    */
 }
 
 
@@ -591,8 +605,11 @@ void SVDPP::train(const fmat &data)
 #ifndef NDEBUG
         end = system_clock::now();
         minutes_elapsed = end - start;
-        cout << "Finished iteration " << (iterCount + 1) << " of SVD++ in " 
-             << minutes_elapsed.count() << " minutes" << endl;
+        cout << "\nFinished iteration " << (iterCount + 1) << " of SVD++ "
+             << "in " << minutes_elapsed.count() << " minutes" << endl;
+
+        float probeRMSE = computeRMSE(PROBE_BIN);
+        cout << "Probe RMSE: " << probeRMSE << endl;
 #endif
     }
 
@@ -606,6 +623,52 @@ void SVDPP::train(const fmat &data)
     cout << endl;
 #endif
 }
+
+
+/**
+ *
+ * TODO: remove this later!
+ *
+ * Compute the RMSE of this algorithm on a certain set of data. Note that
+ * testFileName must refer to an **Armadillo binary** in this case. This
+ * binary must represent a 4 x N matrix, where N is the number of test
+ * points.
+ *
+ */
+float SVDPP::computeRMSE(const string &testFileName)
+{
+    // Load from binary.
+    fmat testSet;
+    testSet.load(testFileName, arma_binary);
+
+    // The test set should have four rows.
+    if (testSet.n_rows != 4)
+    {
+        throw invalid_argument("File " + testFileName + " did not "
+                               + "have four rows!");
+    }
+
+    // The number we divide by in computing the RMSE.
+    int nMinusOne = testSet.n_cols - 1;
+
+    // Accumulator for RMSE (take square root at the end)
+    float rmse = 0.0;
+
+    for (unsigned int i = 0; i < testSet.n_cols; i ++)
+    {
+        int user = roundToInt(testSet(USER_ROW, i));
+        int item = roundToInt(testSet(MOVIE_ROW, i));
+        int date = roundToInt(testSet(DATE_ROW, i));
+        float actualRating = testSet(RATING_ROW, i);
+        
+        float prediction = predict(user, item, date);
+        
+        rmse += pow(actualRating - prediction, 2.0)/nMinusOne;
+    }
+
+    return sqrt(rmse);
+}
+
 
 
 /** 
@@ -625,11 +688,11 @@ void SVDPP::train(const fmat &data)
  */
 float SVDPP::predict(int user, int item, int date)
 {
-    if (!trained)
+    /*if (!trained)
     {
         throw logic_error("Tried to predict a rating but the SVD++ "
                           "algorithm was not done training!");
-    }
+    }*/
 
     // The formula for the predicted rating for user u and item i is:
     //
