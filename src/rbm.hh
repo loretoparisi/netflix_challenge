@@ -11,12 +11,12 @@
 #define HIDDEN 100
 #define EPSILON 0.001
 #define MOMENTUM 0.9
+#define DELTA 0.00002
 
 using namespace arma;
 using namespace netflix;
 
 typedef float data_t;
-typedef unsigned char ind_t;
 
 template <typename T, typename K>
 int binary_search(const T &data, K key, std::function<int(T, K, int)> probe, 
@@ -52,27 +52,16 @@ int binary_search(const T &data, K key, std::function<int(T, K, int)> probe,
     return -1;
 }
 
-// Convert a probability matrix to a random Bernoulli matrix
-template<typename T>
-Mat<ind_t> randomBernoulli(Mat<T> probabilities) {
-    // Generate a uniform random matrix w/ values in the range [0, 1]
-    Mat<T> uniform = randu<Mat<T>>(probabilities.n_rows, probabilities.n_cols);
-    // Bernoulli matrix
-    Mat<ind_t> bernoulli(probabilities.n_rows, probabilities.n_cols, 
-                           fill::zeros);
-    // Set randomly selected elements to one in the Bernoulli matrix
-    bernoulli.elem(find(probabilities > uniform)).ones();
-
-    return bernoulli;
-}
-
 template <typename T>
-T sigmoid(const T &x) {
+inline T sigmoid(const T &x) {
     return 1 / (1 + exp(-1 * x));
 }
 
 class RBM : public SingleAlgorithm {
 private:
+
+    // TODO: different learning rates for weights & biases, dynamic momentum
+
     // Number of users in the data set
     int users;
 
@@ -89,19 +78,20 @@ private:
     float momentum;
 
     // Weights between the hidden & visible units (W)
-    Cube<data_t> weights;
+    data_t *weights;
 
     // Shared biases of visible units
-    Mat<data_t> visibleBias;
+    data_t *visibleBias;
 
     // Shared biases of the hidden units
-    Col<data_t> hiddenBias;
+    data_t *hiddenBias;
 
 public:
     RBM(int users, int movies, int hidden, float rate, float momentum);
     ~RBM();
 
     void train(const Mat<data_t> &data);
+    // void train(const Mat<data_t> &data, const Mat<data_t> &probe);
     float predict(int user, int item, int date);
 };
 
