@@ -43,10 +43,12 @@ namespace netflix
     // the version where user IDs, item IDs, and time IDs are all
     // zero-indexed. 
     const std::string DATA_PATH = "data/um/new_all.dta";
+    const std::string DATA_PATH_MU = "data/mu/new_all.dta";
     
     // Name of the file containing corresponding set indexes for "all.dta"
     // (and "new_all.dta" too).
     const std::string INDEX_PATH = "data/um/all.idx";
+    const std::string INDEX_PATH_MU = "data/mu/all.idx";
     
     // Name of the file containing "qual" set data only. The user IDs, item
     // IDs, and time IDs in this have also been zero-indexed.
@@ -94,7 +96,7 @@ namespace netflix
                                                   "valid.mat";
     const std::string ALL_TRAIN_BIN             = "data/um/base_hidden_valid_"
                                                   "probe.mat";
-
+    const std::string MU_BASE_BIN               = "data/base-mu.mat";
     
     // The number of columns in the data files (not including qual).
     constexpr int COLUMNS = 4;

@@ -70,6 +70,17 @@ int main(void)
     }
 
     {
+        // Base MU for Global Effect
+        cout << "Starting to parse training BASE MU data..." << endl;
+        fmat trainMUHiddenData = parseData(INDEX_PATH_MU,
+            DATA_PATH_MU, BASE_IDX);
+        trainMUHiddenData.save(MU_BASE_BIN, arma_binary);
+
+        cout << "Saved base data to " << MU_BASE_BIN 
+            << ".\n" << endl;
+    }
+
+    {
         // Base, hidden, and valid data
         cout << "Starting to parse base, hidden, and valid data..." << 
             endl;

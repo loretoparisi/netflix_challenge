@@ -17,6 +17,7 @@
 #include <armadillo>
 #include <array>
 #include <cmath>
+#include <ctime>
 #include <fstream>
 #include <functional>
 #include <iterator>
@@ -59,7 +60,7 @@ private:
 
     // The fraction by which the step sizes will be multiplied on each
     // iteration (as recommended in the Koren paper).
-    static constexpr float SVDPP_GAMMA_MULT_PER_ITER = 0.9;
+    static constexpr float SVDPP_GAMMA_MULT_PER_ITER = 0.90;
 
     // The number of factors used in matrix factorization.
     const int numFactors;
@@ -127,6 +128,7 @@ private:
     void populateNumItemsTrainingSet(const fmat &data);
     void updateSumMovieWeights(int lowUserNum, int highUserNum);
     inline void updateUserSumMovieWeights(int user);
+    float computeRMSE(const string &testFileName);
 
 public:
     SVDPP(int numUsers, int numItems, float meanRating, int numFactors,
