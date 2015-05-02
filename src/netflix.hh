@@ -14,6 +14,7 @@
 
 #include <armadillo>
 #include <array>
+#include <cmath>
 #include <set>
 #include <string>
 #include <vector>
@@ -38,6 +39,18 @@ namespace netflix
     
     // The mean rating in the training set.
     constexpr float MEAN_RATING_TRAINING_SET = 3.60951619727;
+
+    // The constant base "a" that is being used to compute f_{ut}.
+    constexpr float A_CONST = 6.76;
+
+    // The max number of ratings by any given user on a given date. This
+    // was found by create_f_u_t.py.
+    constexpr int MAX_NUM_RAT_USER_DATE = 2651;
+
+    // The maximum possible value for f_{ut} is the floor of the log base
+    // "a" of the maximum number of ratings by any user on a given date.
+    constexpr int MAX_F_U_T = std::floor(std::log(MAX_NUM_RAT_USER_DATE)/
+                                         std::log(A_CONST));
     
     // Name of the file containing all of the data. Note that we are using
     // the version where user IDs, item IDs, and time IDs are all
@@ -59,6 +72,9 @@ namespace netflix
     
     // Name of the file containing the hat{dev_u(t)} mapping.
     const std::string HAT_DEV_U_T_FN = "data/hat_dev_u_t.dta";
+
+    // Name of the file containing the f_{ut} mapping.
+    const std::string F_U_T_FN = "data/f_u_t.dta";
 
     // These indices represent the different kinds of data in all.dta (and
     // in "new_all.dta" too).
