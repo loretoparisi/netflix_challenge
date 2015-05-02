@@ -3,6 +3,7 @@
 #include <ctime>
 #include <dirent.h>
 #include <fstream>
+#include <map>
 #include <numeric>
 #include <random>
 #include <sstream>
@@ -26,12 +27,13 @@
 // Get an element in a flat "2d" array
 #define GET2D(array, d1, i, j) *(array + d1 * i + j)
 // Get an element in a flat "3d" array
-#define GET3D(array, d1, d2, i, j, k) *(array + (k * d2 + i) * d1 + j)
+// #define GET3D(array, d1, d2, i, j, k) *(array + (k * d2 + i) * d1 + j)
 // Get a pointer to an element in a flat "2d" array
 #define GET2DPTR(array, d1, i, j) array + d1 * i + j
 // Get a pointer to an element in a flat "3d" array
-#define GET3DPTR(array, d1, d2, i, j, k) array + (k * d2 + i) * d1 + j
+// #define GET3DPTR(array, d1, d2, i, j, k) array + (k * d2 + i) * d1 + j
 
+// Width of a (movie, rating) pair in words (assuming 8-byte words)
 #define PAIR_WIDTH 3
 
 #define EPOCHS 10
@@ -42,7 +44,10 @@ RBM::RBM (int users, int movies, int hidden, float rate, float momentum) :
     users(users), movies(movies), hidden(hidden), rate(rate), 
     momentum(momentum) {
     // Allocate weight matrix
-    this->weights = new data_t[movies * MAX_RATING * hidden];
+    this->weights = new data_t*[hidden];
+    for ( int h = 0; h < hidden; ++h ) {
+        this->weights[h] = new data_t[movies * MAX_RATING];
+    }
     // Allocate visible biases
     this->visibleBias = new data_t[movies * MAX_RATING]();
     // Allocate hidden biases
@@ -50,6 +55,9 @@ RBM::RBM (int users, int movies, int hidden, float rate, float momentum) :
 }
 
 RBM::~RBM () {
+    for ( int h = 0; h < hidden; ++h ) {
+        delete [] this->weights[h];
+    }
     delete [] this->weights;
     delete [] this->visibleBias;
     delete [] this->hiddenBias;
@@ -75,10 +83,11 @@ inline static void cacheIndicator (uint8_t **indicators, uint16_t *counts,
     // Store the starting column index
     int count = -col;
     // While the current column of data is for this user
-    while ( data.at(USER_ROW, col) == user ) {
+    while ( std::lround(data.at(USER_ROW, col)) == user ) {
         // Record the rating for this movie
-        ratings.push_back(std::make_pair(data.at(MOVIE_ROW, col),
-                                         data.at(RATING_ROW, col)));
+        ratings.push_back(
+            std::make_pair((uint16_t) std::lround(data.at(MOVIE_ROW, col)),
+                           (uint8_t) std::lround(data.at(RATING_ROW, col))));
         // Check the next column
         ++col;
     }
@@ -109,7 +118,7 @@ inline static void cacheIndicator (uint8_t **indicators, uint16_t *counts,
 
 // Load a cached indicator matrix
 static void loadIndicator (uint8_t **indicators, uint16_t *counts, 
-                                  const int &user) {
+                           const int &user) {
     // Get the source path of the cached indicator matrix for this user
     std::string cachePath = userCachePath(user);
     // Open this user's cached (sparse) indicator matrix
@@ -168,8 +177,10 @@ void RBM::train (const Mat<data_t> &data) {
     std::cout << "Initializing weight matrix" << std::endl;
 #endif
     // Initialize weight matrix using our normal distribution
-    for ( int i = 0; i < this->movies * MAX_RATING * this->hidden; ++i ) {
-        this->weights[i] = normal(engine);
+    for ( int h = 0; h < hidden; ++h ) {
+        for ( int i = 0; i < this->movies * MAX_RATING; ++i ) {
+            this->weights[h][i] = normal(engine);
+        }
     }
 #ifdef RANDOM
   #ifndef NDEBUG
@@ -193,8 +204,8 @@ void RBM::train (const Mat<data_t> &data) {
         int movie, rating;
         // For each column in the data matrix (rating entry)
         for ( unsigned i = 0; i < data.n_cols; ++i ) {
-            movie = data.at(MOVIE_ROW, i);
-            rating = data.at(RATING_ROW, i) - 1;
+            movie = std::lround(data.at(MOVIE_ROW, i));
+            rating = std::lround(data.at(RATING_ROW, i) - 1);
             // Increment the count for that movie, rating pair
             GET2D(this->visibleBias, MAX_RATING, movie, rating) += 1;
         }
@@ -288,8 +299,8 @@ void RBM::train (const Mat<data_t> &data) {
         // and 0 otherwise (key == uid)
         const std::function<int(Mat<data_t>, int, int)> probe = 
         [&] (Mat<data_t> data, int key, int index) {
-            return ( key < data.at(USER_ROW, index) ) ? -1 : 
-                   (( key > data.at(USER_ROW, index) ) ? 1 : 0 );
+            return ( key < std::lround(data.at(USER_ROW, index)) ) ? -1 : 
+                   (( key > std::lround(data.at(USER_ROW, index)) ) ? 1 : 0 );
         };
         int col;
         // For each user
@@ -304,7 +315,9 @@ void RBM::train (const Mat<data_t> &data) {
             col = binary_search<Mat<data_t>, int>(data, user, probe, 0, 
                                                   data.n_cols - 1);
             // Rewind past their first rating
-            while ( col > 0 && data.at(USER_ROW, --col) == user ) { }
+            while ( col > 0 && std::lround(data.at(USER_ROW, col)) == user ) {
+                --col;
+            }
             // Move to the user's first rating if necessary
             col += col > 0;
             // Cache the indicator matrix for this user
@@ -361,15 +374,20 @@ void RBM::train (const Mat<data_t> &data) {
     // of the visible softmax units
     uint8_t *softmax = new uint8_t[this->movies]();
 
-    // Change in the weight matrix
-    data_t *deltaCD = new data_t[this->movies * MAX_RATING * this->hidden]();
     // Change in the visible unit biases
     data_t *deltaVisibleBias = new data_t[this->movies * MAX_RATING]();
     // Change in the hidden unit biases
     data_t *deltaHiddenBias = new data_t[this->hidden]();
+    // Change in the weight matrix
+    data_t **deltaCD = new data_t*[this->hidden]();
     // Contrastive divergence 
-    uint8_t *posCD = new uint8_t[this->movies * MAX_RATING * this->hidden]();
-    uint8_t *negCD = new uint8_t[this->movies * MAX_RATING * this->hidden]();
+    uint8_t **posCD = new uint8_t*[this->hidden]();
+    uint8_t **negCD = new uint8_t*[this->hidden]();
+    for ( int h = 0; h < this->hidden; ++h ) {
+        posCD[h] = new uint8_t[this->movies * MAX_RATING]();
+        negCD[h] = new uint8_t[this->movies * MAX_RATING]();
+        deltaCD[h] = new data_t[this->movies * MAX_RATING]();
+    }
 
 #ifndef NDEBUG
     std::chrono::time_point<std::chrono::system_clock> start, end;
@@ -417,8 +435,8 @@ void RBM::train (const Mat<data_t> &data) {
                     // indicator matrix)
                     getPair(ind, movie, rating);
                     // Accumulate the contribution of this set visible unit
-                    hiddenProbs[h] += GET3D(this->weights, MAX_RATING,
-                                            this->hidden, movie, rating, h);
+                    hiddenProbs[h] += GET2D(this->weights[h], MAX_RATING,
+                                            movie, rating);
                 }
             }
             // For each hidden unit
@@ -444,8 +462,8 @@ void RBM::train (const Mat<data_t> &data) {
                     // reporting
                     data_t *rmse = 
                         GET2DPTR(visibleProbsRMSE, MAX_RATING, movie, 0);
-                    data_t *weight = GET3DPTR(this->weights, MAX_RATING, 
-                                              this->hidden, movie, 0, h);
+                    data_t *weight =
+                        GET2DPTR(this->weights[h], MAX_RATING, movie, 0);
                     // Calculate activation probability of "1" softmax unit
                     *rmse++ = hiddenProbs[h] * *weight++;
                     // Calculate activation probability of "2" softmax unit
@@ -477,18 +495,18 @@ void RBM::train (const Mat<data_t> &data) {
                         // unit
                         data_t *prob = GET2DPTR(visibleProbs, MAX_RATING, 
                                                 movie, 0);
-                        data_t *weight = GET3DPTR(this->weights, MAX_RATING,
-                                                  this->hidden, movie, 0, h);
+                        data_t *weight = GET2DPTR(this->weights[h], MAX_RATING,
+                                                  movie, 0);
                         // Accumulate contribution to "1" softmax unit
-                        *prob++ += *weights++;
+                        *prob++ += *weight++;
                         // Accumulate contribution to "2" softmax unit
-                        *prob++ += *weights++;
+                        *prob++ += *weight++;
                         // Accumulate contribution to "3" softmax unit
-                        *prob++ += *weights++;
+                        *prob++ += *weight++;
                         // Accumulate contribution to "4" softmax unit
-                        *prob++ += *weights++;
+                        *prob++ += *weight++;
                         // Accumulate contribution to "5" softmax unit
-                        *prob += *weights;
+                        *prob += *weight;
                     }
                 }
                 // For all (movie, rating) pairs
@@ -542,17 +560,6 @@ void RBM::train (const Mat<data_t> &data) {
 
                 }
 
-                // If this is the last CD step
-                if ( lastStep ) {
-                    // For all (movie, rating) pairs
-                    for ( uint8_t *ind = indicator; ind < indicatorEnd; ) {
-                        // Extract the next movie index
-                        getMovie(ind, movie);
-                        // Train on the sampled data
-                        GET2D(negVisibleAct, MAX_RATING, movie, softmax[movie])
-                            += 1;
-                    }
-                }
                 // Sample the states of the hidden units given the states of
                 // visible units sampled from the approximation of the model
 
@@ -564,9 +571,8 @@ void RBM::train (const Mat<data_t> &data) {
                         // Extract the next movie index
                         getMovie(ind, movie);
                         // Accumulate contribution of the sampled visible unit 
-                        hiddenProbs[h] += 
-                            GET3D(this->weights, MAX_RATING, this->hidden,
-                                  movie, softmax[movie], h);
+                        hiddenProbs[h] += GET2D(this->weights[h], MAX_RATING,
+                                                movie, softmax[movie]);
                     }
                     // Calculate P[h_j = 1 | V] (Eq. 9 of Salakhutdinov, Mnih,
                     // & Hinton 2007) from the sampled data
@@ -577,35 +583,47 @@ void RBM::train (const Mat<data_t> &data) {
                     // Record the sampled state of this unit for training
                     // purposes (sample from approximation of model)
                     negHiddenStates[h] = (uint8_t) active;
-
-                    // If this is the last CD step
-                    if ( lastStep ) {
+                }
+                // If this is the last CD step
+                if ( lastStep ) {
+                    // For all (movie, rating) pairs
+                    for ( uint8_t *ind = indicator; ind < indicatorEnd; ) {
+                        // Extract the next movie index
+                        getMovie(ind, movie);
+                        // Train on the sampled data
+                        GET2D(negVisibleAct, MAX_RATING, movie, softmax[movie])
+                            += 1;
+                    }
+                    // For each hidden unit
+                    for ( int h = 0; h < this->hidden; ++h ) {
                         // Train on this data
                         negHiddenAct[h] += 1;
-                    } else {
-                        // Reset sampled visible unit activation probabilities
-                        std::fill(visibleProbs,
-                                  visibleProbs + this->movies * MAX_RATING, 0);
-                        // Load the sampled states of the hidden unit into the
-                        // buffer, for the next contrastive divergence step
-                        for ( int h = 0; h < this->hidden; ++h ) {
-                            hiddenStatesBuffer[h] = negHiddenStates[h];
-                        }
                     }
+                    continue;
+                }
+                // Reset sampled visible unit activation probabilities
+                std::fill(visibleProbs,
+                          visibleProbs + this->movies * MAX_RATING, 0);
+                // Load the sampled states of the hidden unit into the
+                // buffer, for the next contrastive divergence step
+                for ( int h = 0; h < this->hidden; ++h ) {
+                    hiddenStatesBuffer[h] = negHiddenStates[h];
                 }
             } // CD-k iterations
 
             // Accumulate changes in the weights
 
+            uint8_t *pos, *neg;
             // For each hidden unit
             for ( int h = 0; h < this->hidden; ++h ) {
+                neg = negCD[h];
                 // For all (movie, rating) pairs
                 for ( uint8_t *ind = indicator; ind < indicatorEnd; ) {
                     // Extract the next movie index
                     getMovie(ind, movie);
                     // Accumulate contributions from Gibbs sampling
-                    GET3D(negCD, MAX_RATING, this->hidden, 
-                          movie, softmax[movie], h) += negHiddenStates[h];
+                    GET2D(neg, MAX_RATING, movie, softmax[movie])
+                        += negHiddenStates[h];
                 }
             }
             // For each hidden unit
@@ -613,97 +631,162 @@ void RBM::train (const Mat<data_t> &data) {
                 // Skip units not activated when sampled given the data
                 // distribution
                 if ( ! posHiddenStates[h] ) continue;
+                pos = posCD[h];
                 // For all (movie, rating) pairs
                 for ( uint8_t *ind = indicator; ind < indicatorEnd; ) {
                     // Extract the next (movie, rating) pair
                     getPair(ind, movie, rating);
                     // Accumulate contributions the data distribution
-                    GET3D(posCD, MAX_RATING, this->hidden, movie, rating, h)
-                        += 1;
+                    GET2D(pos, MAX_RATING, movie, rating) += 1;
                 }
             }
 
-            // Update weights & biases
+            // Update weights
 
-            uint8_t pos, neg;
-
+            data_t *delta, *weight;
+            // uint8_t **posPtr = posCD, **negPtr = negCD;
+            // data_t **deltaPtr = deltaCD, **weightPtr = this->weights;
             // For each hidden unit
             for ( int h = 0; h < this->hidden; ++h ) {
-
-                // Update weights
-
                 // For all (movie, rating) pairs
                 for ( uint8_t *ind = indicator; ind < indicatorEnd; ) {
                     // Extract the next movie index
                     getMovie(ind, movie);
-                    // For each individual softmax unit for this movie
-                    for ( int r = 0; r < MAX_RATING; ++r ) {
-                        pos = GET3D(posCD, MAX_RATING, this->hidden,
-                                    movie, r, h);
-                        neg = GET3D(negCD, MAX_RATING, this->hidden,
-                                    movie, r, h);
-                        // Ignore weights that were not effected
-                        if ( (pos | neg) == 0.0 ) continue;
+                    pos = GET2DPTR(posCD[h], MAX_RATING, movie, 0);
+                    neg = GET2DPTR(negCD[h], MAX_RATING, movie, 0);
+                    delta = GET2DPTR(deltaCD[h], MAX_RATING, movie, 0);
+                    weight = GET2DPTR(this->weights[h], MAX_RATING, movie, 0);
+                    // If softmax unit "1" was ever activated
+                    if ( (*pos | *neg) != 0 ) {
                         // Calculate the change in this weight
-                        GET3D(deltaCD, MAX_RATING, this->hidden, movie, r, h) =
-                            this->momentum * GET3D(deltaCD, MAX_RATING, 
-                                                   this->hidden, movie, r, h)
-                            + this->rate
-                                * ((data_t)(pos - neg) 
-                                   - DECAY * GET3D(this->weights, MAX_RATING,
-                                                   this->hidden, movie, r, h));
+                        *delta = this->momentum * *delta + this->rate
+                            * ((data_t)(*pos - *neg) - DECAY * *weight);
                         // Update the weight matrix
-                        GET3D(this->weights, MAX_RATING, this->hidden,
-                              movie, r, h) += GET3D(deltaCD, MAX_RATING,
-                                                    this->hidden, movie, r, h);
+                        *weight += *delta;
+                    }
+                    ++pos;
+                    ++neg;
+                    ++delta;
+                    ++weight;
+                    // If softmax unit "2" was ever activated
+                    if ( (*pos | *neg) != 0 ) {
+                        // Calculate the change in this weight
+                        *delta = this->momentum * *delta + this->rate
+                            * ((data_t)(*pos - *neg) - DECAY * *weight);
+                        // Update the weight matrix
+                        *weight += *delta;
+                    }
+                    ++pos;
+                    ++neg;
+                    ++delta;
+                    ++weight;
+                    // If softmax unit "3" was ever activated
+                    if ( (*pos | *neg) != 0 ) {
+                        // Calculate the change in this weight
+                        *delta = this->momentum * *delta + this->rate
+                            * ((data_t)(*pos - *neg) - DECAY * *weight);
+                        // Update the weight matrix
+                        *weight += *delta;
+                    }
+                    ++pos;
+                    ++neg;
+                    ++delta;
+                    ++weight;
+                    // If softmax unit "4" was ever activated
+                    if ( (*pos | *neg) != 0 ) {
+                        // Calculate the change in this weight
+                        *delta = this->momentum * *delta + this->rate
+                            * ((data_t)(*pos - *neg) - DECAY * *weight);
+                        // Update the weight matrix
+                        *weight += *delta;
+                    }
+                    ++pos;
+                    ++neg;
+                    ++delta;
+                    ++weight;
+                    // If softmax unit "5" was ever activated
+                    if ( (*pos | *neg) != 0 ) {
+                        // Calculate the change in this weight
+                        *delta = this->momentum * *delta + this->rate
+                            * ((data_t)(*pos - *neg) - DECAY * *weight);
+                        // Update the weight matrix
+                        *weight += *delta;
                     }
                 }
-
-                // Update hidden unit biases
-
-                pos = posHiddenAct[h];
-                neg = negHiddenAct[h];
-                // Ignore hidden unit biases for units that were never active
-                if ( (pos | neg) == 0 ) continue;
-                // Calculate the change in bias
-                deltaHiddenBias[h] = this->momentum * deltaHiddenBias[h]
-                    + this->rate * (data_t)(pos - neg);
-                // Update the bias for this hidden unit
-                this->hiddenBias[h] += deltaHiddenBias[h];
             }
+
+            // Update visible biases
 
             // For all (movie, rating) pairs
             for ( uint8_t *ind = indicator; ind < indicatorEnd; ) {
                 // Extract the next movie index
                 getMovie(ind, movie);
-                // For each individual softmax unit for this movie
-                for ( int r = 0; r < MAX_RATING; ++r ) {
-                    pos = GET2D(posVisibleAct, MAX_RATING, movie, r);
-                    neg = GET2D(posVisibleAct, MAX_RATING, movie, r);
-                    // Ignore visible unit biases for units that were never
-                    // active
-                    if ( (pos | neg) == 0.0 ) continue;
-                    // Calculate the change in bias
-                    GET2D(deltaVisibleBias, MAX_RATING, movie, r) =
-                        this->momentum 
-                            * GET2D(deltaVisibleBias, MAX_RATING, movie, r)
-                        + this->rate * (data_t)(pos - neg);
-                    // Update the bias for this softmax unit
-                    GET2D(this->visibleBias, MAX_RATING, movie, r) +=
-                        GET2D(deltaVisibleBias, MAX_RATING, movie, r);
+                pos = GET2DPTR(posVisibleAct, MAX_RATING, movie, 0);
+                neg = GET2DPTR(negVisibleAct, MAX_RATING, movie, 0);
+                delta = GET2DPTR(deltaVisibleBias, MAX_RATING, movie, 0);
+
+                // If softmax unit "1" was ever activated
+                if ( (*pos | *neg) != 0 ) {
+                    *delta = this->momentum * *delta
+                        + this->rate * (data_t)(*pos - *neg);
+                }
+                ++pos;
+                ++neg;
+                ++delta;
+                // If softmax unit "1" was ever activated
+                if ( (*pos | *neg) != 0 ) {
+                    *delta = this->momentum * *delta
+                        + this->rate * (data_t)(*pos - *neg);
+                }
+                ++pos;
+                ++neg;
+                ++delta;
+                // If softmax unit "1" was ever activated
+                if ( (*pos | *neg) != 0 ) {
+                    *delta = this->momentum * *delta
+                        + this->rate * (data_t)(*pos - *neg);
+                }
+                ++pos;
+                ++neg;
+                ++delta;
+                // If softmax unit "1" was ever activated
+                if ( (*pos | *neg) != 0 ) {
+                    *delta = this->momentum * *delta
+                        + this->rate * (data_t)(*pos - *neg);
+                }
+                ++pos;
+                ++neg;
+                ++delta;
+                // If softmax unit "1" was ever activated
+                if ( (*pos | *neg) != 0 ) {
+                    *delta = this->momentum * *delta
+                        + this->rate * (data_t)(*pos - *neg);
                 }
             }
 
-            std::fill(posCD, 
-                      posCD + this->movies * MAX_RATING * this->hidden, 0);
-            std::fill(negCD, 
-                      negCD + this->movies * MAX_RATING * this->hidden, 0);
+            // Update hidden biases
+
+            // For each hidden unit
+            for ( int h = 0; h < this->hidden; ++h ) {
+                // Ignore hidden unit biases for units that were never active
+                if ( (posHiddenAct[h] | negHiddenAct[h]) == 0 ) continue;
+                // Calculate the change in bias
+                deltaHiddenBias[h] = this->momentum * deltaHiddenBias[h]
+                    + this->rate * (data_t)(posHiddenAct[h] - negHiddenAct[h]);
+                // Update the bias for this hidden unit
+                this->hiddenBias[h] += deltaHiddenBias[h];
+            }
+
+            std::fill(posHiddenAct, posHiddenAct + this->hidden, 0);
+            std::fill(negHiddenAct, negHiddenAct + this->hidden, 0);
             std::fill(posVisibleAct,
                       posVisibleAct + this->movies * MAX_RATING, 0);
             std::fill(negVisibleAct,
                       negVisibleAct + this->movies * MAX_RATING, 0);
-            std::fill(posHiddenAct, posHiddenAct + this->hidden, 0);
-            std::fill(negHiddenAct, negHiddenAct + this->hidden, 0);
+            for ( int h = 0; h < this->hidden; ++h ) {
+                std::fill(posCD[h], posCD[h] + this->movies * MAX_RATING, 0);
+                std::fill(negCD[h], negCD[h] + this->movies * MAX_RATING, 0);
+            } 
         } // For all users
 #ifndef NDEBUG
     end = std::chrono::system_clock::now();
@@ -726,9 +809,15 @@ void RBM::train (const Mat<data_t> &data) {
     delete [] negVisibleAct;
     delete [] softmax;
 
-    delete [] deltaCD;
     delete [] deltaVisibleBias;
     delete [] deltaHiddenBias;
+
+    for ( int h = 0; h < this->hidden; ++h ) {
+        delete [] posCD[h];
+        delete [] negCD[h];
+        delete [] deltaCD[h];
+    }
+    delete [] deltaCD;
     delete [] posCD;
     delete [] negCD;
 
@@ -736,66 +825,152 @@ void RBM::train (const Mat<data_t> &data) {
     for ( int i = 0; i < this->users; ++i ) {
         delete [] indicators[i];
     }
-    delete indicators;
+    delete [] indicators;
 }
 
-float RBM::predict (int user, int movie, int date) {
-    // Col<data_t> hiddenProbabilities(this->hidden, fill::zeros);
-    // Col<uint8_t> hiddenStates(this->hidden, fill::zeros);
-    // Mat<data_t> visibleProbabilities(MAX_RATING, this->movies, fill::zeros);
+Mat<data_t> RBM::predict (const Mat<data_t> &targets) {
+    // Activation probabilities for hidden units
+    data_t *hiddenProbs = new data_t[this->hidden]();
+    // Activation probabilities for visible units
+    data_t *visibleProbs = new data_t[MAX_RATING * this->movies]();
+    // Output matrix (for storing predictions)
+    Mat<data_t> output(3, targets.n_cols);
+    // Column index in the matrix of targets, and outputs, respectively
+    uint16_t col = 0, outputCol = 0;
 
-    // // Load this user's cached indicator matrix
-    // Mat<data_t> indicator = conv_to<Mat<data_t>>::from(
-    //     loadIndicator(this->movies, user));
-    // // Find the indices of all columns (movies) that have a rating
-    // uvec ratedMovies = find(any(indicator, 0));
-    // // For each hidden unit
-    // for ( int j = 0; j < this->hidden; ++j ) {
-    //     // Select the weights for set visible units
-    //     indicator %= this->weights.slice(j);
-    //     // Accumulate the weights for this hidden unit
-    //     hiddenProbabilities[j] = sum(nonzeros(indicator));
-    // }
-    // // Add bias contributions for hidden units
-    // hiddenProbabilities += this->hiddenBias;
-    // // Calculate P[h_j = 1 | V] (Eq. 9 of Salakhutdinov, Mnih,
-    // // & Hinton 2007)
-    // hiddenProbabilities = sigmoid<Mat<data_t>>(hiddenProbabilities);
-    // // Sample the hidden states after computing the activation
-    // // probabilities
-    // hiddenStates = conv_to<Col<uint8_t>>::from(
-    //     randomBernoulli<data_t>(hiddenProbabilities));
-    // // For each movie that this user rated
-    // for ( urowvec::const_iterator it = ratedMovies.begin();
-    //       it != ratedMovies.end(); ++it ) {
-    //     // Fill the corresponding buffer column with ones
-    //     indicator.col(*it).ones();
-    // }
-    // // Mark the column for the new movie as active
-    // indicator.col(movie).ones();
-    // // Find the indices of all active sampled hidden units
-    // uvec indexBuffer = find(hiddenStates);
-    // // For each active hidden unit
-    // for ( urowvec::const_iterator it = indexBuffer.begin();
-    //       it != indexBuffer.end(); ++it ) {
-    //     // Select the weights for active softmax units
-    //     indicator %= this->weights.slice(*it);
-    //     // Accumulate weights from this hidden unit
-    //     visibleProbabilities += indicator;
-    // }
-    // // Add bias unit contributions
-    // visibleProbabilities += this->visibleBias;
-    // // Calculate P[v_q^k == 1 | h] (Eq. 10 of Salakhutdinov, Mnih,
-    // // & Hinton 2007)
-    // visibleProbabilities = 
-    //     normalise(sigmoid<Mat<data_t>>(visibleProbabilities));
-    // // Compute the expected value of the rating for this movie
-    // float rating = visibleProbabilities(0, movie)
-    //     + 2 * visibleProbabilities(1, movie)
-    //     + 3 * visibleProbabilities(2, movie)
-    //     + 4 * visibleProbabilities(3, movie)
-    //     + 5 * visibleProbabilities(4, movie);
+    while ( col < targets.n_cols ) {
+        int user = std::lround(targets.at(USER_ROW, col));
+        // Get the source path of the cached indicator matrix for this user
+        std::string cachePath = userCachePath(user);
+        // Open this user's cached (sparse) indicator matrix
+        std::ifstream indicatorCache(cachePath, ios::binary | ios::ate);
+        // Calculate the number of (movie, rating) pairs for this user
+        uint16_t nratings = indicatorCache.tellg() / PAIR_WIDTH;
+        // Allocate an array to store all of the (movie, rating) pairs
+        uint8_t *indicator = new uint8_t[PAIR_WIDTH * nratings];
+        // Reset stream to the beginning of the file
+        indicatorCache.seekg(0, ios::beg);
+        // Load this user's cached (sparse) indicator matrix
+        indicatorCache.read((char *) indicator, PAIR_WIDTH * nratings);
+        indicatorCache.close();    
+        // A past-the-end pointer for this user's indicator matrix
+        const uint8_t *indicatorEnd = indicator + PAIR_WIDTH * nratings;
 
-    // return rating;
-    return 0.0;
+        // Sample the hidden units given the data
+
+        uint16_t movie;
+        uint8_t rating;
+        // For each hidden unit
+        for ( int h = 0; h < this->hidden; ++h ) {
+            hiddenProbs[h] = 0;
+            // Calculate the sum of the elements of the Schur product of
+            // this user's indicator matrix & the hth slice of the weight
+            // cube
+            for ( uint8_t *ind = indicator; ind < indicatorEnd; ) {
+                // Extract the next movie, rating pair (indices in a sparse
+                // indicator matrix)
+                getPair(ind, movie, rating);
+                // Accumulate the contribution of this set visible unit
+                hiddenProbs[h] += GET2D(this->weights[h], MAX_RATING,
+                                        movie, rating);
+            }
+            // Calculate P[h_j = 1 | V] (Eq. 9 of Salakhutdinov, Mnih,
+            // & Hinton 2007)
+            hiddenProbs[h] =
+                sigmoid<data_t>(hiddenProbs[h]+ this->hiddenBias[h]);
+        }
+
+        // Reconstruct visible units
+
+        // Vector for storing the indices of movies whose ratings we need to
+        // predict (that do not exist in the data)
+        std::vector<uint16_t> targetMovies;
+        // Extract all movie indices from the input matrix (assumes input is
+        // sorted by user id) for this user
+        while ( col < targets.n_cols && targets.at(USER_ROW, col) == user ) {
+            targetMovies.push_back(std::lround(targets.at(MOVIE_ROW, col++)));
+        }
+
+        // Compute activation probabilities of the visible units
+
+        // For each hidden unit
+        for ( int h = 0; h < this->hidden; ++h ) {
+            data_t hiddenProb = hiddenProbs[h];
+            // For all movies we need ratings for
+            for ( std::vector<uint16_t>::const_iterator it = 
+                  targetMovies.begin(); it != targetMovies.end(); ++it ) {
+                data_t *prob = GET2DPTR(visibleProbs, MAX_RATING, *it, 0);
+                data_t *weight =
+                    GET2DPTR(this->weights[h], MAX_RATING, *it, 0);
+                // Accumulate contribution to "1" softmax unit
+                *prob++ += hiddenProb * *weight++;
+                // Accumulate contribution to "2" softmax unit
+                *prob++ += hiddenProb * *weight++;
+                // Accumulate contribution to "3" softmax unit
+                *prob++ += hiddenProb * *weight++;
+                // Accumulate contribution to "4" softmax unit
+                *prob++ += hiddenProb * *weight++;
+                // Accumulate contribution to "5" softmax unit
+                *prob += hiddenProb * *weight;
+            }
+        }
+        // For all movies we need ratings for
+        for ( std::vector<uint16_t>::const_iterator it = targetMovies.begin();
+              it != targetMovies.end(); ++it ) {
+            data_t *prob = GET2DPTR(visibleProbs, MAX_RATING, *it, 0);
+            data_t *bias = GET2DPTR(this->visibleBias, MAX_RATING, *it, 0);
+            data_t total = 0;
+            // Calculate P[v_q^k == 1 | h] (Eq. 10 of Salakhutdinov, Mnih,
+            // & Hinton 2007) & accumulate total probability (for
+            // normalization)
+            // For "1" softmax unit
+            *prob = sigmoid<data_t>(*prob + *bias++);
+            total += *prob++;
+            // For "2" softmax unit
+            *prob = sigmoid<data_t>(*prob + *bias++);
+            total += *prob++;
+            // For "3" softmax unit
+            *prob = sigmoid<data_t>(*prob + *bias++);
+            total += *prob++;
+            // For "4" softmax unit
+            *prob = sigmoid<data_t>(*prob + *bias++);
+            total += *prob++;
+            // For "5" softmax unit
+            *prob = sigmoid<data_t>(*prob + *bias++);
+            total += *prob;
+            // Normalize activation probabilities
+            // For "5" softmax unit
+            *prob-- /= total;
+            // For "4" softmax unit
+            *prob-- /= total;
+            // For "3" softmax unit
+            *prob-- /= total;
+            // For "2" softmax unit
+            *prob-- /= total;
+            // For "1" softmax unit
+            *prob /= total;
+        }
+
+        // Compute the expected value (rating) for target visible units
+        for ( std::vector<uint16_t>::const_iterator it = targetMovies.begin();
+              it != targetMovies.end(); ++it ) {
+            data_t *prob = GET2DPTR(visibleProbs, MAX_RATING, *it, 1);
+            data_t rating = *prob++;
+            rating += 2 * *prob++;
+            rating += 3 * *prob++;
+            rating += 4 * *prob;
+            // Store this rating in the output matrix
+            output.at(0, outputCol) = user;
+            output.at(1, outputCol) = movie;
+            output.at(2, outputCol++) = rating;
+        }
+    }
+
+    return output;
+}
+
+Mat<data_t> RBM::predict (const std::string &targetPath) {
+    Mat<data_t> targets;
+    targets.load(targetPath);
+    return this->predict(targets);
 }

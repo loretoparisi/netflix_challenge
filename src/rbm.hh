@@ -78,7 +78,7 @@ private:
     float momentum;
 
     // Weights between the hidden & visible units (W)
-    data_t *weights;
+    data_t **weights;
 
     // Shared biases of visible units
     data_t *visibleBias;
@@ -92,7 +92,9 @@ public:
 
     void train(const Mat<data_t> &data);
     // void train(const Mat<data_t> &data, const Mat<data_t> &probe);
-    float predict(int user, int item, int date);
+    float predict(int user, int item, int date) { return 0.0; }
+    Mat<data_t> predict(const Mat<data_t> &targets);
+    Mat<data_t> predict(const std::string &targetPath);
 };
 
 #endif // __RBM_HH__

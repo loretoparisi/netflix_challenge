@@ -1,5 +1,9 @@
+#include <cassert>
+#include <cmath>
 #include <iomanip>
 #include <fstream>
+#include <numeric>
+#include <sstream>
 #include <string>
 
 #ifndef NDEBUG
@@ -75,19 +79,38 @@ void testOnDataFile(SingleAlgorithm &predAlgo, const std::string &testFileName,
             "output file " << outputFileName << endl;
 }
 
+double computeRMSE(const Mat<data_t> &data, const Mat<data_t> &predictions) {
+    if ( data.n_cols != predictions.n_cols ) {
+        std::ostringstream msg;
+        msg << "Missing predictions for " << data.n_cols - predictions.n_cols
+            << " entries";
+        throw std::logic_error(msg.str());
+    }
+
+    double rmse = 0.0;
+
+    for ( unsigned col = 0; col < data.n_cols; ++col ) {
+        assert(data.at(USER_ROW, col) == predictions.at(USER_ROW, col));
+        assert(data.at(MOVIE_ROW, col) == predictions.at(MOVIE_ROW, col));
+        rmse += pow(data.at(RATING_ROW, col) - predictions.at(2, col), 2.0);
+    }
+    rmse /= data.n_cols - 1;
+
+    return sqrt(rmse);
+}
+
 int main() {
-#ifndef NDEBUG
     std::cout << "Intializing RBM" << std::endl;
-#endif
     RBM rbm(NUM_USERS, NUM_MOVIES, HIDDEN, EPSILON, MOMENTUM);
-#ifndef NDEBUG
     std::cout << "Training RBM" << std::endl;
-#endif
     rbm.train(BASE_BIN);
-#ifndef NDEBUG
-    std::cout << "Generating predictions on qual set" << std::endl;
-#endif
-    testOnDataFile(rbm, QUAL_DATA_FN, OUTPUT_FN);
+    std::cout << "Generating predictions on probe set" << std::endl;
+    Mat<data_t> probe;
+    probe.load(PROBE_BIN);
+    Mat<data_t> predictions = rbm.predict(probe);
+    double rmse = computeRMSE(probe, predictions);
+    std::cout << "RBM achieved RMSE of " << rmse << " on probe set" 
+              << std::endl;
     
     return 0;
 }
