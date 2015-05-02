@@ -30,7 +30,7 @@ const string TRAIN_MU = MU_BASE_BIN;
 
 // The "level" of global effect we want to train on.
 // (See globals_README in "data" dir for more detail)
-const int level = 9;
+const int level = 10;
 
 // The name of the output file to use (for predictions on "qual").
 const string OUTPUT_FN = "data/globals_predictions.dta";

@@ -52,13 +52,17 @@ private:
     int numUsers, numItems, level;
     float globalAverage;
      // The average of sqrt(Num of train data for a movie)
-    float sqrtmoviecountaverage;
+    float sqrtMovieCountAverage;
+    float sqrtUserCountAverage;
     float sqrtUserTimeUserAverage;
     float sqrtUserTimeMovieAverage;
     float sqrtMovieTimeMovieAverage;
     float sqrtMovieTimeUserAverage;
     std::vector<float> movieAverages;
     std::vector<float> userAverages;
+    std::vector<float> movieUserAverages;
+    std::vector<float> movieUserSupportAverages;
+    std::vector<float> userMovieSupportAverages;
     std::vector<float> movieVariances;
     std::vector<float> userVariances;
     std::vector<float> movieThetas;

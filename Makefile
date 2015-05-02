@@ -110,7 +110,7 @@ $(bindir)/svdpp_test: $(libdir)/svdpp.o $(libdir)/netflix.o
 $(bindir)/timesvdpp_test: $(libdir)/timesvdpp.o $(libdir)/netflix.o
 $(bindir)/globals_test: $(libdir)/globals.o $(libdir)/netflix.o
 $(bindir)/knn_test: $(libdir)/knn.o $(libdir)/netflix.o
-$(bindir)/svd_only_test: $(libdir)/knn.o $(libdir)/netflix.o
+$(bindir)/svd_only_test: $(libdir)/svd.o $(libdir)/netflix.o
 $(bindir)/binarize_data: $(libdir)/netflix.o
 
 # Additional linker flags for all binary targets go here (using EXTRA_LDFLAGS)
