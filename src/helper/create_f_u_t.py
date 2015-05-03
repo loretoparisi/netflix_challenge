@@ -9,10 +9,15 @@
 #
 #   <USER ID> <DATE ID> <f_{ut} FOR THAT USER/DAY COMBO>
 #
-# We also keep track of the minimum and maximum values of f_{ut}, and
-# output these at the end. For A_CONST = 6.76, these are:
+# We also keep track of the minimum and maximum values of f_{ut} and the
+# maximum number of ratings by any given user on a given day, and output
+# these at the end. For A_CONST = 6.76, these are:
 #
-#   TODO
+#   Max number of ratings on a given day is 2651.0 which was achieved by
+#   user 16765 on date 1970
+#
+#   Minimum fUT is 0 (many users have this because they rate < 7 times/day)
+#   Maximum fUT is 4 for user 16765 and date 1970
 #
 
 import math
