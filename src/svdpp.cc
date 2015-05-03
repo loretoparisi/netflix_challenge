@@ -217,17 +217,17 @@ void SVDPP::initInternalData()
     
     userFacMat.imbue( [&]()
             {
-                // From post #55 of 
+                // Modified from post #55 of 
                 // http://www.netflixprize.com/community/viewtopic.php?id=1342&p=3
                 // Note that copysign(1.0, coinFlip) gives a random sign
                 // (either -1 or +1) with 50% probability of each case.
-                return (rand() % 14000 + 2000) * 0.000001235 *
+                return (rand() % 4500 + 500) * 0.000001235 *
                        copysign(1.0, coinFlip(engine)); 
             });
     itemFacMat.imbue( [&]()
             {
-                // From same source as above.
-                return (rand() % 14000 + 2000) * 0.000001235 *
+                // Modified from same source as above.
+                return (rand() % 4500 + 500) * 0.000001235 *
                        copysign(1.0, coinFlip(engine)); 
             });
     
