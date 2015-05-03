@@ -65,22 +65,24 @@ mkbin:
 	$(CYTHON) $(CYTHON_FLAGS) --cplus $< -o $@
 
 # Additional compiler flags for all object files go here (using EXTRA_CFLAGS)
-$(libdir)/svdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-$(libdir)/svdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-$(libdir)/timesvdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-$(libdir)/timesvdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/globals.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/globals_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/interface.o: private EXTRA_CFLAGS += $(CYTHON_CFLAGS) -fPIC
 $(libdir)/knn.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/knn_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/netflix.o: private EXTRA_CFLAGS += -fPIC
+$(libdir)/rbm.o: private EXTRA_CFLAGS += $(MKL_CFLAGS) -DARMA_NO_DEBUG -DNTIME
 $(libdir)/svd.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/svd_only_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-$(libdir)/interface.o: private EXTRA_CFLAGS += $(CYTHON_CFLAGS)
+$(libdir)/svdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG -fPIC
+$(libdir)/svdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/timesvdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG 
+$(libdir)/timesvdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 
 # Implicit rule to generate object files
 $(libdir)/%.o: %.cc | mklib
-	@# Everything is compiled with -fPIC so they can be dynamically linked
-	$(CXX) $(CXXFLAGS) $(EXTRA_CFLAGS) -fPIC -c $< -o $@
+	@# Everything is compiled with -fpie so they can be dynamically linked
+	$(CXX) $(CXXFLAGS) $(EXTRA_CFLAGS) -c $< -o $@
 
 # Dependencies for all library targets go here
 $(libdir)/interface.so: $(libdir)/interface.o $(libdir)/svdpp.o \
@@ -105,21 +107,21 @@ $(libdir)/%.so: $(libdir)/%.o
 	ln -s $@ $(srcdir)
 
 # Dependencies for all binary targets go here
-$(bindir)/rbm_test: $(libdir)/rbm.o $(libdir)/netflix.o
-$(bindir)/svdpp_test: $(libdir)/svdpp.o $(libdir)/netflix.o
-$(bindir)/timesvdpp_test: $(libdir)/timesvdpp.o $(libdir)/netflix.o
+$(bindir)/binarize_data: $(libdir)/netflix.o
 $(bindir)/globals_test: $(libdir)/globals.o $(libdir)/netflix.o
 $(bindir)/knn_test: $(libdir)/knn.o $(libdir)/netflix.o
+$(bindir)/rbm_test: $(libdir)/rbm.o $(libdir)/netflix.o
 $(bindir)/svd_only_test: $(libdir)/svd.o $(libdir)/netflix.o
-$(bindir)/binarize_data: $(libdir)/netflix.o
+$(bindir)/svdpp_test: $(libdir)/svdpp.o $(libdir)/netflix.o
+$(bindir)/timesvdpp_test: $(libdir)/timesvdpp.o $(libdir)/netflix.o
 
 # Additional linker flags for all binary targets go here (using EXTRA_LDFLAGS)
-$(bindir)/rbm_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
-$(bindir)/svdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
-$(bindir)/timesvdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/globals_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/knn_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+$(bindir)/rbm_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS) $(MKL_LDFLAGS)
 $(bindir)/svd_only_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+$(bindir)/svdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+$(bindir)/timesvdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 
 # Default rule for compiling binaries
 $(bindir)/%: $(libdir)/%.o | mkbin
