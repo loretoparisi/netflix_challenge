@@ -19,10 +19,10 @@ class ComboAlgorithm
         virtual void firstResiduals(SingleAlgorithm &predAlgo) = 0;
 
         /* Return the current average for the training set. */
-        virtual float getAverage();
+        virtual float getAverage() = 0;
 
         /* Save the residuals to a file. */
-        virtual void saveResiduals(const std::string residualsFile);
+        virtual void saveResiduals(const std::string residualsFile) = 0;
 
         /* Train on the second model with residuals. */
         virtual void trainSecond(SingleAlgorithm &predAlgo) = 0;

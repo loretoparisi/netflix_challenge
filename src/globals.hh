@@ -42,6 +42,34 @@ using namespace netflix; // challenge-related constants/functions.
 using std::cout;
 using std::endl;
 
+// Used to store (user ID, date ID) tuples.
+struct UserMovie
+{
+    int userID;
+    unsigned short movieID;
+
+    // An equality function used for hashing.
+    bool operator==(const UserMovie &other) const
+    { 
+        return userID == other.userID && movieID == other.movieID;
+    }
+};
+
+
+// Define a hash function for UserDates, so they can be keys in
+// unordered_maps.
+struct UserMovieHasher
+{
+    std::size_t operator()(const UserMovie &um) const
+    {
+        using std::hash;
+        using std::size_t;
+
+        return ((hash<int>()(um.userID) << 1)
+               ^ (hash<int>()(um.movieID)));
+    }
+};
+
 // This can technically be a subclass of SVDPP, but there's no real point
 // in nesting the hierarchy that much. Especially since SVDPP's internals
 // represent fairly different things.
@@ -58,6 +86,7 @@ private:
     float sqrtUserTimeMovieAverage;
     float sqrtMovieTimeMovieAverage;
     float sqrtMovieTimeUserAverage;
+    std::unordered_map<UserMovie, float, UserMovieHasher> residualStorage;
     std::vector<float> movieAverages;
     std::vector<float> userAverages;
     std::vector<float> movieUserAverages;
@@ -106,7 +135,7 @@ public:
     ~Globals();
     
     void train(const fmat &data);
-    float predict(int user, int item, int date);
+    float predict(int user, int item, int date, bool bound);
 };
 
 #endif // GLOBALS_HH

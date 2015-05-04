@@ -206,7 +206,7 @@ float computeRMSE(TimeSVDPP &predAlgo, const string &testFileName)
         int date = roundToInt(testSet(DATE_ROW, i));
         float actualRating = testSet(RATING_ROW, i);
         
-        float prediction = predAlgo.predict(user, item, date);
+        float prediction = predAlgo.predict(user, item, date, true);
         
         rmse += pow(actualRating - prediction, 2.0)/nMinusOne;
     }
@@ -262,7 +262,7 @@ void testOnDataFile(TimeSVDPP &predAlgo, const string &testFileName,
         int date = thisLineVec[2];
         
         // Output the prediction to file.
-        float prediction = predAlgo.predict(user, item, date);
+        float prediction = predAlgo.predict(user, item, date, true);
         outputFile << setprecision(RATING_SIG_FIGS) << prediction << endl;
     }
     

@@ -36,7 +36,7 @@ public:
      * Note: Some algorithms do not use the date aspect, but this has been
      * added for consistency across all SingleAlgorithms.
      */
-    virtual float predict(int user, int item, int date) = 0;
+    virtual float predict(int user, int item, int date, bool bound) = 0;
 
     virtual ~SingleAlgorithm() {}
 };

@@ -27,7 +27,7 @@ void Two_Algo::firstResiduals(SingleAlgorithm &predAlgo)
         date = roundToInt(currentTrain(DATE_ROW, i));
         actualRating = currentTrain(RATING_ROW, i);
 
-        predictedRating = predAlgo.predict(user, item, date);
+        predictedRating = predAlgo.predict(user, item, date, true);
         currentTrain.at(RATING_ROW, i) = actualRating - predictedRating;
     }
     cout << "Finished outputting residuals of first model." << endl;
@@ -112,12 +112,12 @@ void Two_Algo::outputQual(SingleAlgorithm &predAlgo,
         int date = thisLineVec[2];
 
         // Output the prediction to file.
-        float prediction = predAlgo.predict(user, item, date);
+        float prediction = predAlgo.predict(user, item, date, false);
         prediction = originalRating + prediction;
-        if (prediction > 5)
-            prediction = 5;
-        if (prediction < 1)
-            prediction = 1;
+        if (prediction > MAX_RATING)
+            prediction = MAX_RATING;
+        if (prediction < MIN_RATING)
+            prediction = MIN_RATING;
         outputFile << std::setprecision(ratingSigFig) << prediction << endl;
     }
 
