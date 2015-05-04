@@ -21,10 +21,9 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
+#include <iomanip>
 #include <netflix.hh>
 #include <comboalgorithm.hh>
-#include <singlealgorithm.hh>
 
 using namespace arma;
 using namespace netflix; // challenge-related constants/functions.
@@ -35,9 +34,11 @@ class Two_Algo : public ComboAlgorithm
 {
     private:
         fmat currentTrain;
+        int ratingSigFig;
 
     public:
-        Two_Algo(const std::string &trainingSet);
+        Two_Algo(const std::string &trainingSet,
+            const int ratingSigFig);
 
         /* Train on the first model normally. */
         void trainFirst(SingleAlgorithm &predAlgo);
@@ -47,6 +48,9 @@ class Two_Algo : public ComboAlgorithm
 
         /* Return the current average for the training set. */
         float getAverage();
+
+        /* Save the residuals to a file. */
+        void saveResiduals(const std::string residualsFile);
 
         /* Train on the second model with residuals. */
         void trainSecond(SingleAlgorithm &predAlgo);

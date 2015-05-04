@@ -16,7 +16,9 @@
 #include <vector>
 
 #include <netflix.hh>
-#include <two_combo.hh>
+#include <two_algo.hh>
+#include <globals.hh>
+#include <timesvdpp.hh>
 
 using namespace std;
 using namespace arma;
@@ -25,44 +27,67 @@ using namespace netflix; // challenge-related constants/functions.
 // The Armadillo binary file to use for training.
 // Make sure that both UM and MU data are using the same
 // "type" of training resource (eg. probe, hidden, base, etc.)
-const string TRAIN_UM = BASE_BIN;
-const string TRAIN_MU = MU_BASE_BIN;
+const string TRAIN_UM = VALID_BIN;
+const string TRAIN_MU = "data/valid-mu.mat";
 
 // The "level" of global effect we want to train on.
 // (See globals_README in "data" dir for more detail)
 const int level = 10;
 
 // The name of the output file to use (for predictions on "qual").
-const string OUTPUT_FN = "data/globals_predictions.dta";
+const string OUTPUT_FN = "data/combo_globals_predictions.dta";
 
 // Sig-figs for output file.
 const int RATING_SIG_FIGS = 4;
 
+// The number of factors to use for Time-SVD++.
+const int NUM_FACTORS = 10;
+
+// The number of iterations of Time-SVD++ to carry out.
+const int NUM_ITERATIONS = 5;
+
+// The number of time bins to use for movies in Time-SVD++. BellKor used 30
+// so we will too for now.
+const int NUM_TIME_BINS = 5;
+
+const string TIMESVD_QUAL = "data/good_predictions/TIMESVDPP_QUAL_6.963.dta";
+
+const string OUTPUT_FILENAME = "data/combine_test.dta";
+
 // Helper function that carries out "predAlgo" on the test file specified
 // by testFileName, and then puts the prediction results (for each (user,
 // item, time) in testFileName) in outputFileName.
+/*
 void testOnDataFile(Globals &predAlgo, const string &testFileName,
                     const string &outputFileName);
+*/
 
 int main(void)
 {
-    // Load from binary.
-    fmat trainingSetUM;
-    trainingSetUM.load(TRAIN_UM, arma_binary);
-    cout << "Loaded training data from " << TRAIN_UM << "."
-        << endl;
+    Two_Algo combine(TRAIN_UM, RATING_SIG_FIGS);
+    cout << "Loaded training data from " << TRAIN_UM << "." << endl;
 
-    Globals predAlgo(NUM_USERS, NUM_MOVIES, level, TRAIN_MU);
-    
-    predAlgo.train(trainingSetUM);
+    Globals predAlgoGE(NUM_USERS, NUM_MOVIES, level, TRAIN_MU);
 
-    // Go through qual.dta to produce a prediction file.
-    testOnDataFile(predAlgo, QUAL_DATA_FN, OUTPUT_FN);
+    combine.trainFirst(predAlgoGE);
 
-    // Get probe RMSE.
-    float probeRMSE = computeRMSE(predAlgo, PROBE_BIN);
-    
-    cout << "\nProbe RMSE: " << probeRMSE << endl;
+    combine.firstResiduals(predAlgoGE);
+
+    float newAverage = combine.getAverage();
+
+    cout << "New average is: " << newAverage << endl;
+
+    combine.saveResiduals("data/residualStore.dta");
+
+    TimeSVDPP predAlgoTimeSVD(NUM_USERS, NUM_MOVIES, NUM_DATES,
+                              newAverage, NUM_FACTORS,
+                              NUM_ITERATIONS, NUM_TIME_BINS,
+                              N_FN, HAT_DEV_U_T_FN);
+
+    combine.trainSecond(predAlgoTimeSVD);
+    combine.outputQual(predAlgoTimeSVD,
+        QUAL_DATA_FN, TIMESVD_QUAL, OUTPUT_FILENAME);
+    cout << "Output is in " << OUTPUT_FILENAME << " ." << endl;
 }
 
 
@@ -73,6 +98,7 @@ int main(void)
  * number of test points.
  *
  */
+/*
 float computeRMSE(Globals &predAlgo, const string &testFileName)
 {
     // Load from binary.
@@ -107,12 +133,13 @@ float computeRMSE(Globals &predAlgo, const string &testFileName)
     return sqrt(rmse);
 }
 
-
+*/
 /**
  * Goes through the test file and saves the prediction results to the
  * specified output file.
  *
  */
+/*
 void testOnDataFile(Globals &predAlgo, const string &testFileName,
                     const string &outputFileName)
 {
@@ -164,3 +191,4 @@ void testOnDataFile(Globals &predAlgo, const string &testFileName,
     cout << "\nOutputted predictions on " << testFileName << " to the " 
         "output file " << outputFileName << endl;
 }
+*/

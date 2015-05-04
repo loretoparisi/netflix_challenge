@@ -1,6 +1,8 @@
 #include <two_algo.hh>
 
-Two_Algo::Two_Algo(const std::string &trainingSet)
+Two_Algo::Two_Algo(const std::string &trainingSet,
+    const int ratingSigFig) :
+    ratingSigFig(ratingSigFig)
 {
     currentTrain.load(trainingSet, arma_binary);
 }
@@ -31,13 +33,25 @@ void Two_Algo::firstResiduals(SingleAlgorithm &predAlgo)
     cout << "Finished outputting residuals of first model." << endl;
 }
 
-float Two_Algo::float getAverage()
+float Two_Algo::getAverage()
 {
     float sum = 0;
     unsigned int i;
     for(i = 0; i < currentTrain.n_cols; i++)
         sum += currentTrain(RATING_ROW, i);
     return sum / currentTrain.n_cols;
+}
+
+void Two_Algo::saveResiduals(const std::string residualsFile)
+{
+    unsigned int i;
+    float residual;
+    std::ofstream outputResidual(residualsFile);
+    for (i = 0; i < currentTrain.n_cols; i++)
+    {
+        residual = currentTrain(RATING_ROW, i);
+        outputResidual << residual << "\n";
+    }
 }
 
 void Two_Algo::trainSecond(SingleAlgorithm &predAlgo)
@@ -50,25 +64,25 @@ void Two_Algo::outputQual(SingleAlgorithm &predAlgo,
     const std::string &previousOutputName,
     const std::string &newOutputFileName)
 {
-    ifstream testDataFile(testFileName);
-    ifstream previousOutputFile(previousOutputName);
-    ofstream outputFile(newOutputFileName); 
+    std::ifstream testDataFile(testFileName);
+    std::ifstream previousOutputFile(previousOutputName);
+    std::ofstream outputFile(newOutputFileName); 
 
     if (testDataFile.fail())
     {
-        throw runtime_error("Couldn't find test file at "
+        throw std::runtime_error("Couldn't find test file at "
             + testFileName);
     }
 
     if (previousOutputFile.fail())
     {
-        throw runtime_error("Couldn't find test file at "
+        throw std::runtime_error("Couldn't find test file at "
             + previousOutputName);
     }
 
     if (outputFile.fail())
     {
-        throw runtime_error("Couldn't open output file at " 
+        throw std::runtime_error("Couldn't open output file at " 
             + newOutputFileName);
     }
 
@@ -85,7 +99,7 @@ void Two_Algo::outputQual(SingleAlgorithm &predAlgo,
 
         if (thisLineVec.size() != 3)
         {
-            throw logic_error("The line \"" + testDataLine + "\" did not "
+            throw std::logic_error("The line \"" + testDataLine + "\" did not "
                               "contain three delimiter-separated "
                               "entries!");
         }
@@ -100,7 +114,11 @@ void Two_Algo::outputQual(SingleAlgorithm &predAlgo,
         // Output the prediction to file.
         float prediction = predAlgo.predict(user, item, date);
         prediction = originalRating + prediction;
-        outputFile << setprecision(RATING_SIG_FIGS) << prediction << endl;
+        if (prediction > 5)
+            prediction = 5;
+        if (prediction < 1)
+            prediction = 1;
+        outputFile << std::setprecision(ratingSigFig) << prediction << endl;
     }
 
     outputFile.close();
