@@ -210,7 +210,7 @@ void testOnDataFile(SVDPP &predAlgo, const string &testFileName,
         int date = thisLineVec[2];
         
         // Output the prediction to file.
-        float prediction = predAlgo.predict(user, item, date);
+        float prediction = predAlgo.predict(user, item, date, true);
         outputFile << setprecision(RATING_SIG_FIGS) << prediction << endl;
     }
     

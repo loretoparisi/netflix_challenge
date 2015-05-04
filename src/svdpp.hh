@@ -160,7 +160,7 @@ public:
                        const string &fileNameYMat,
                        const string &fileNameSumMovieWeights); 
     
-    float predict(int user, int item, int date);
+    float predict(int user, int item, int date, bool bound);
 };
 
 #endif // SVDPP_HH
