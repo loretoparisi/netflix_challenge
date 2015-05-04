@@ -3,7 +3,7 @@ globals_README
 // http://webcache.googleusercontent.com/search?q=cache%3AV7SkSLYh16sJ%3Aalgorithmsanalyzed.blogspot.com%2F2008%2F05%2Fbellkor-algorithm-global-effects.html+&cd=1&hl=en&ct=clnk&gl=us
 Probe RMSE trained on BASE (idx == 1 only)
     10 Levels                    Probe RMSE           Alpha
- 0: Global Average                12% below water      -
+ 0: Global Average                (12% below water)    -
  1: Movie Effect                  1.0498               25
  2: User Effect                   0.981093             7
  3: User  * Time(User)            0.978626             550
