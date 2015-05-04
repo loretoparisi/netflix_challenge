@@ -37,7 +37,7 @@ public:
      * added for consistency across all SingleAlgorithms.
      */
     virtual float predict(int user, int item, int date) = 0;
-    
+
     virtual ~SingleAlgorithm() {}
 };
 

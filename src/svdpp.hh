@@ -42,21 +42,21 @@ private:
     // combination of the Koren paper and
     // http://www.netflixprize.com/community/viewtopic.php?id=1359 and
     // other tweaks.
-    static constexpr float SVDPP_LAM_B_I = 0.005; // different
-    static constexpr float SVDPP_LAM_B_U = 0.030;
-    static constexpr float SVDPP_LAM_Q_I = 0.006;
-    static constexpr float SVDPP_LAM_P_U = 0.080;
-    static constexpr float SVDPP_LAM_Y_J = 0.030;
+    static constexpr float SVDPP_LAM_B_I = 0.005;
+    static constexpr float SVDPP_LAM_B_U = 0.005;
+    static constexpr float SVDPP_LAM_Q_I = 0.015;
+    static constexpr float SVDPP_LAM_P_U = 0.015;
+    static constexpr float SVDPP_LAM_Y_J = 0.015;
     
     // Step sizes used for stochastic gradient descent. See the train()
     // method for more on which parameters these apply to. These came from
     // a combination of the Koren paper, the abovementioned forum link, and
     // other tweaks.
-    float SVDPP_GAMMA_B_I = 0.003;
-    float SVDPP_GAMMA_B_U = 0.012;
-    float SVDPP_GAMMA_Q_I = 0.011;
-    float SVDPP_GAMMA_P_U = 0.006;
-    float SVDPP_GAMMA_Y_J = 0.001;
+    float SVDPP_GAMMA_B_I = 0.007;
+    float SVDPP_GAMMA_B_U = 0.007;
+    float SVDPP_GAMMA_Q_I = 0.007;
+    float SVDPP_GAMMA_P_U = 0.007;
+    float SVDPP_GAMMA_Y_J = 0.007;
 
     // The fraction by which the step sizes will be multiplied on each
     // iteration (as recommended in the Koren paper).
