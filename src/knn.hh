@@ -117,6 +117,7 @@ class KNN : public SingleAlgorithm
         KNN(const int numUsers, const int numItems, const int minCommon,
             const unsigned int maxWeight, const std::string &pFilename);
         void train(const fmat &data);
+        void train_(fmat &data);
         float predict(int user, int item, int date, bool bound);
         void calcP();
         void saveP();

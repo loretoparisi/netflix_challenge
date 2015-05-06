@@ -30,25 +30,25 @@ using namespace netflix; // challenge-related constants/functions.
 const string TRAIN_UM = BASE_BIN;
 
 // Minimum common neighbors required for decent prediction.
-const int MIN_COMMON = 16;
+const int MIN_COMMON = 25;
 
 // Max weight elements to consider when predicting.
-const unsigned int MAX_WEIGHT = 10;
+const unsigned int MAX_WEIGHT = 5;
 
 // If P is already precomputed, only need to load.
-const bool LOAD_P = false;
+const bool LOAD_P = true;
 
 // Whether we want to save the output of P.
-const bool SAVE_P = true;
+const bool SAVE_P = false;
 
 // Sig-figs for output file.
 const int RATING_SIG_FIGS = 4;
 
 // If we do want to load or save, the location of P file.
-const string P_PATH = "data/knn-p.dta";
+const string P_PATH = "data/knn_cached/knn-p.dta";
 
 // The name of the output file to use (for predictions on "qual").
-const string OUTPUT_FN = "data/knn_VALID_predictions.dta";
+const string OUTPUT_FN = "data/knn_cached/knn_min25_max5_predictions.dta";
 
 // Helper function that carries out "predAlgo" on the test file specified
 // by testFileName, and then puts the prediction results (for each (user,
@@ -76,7 +76,7 @@ int main(void)
         //TRAIN_MU, P_PATH);
     KNN *knn = new KNN(NUM_USERS, NUM_MOVIES, MIN_COMMON, MAX_WEIGHT,
         P_PATH);
-    knn->train(trainingSetUM);
+    knn->train_(trainingSetUM);
     if (LOAD_P)
         knn->loadP();
     else

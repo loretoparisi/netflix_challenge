@@ -22,8 +22,8 @@ KNN::KNN(const int numUsers, const int numItems, const int minCommon,
     pfile.close();
 }
 
-
-void KNN::train(const fmat &data)
+void KNN::train(const fmat &data) {}
+void KNN::train_(fmat &data)
 {
     cout << "Populating UM and MU data..." << endl;
     unsigned int i;
@@ -55,6 +55,7 @@ void KNN::train(const fmat &data)
         m_pair.rating = rating;
         mu[item].push_back(m_pair);
     }
+    data.clear();
     cout << "Finished populating UM and MU data." << endl;
 }
 
