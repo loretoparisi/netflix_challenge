@@ -32,10 +32,10 @@ ADDITIONAL DETAILS
 TIME-SVD++
 -----------
 
-TIMESVDPP_FAC_110_EPOCH_25_QRMSE_0.87772.dta - this is an extension to
+TIMESVDPP_FAC_110_EPOCH_25_QRMSE_0.87768.dta - this is an extension to
 SVD++^(3), with frequency-dependent biases and extra bin-wise item factors.
 This was generated using the parameters specified in "good_predictions" for
-TIMESVDPP_QUAL_7.744.dta. Note that this predictor has been trained on
+TIMESVDPP_QUAL_7.749.dta. Note that this predictor has been trained on
 probe as well.
 
 TIMESVDPP_FAC_130_EPOCH_30_QRMSE_0.88515.dta - this is SVD++^(3), generated

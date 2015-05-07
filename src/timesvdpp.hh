@@ -107,7 +107,7 @@ private:
     static constexpr float TIMESVDPP_LAM_B_U_T = 0.0050;        // Laksh
     static constexpr float TIMESVDPP_LAM_B_I = 0.005;           // Laksh
     static constexpr float TIMESVDPP_LAM_B_I_T = 0.0050;        // Laksh
-    static constexpr float TIMESVDPP_LAM_B_I_F_U_T = 6.60e-3;   // Laksh
+    static constexpr float TIMESVDPP_LAM_B_I_F_U_T = 4.40e-3;   // Laksh
     static constexpr float TIMESVDPP_LAM_C_U = 0.010;           // Laksh
     static constexpr float TIMESVDPP_LAM_C_U_T = 0.0070;        // Laksh
     static constexpr float TIMESVDPP_LAM_Q_I = 0.0155;          // Laksh
@@ -123,7 +123,7 @@ private:
     // method for more on which parameters these apply to. These came from
     // a combination of the abovementioned forum link, BellKor's [PQ1]
     // model, and other tweaks.
-    float TIMESVDPP_GAMMA_B_U = 0.0050;                 // Laksh
+    float TIMESVDPP_GAMMA_B_U = 0.0054;                 // Laksh
     float TIMESVDPP_GAMMA_ALPHA_B_U = 0.00003;          // Laksh
     float TIMESVDPP_GAMMA_B_U_T = 0.0028;               // Laksh
     float TIMESVDPP_GAMMA_B_I = 0.005;                  // Laksh
@@ -134,10 +134,10 @@ private:
     float TIMESVDPP_GAMMA_Q_I = 0.005;                  // Laksh
     float TIMESVDPP_GAMMA_Q_I_BIN = 0.0007;             // Laksh
     float TIMESVDPP_GAMMA_Q_I_F = 0.00003;              // Laksh
-    float TIMESVDPP_GAMMA_P_U = 0.0048;                 // Laksh
+    float TIMESVDPP_GAMMA_P_U = 0.0050;                 // Laksh
     float TIMESVDPP_GAMMA_ALPHA_P_U = 0.00001;          // Laksh
     float TIMESVDPP_GAMMA_P_U_T = 0.0040;               // Laksh
-    float TIMESVDPP_GAMMA_Y_J = 0.0048;                 // Laksh 
+    float TIMESVDPP_GAMMA_Y_J = 0.0050;                 // Laksh 
     // float TIMESVDPP_GAMMA_Y_J_BIN = 0.0001;          // ?
     
     // The fraction by which the step sizes will be multiplied on each

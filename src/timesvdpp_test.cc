@@ -34,7 +34,7 @@ const string TIMESVDPP_TRAIN_FILE = ALL_TRAIN_BIN;
 const int NUM_FACTORS = 110;
 
 // The number of iterations of Time-SVD++ to carry out.
-const int NUM_ITERATIONS = 25;
+const int NUM_ITERATIONS = 40;
 
 // The number of time bins to use for movies in Time-SVD++. BellKor used 30
 // so we will too for now.
