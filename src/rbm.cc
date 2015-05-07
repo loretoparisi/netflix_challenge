@@ -36,7 +36,7 @@
 // Width of a (movie, rating) pair in words (assuming 8-byte words)
 #define PAIR_WIDTH 3
 
-#define EPOCHS 10
+#define EPOCHS 1
 #define CD_STEPS 1
 #define DECAY 0.0001
 
@@ -162,9 +162,9 @@ void RBM::train (const Mat<data_t> &data) {
     // This array is not contiguous in memory on purpose; we don't want
     // all users' (sparse) indicator matrices taking up cache space when we
     // only need one at a time, and it makes indexing way easier
-    uint8_t **indicators = new uint8_t*[this->users];
+    uint8_t **const indicators = new uint8_t*[this->users];
     // User id-indexed array containing the number of ratings per user
-    uint16_t *ratingCount = new uint16_t[this->users];
+    uint16_t *const ratingCount = new uint16_t[this->users];
 
     // Initialize weights & biases
 
@@ -336,86 +336,88 @@ void RBM::train (const Mat<data_t> &data) {
         // Load all cached indicator matrices into memory
         for ( int user = 0; user < this->users; ++user ) {
             loadIndicator(indicators, ratingCount, user);
-
-            // for ( uint8_t *ind = indicators[user]; 
-            //       ind < ind + ratingCount[user]; ) {
-            //     getPair(ind, movie, rating)
-            // }
         }
     }
 
     // Begin training procedure
 
     // Activation probabilities for the hidden units
-    data_t *hiddenProbs = new data_t[this->hidden]();
+    data_t *const hiddenProbs = new data_t[this->hidden]();
     // Store the state of the hidden units across contrastive divergence steps
-    uint8_t *hiddenStatesBuffer = new uint8_t[this->hidden]();
+    uint8_t *const hiddenStatesBuffer = new uint8_t[this->hidden]();
     // Hidden states sampled from the data
-    uint8_t *posHiddenStates = new uint8_t[this->hidden]();
+    uint8_t *const posHiddenStates = new uint8_t[this->hidden]();
     // Activation histogram for hidden units sampled from the data
-    uint8_t *posHiddenAct = new uint8_t[this->hidden]();
+    uint8_t *const posHiddenAct = new uint8_t[this->hidden]();
     // Hidden states sampled using contrastive divergence (approximation of
     // sampling from the model's distribution, which is intractable)
-    uint8_t *negHiddenStates = new uint8_t[this->hidden]();
+    uint8_t *const negHiddenStates = new uint8_t[this->hidden]();
     // Activation histogram using contrastive divergence
-    uint8_t *negHiddenAct = new uint8_t[this->hidden]();
+    uint8_t *const negHiddenAct = new uint8_t[this->hidden]();
 
     // Activation probabilities for the visible units
-    data_t *visibleProbs = new data_t[this->movies * MAX_RATING]();
+    data_t *const visibleProbs = new data_t[this->movies * MAX_RATING]();
     // Non-regularized activation probabilities for the visible units, used to
     // compute RMSE
-    data_t *visibleProbsRMSE = new data_t[this->movies * MAX_RATING]();
+    data_t *const visibleProbsRMSE = new data_t[this->movies * MAX_RATING]();
     // Activation histogram for visible units sampled from the data
-    uint8_t *posVisibleAct = new uint8_t[this->movies * MAX_RATING]();
+    uint8_t *const posVisibleAct = new uint8_t[this->movies * MAX_RATING]();
     // Activation histogram for visible units sampled using contrastive
     // divergence
-    uint8_t *negVisibleAct = new uint8_t[this->movies * MAX_RATING]();
+    uint8_t *const negVisibleAct = new uint8_t[this->movies * MAX_RATING]();
     // Movie-id indexed array used as a buffer for storing the sampled states
     // of the visible softmax units
-    uint8_t *softmax = new uint8_t[this->movies]();
+    uint8_t *const softmax = new uint8_t[this->movies]();
 
     // Change in the visible unit biases
-    data_t *deltaVisibleBias = new data_t[this->movies * MAX_RATING]();
+    data_t *const deltaVisibleBias = new data_t[this->movies * MAX_RATING]();
     // Change in the hidden unit biases
-    data_t *deltaHiddenBias = new data_t[this->hidden]();
+    data_t *const deltaHiddenBias = new data_t[this->hidden]();
     // Change in the weight matrix
-    data_t **deltaCD = new data_t*[this->hidden]();
+    data_t **const deltaCD = new data_t*[this->hidden]();
     // Contrastive divergence 
-    uint8_t **posCD = new uint8_t*[this->hidden]();
-    uint8_t **negCD = new uint8_t*[this->hidden]();
+    uint8_t **const posCD = new uint8_t*[this->hidden]();
+    uint8_t **const negCD = new uint8_t*[this->hidden]();
     for ( int h = 0; h < this->hidden; ++h ) {
         posCD[h] = new uint8_t[this->movies * MAX_RATING]();
         negCD[h] = new uint8_t[this->movies * MAX_RATING]();
         deltaCD[h] = new data_t[this->movies * MAX_RATING]();
     }
 
-#ifndef NDEBUG
     std::chrono::time_point<std::chrono::system_clock> start, end;
-    std::chrono::duration<double, std::ratio<60>> minutes_elapsed;
+    std::chrono::duration<double> seconds_elapsed;
+#ifndef NTIME
+    std::chrono::time_point<std::chrono::system_clock> 
+        user_start, user_end, section_start, section_end;
 #endif
 
     // Initialize uniform distribution once
     std::uniform_real_distribution<data_t> uniform(0.0, 1.0);
     bool active;
 
+    uint16_t movie;
+    uint8_t rating;
+    uint8_t *__restrict__ pos, *__restrict__ neg;
+    data_t *__restrict__ prob, *__restrict__ weight, *__restrict__ bias,
+           *__restrict__ delta, *__restrict__ rmse;
+
     // For the specified number of epochs (should be while RMSE is decreasing)
     for ( int epoch = 0; epoch < EPOCHS; ++epoch ) {
-#ifndef NDEBUG
         start = std::chrono::system_clock::now();
-#endif
         // For each user
         for ( int user = 0; user < this->users; ++user ) {
+#ifndef NTIME
+            user_start = std::chrono::system_clock::now();
+#endif
             // This user's sparse indicator matrix
-            uint8_t *indicator = indicators[user];
+            uint8_t *const indicator = indicators[user];
             // A past-the-end pointer for this user's indicator matrix
-            const uint8_t *indicatorEnd = 
+            uint8_t *const indicatorEnd = 
                 indicator + ratingCount[user] * PAIR_WIDTH;
 
             // Run a training iteration until we have to sample the visible
             // units, i.e., sample the hidden units given the data
 
-            uint16_t movie;
-            uint8_t rating;
             // For all (movie, rating) pairs (active visible units)
             for ( uint8_t *ind = indicator; ind < indicatorEnd; ) {
                 // Extract the next movie, rating pair (indices in a sparse
@@ -450,7 +452,7 @@ void RBM::train (const Mat<data_t> &data) {
                 // Record the sampled state of this unit for training purposes
                 // (sample from data)
                 posHiddenStates[h] = hiddenStatesBuffer[h] = (uint8_t) active;
-                posHiddenAct += (uint8_t) active;
+                posHiddenAct[h] += (uint8_t) active;
             }
             // For each hidden unit
             for ( int h = 0; h < this->hidden; ++h ) {
@@ -460,23 +462,23 @@ void RBM::train (const Mat<data_t> &data) {
                     getMovie(ind, movie);
                     // Calculate non-regularized probabilities for RMSE
                     // reporting
-                    data_t *rmse = 
-                        GET2DPTR(visibleProbsRMSE, MAX_RATING, movie, 0);
-                    data_t *weight =
-                        GET2DPTR(this->weights[h], MAX_RATING, movie, 0);
-                    // Calculate activation probability of "1" softmax unit
+                    rmse = GET2DPTR(visibleProbsRMSE, MAX_RATING, movie, 0);
+                    weight = GET2DPTR(this->weights[h], MAX_RATING, movie, 0);
+                    // Calculate activation probability of softmax unit 1
                     *rmse++ = hiddenProbs[h] * *weight++;
-                    // Calculate activation probability of "2" softmax unit
+                    // Calculate activation probability of softmax unit 2
                     *rmse++ = hiddenProbs[h] * *weight++;
-                    // Calculate activation probability of "3" softmax unit
+                    // Calculate activation probability of softmax unit 3
                     *rmse++ = hiddenProbs[h] * *weight++;
-                    // Calculate activation probability of "4" softmax unit
+                    // Calculate activation probability of softmax unit 4
                     *rmse++ = hiddenProbs[h] * *weight++;
-                    // Calculate activation probability of "5" softmax unit
+                    // Calculate activation probability of softmax unit 5
                     *rmse = hiddenProbs[h] * *weight;
                 }
             }
-
+#ifndef NTIME
+            section_start = std::chrono::system_clock::now();
+#endif
             // Run the desired number of contrastive divergence iterations
             for ( int k = CD_STEPS; k > 0; --k ) {
                 const bool lastStep = k <= 1;
@@ -493,19 +495,18 @@ void RBM::train (const Mat<data_t> &data) {
                         getMovie(ind, movie);
                         // Accumulate contributions from this set hidden
                         // unit
-                        data_t *prob = GET2DPTR(visibleProbs, MAX_RATING, 
-                                                movie, 0);
-                        data_t *weight = GET2DPTR(this->weights[h], MAX_RATING,
-                                                  movie, 0);
-                        // Accumulate contribution to "1" softmax unit
+                        prob = GET2DPTR(visibleProbs, MAX_RATING, movie, 0);
+                        weight = GET2DPTR(this->weights[h], MAX_RATING,
+                                          movie, 0);
+                        // Accumulate contribution to softmax unit 1
                         *prob++ += *weight++;
-                        // Accumulate contribution to "2" softmax unit
+                        // Accumulate contribution to softmax unit 2
                         *prob++ += *weight++;
-                        // Accumulate contribution to "3" softmax unit
+                        // Accumulate contribution to softmax unit 3
                         *prob++ += *weight++;
-                        // Accumulate contribution to "4" softmax unit
+                        // Accumulate contribution to softmax unit 4
                         *prob++ += *weight++;
-                        // Accumulate contribution to "5" softmax unit
+                        // Accumulate contribution to softmax unit 5
                         *prob += *weight;
                     }
                 }
@@ -513,57 +514,54 @@ void RBM::train (const Mat<data_t> &data) {
                 for ( uint8_t *ind = indicator; ind < indicatorEnd; ) {
                     // Extract the next movie index
                     getMovie(ind, movie);
+                    prob = GET2DPTR(visibleProbs, MAX_RATING, movie, 0);
+                    bias = GET2DPTR(this->visibleBias, MAX_RATING, movie, 0);
                     data_t total = 0;
-                    data_t *prob = 
-                        GET2DPTR(visibleProbs, MAX_RATING, movie, 0);
-                    data_t *bias = 
-                        GET2DPTR(this->visibleBias, MAX_RATING, movie, 0);
                     // Calculate P[v_q^k == 1 | h] (Eq. 10 of Salakhutdinov,
                     // Mnih, & Hinton 2007) & accumulate total probability
                     // (for normalization)
-                    // For "1" softmax unit
+                    // For softmax unit 1
                     *prob = sigmoid<data_t>(*prob + *bias++);
                     total += *prob++;
-                    // For "2" softmax unit
+                    // For softmax unit 2
                     *prob = sigmoid<data_t>(*prob + *bias++);
                     total += *prob++;
-                    // For "3" softmax unit
+                    // For softmax unit 3
                     *prob = sigmoid<data_t>(*prob + *bias++);
                     total += *prob++;
-                    // For "4" softmax unit
+                    // For softmax unit 4
                     *prob = sigmoid<data_t>(*prob + *bias++);
                     total += *prob++;
-                    // For "5" softmax unit
+                    // For softmax unit 5
                     *prob = sigmoid<data_t>(*prob + *bias++);
                     total += *prob;
                     // Normalize activation probabilities
-                    // For "5" softmax unit
+                    // For softmax unit 5
                     *prob-- /= total;
-                    // For "4" softmax unit
+                    // For softmax unit 4
                     *prob-- /= total;
-                    // For "3" softmax unit
+                    // For softmax unit 3
                     *prob-- /= total;
-                    // For "2" softmax unit
+                    // For softmax unit 2
                     *prob-- /= total;
-                    // For "1" softmax unit
+                    // For softmax unit 1
                     *prob /= total;
 
                     // Sample the state of this visible softmax unit (sample
                     // from approximation of model)
-                    data_t *sampledRating = prob;
-                    data_t r = uniform(engine) - *sampledRating;
-                    while ( r > 0 ) {
-                        r -= *(++sampledRating);
-                    }
-                    // Record the sampled rating
-                    softmax[movie] = sampledRating - prob;
-
+                    uint8_t sampledRating = 0;
+                    data_t r = uniform(engine);
+                    do {
+                        r -= *(prob + sampledRating++);
+                    } while ( r > 0 );
+                    // Record the (zero-indexed) sampled rating
+                    softmax[movie] = --sampledRating;
                 }
 
                 // Sample the states of the hidden units given the states of
                 // visible units sampled from the approximation of the model
 
-                std::fill(hiddenProbs, hiddenProbs + this->hidden, 0.0);
+                memset(hiddenProbs, 0, this->hidden);
                 // For each hidden unit
                 for ( int h = 0; h < this->hidden; ++h ) {
                     // For all (movie, rating) pairs
@@ -602,18 +600,22 @@ void RBM::train (const Mat<data_t> &data) {
                     continue;
                 }
                 // Reset sampled visible unit activation probabilities
-                std::fill(visibleProbs,
-                          visibleProbs + this->movies * MAX_RATING, 0);
+                memset(visibleProbs, 0, this->movies * MAX_RATING);
                 // Load the sampled states of the hidden unit into the
                 // buffer, for the next contrastive divergence step
                 for ( int h = 0; h < this->hidden; ++h ) {
                     hiddenStatesBuffer[h] = negHiddenStates[h];
                 }
             } // CD-k iterations
-
+#ifndef NTIME
+            section_end = std::chrono::system_clock::now();
+            seconds_elapsed = section_end - section_start;
+            std::cout << "CD-k comleted in " << seconds_elapsed.count()
+                      << " seconds for user " << user + 1 << std::endl;
+            section_start = std::chrono::system_clock::now();
+#endif
             // Accumulate changes in the weights
 
-            uint8_t *pos, *neg;
             // For each hidden unit
             for ( int h = 0; h < this->hidden; ++h ) {
                 neg = negCD[h];
@@ -643,9 +645,6 @@ void RBM::train (const Mat<data_t> &data) {
 
             // Update weights
 
-            data_t *delta, *weight;
-            // uint8_t **posPtr = posCD, **negPtr = negCD;
-            // data_t **deltaPtr = deltaCD, **weightPtr = this->weights;
             // For each hidden unit
             for ( int h = 0; h < this->hidden; ++h ) {
                 // For all (movie, rating) pairs
@@ -776,24 +775,37 @@ void RBM::train (const Mat<data_t> &data) {
                 // Update the bias for this hidden unit
                 this->hiddenBias[h] += deltaHiddenBias[h];
             }
-
-            std::fill(posHiddenAct, posHiddenAct + this->hidden, 0);
-            std::fill(negHiddenAct, negHiddenAct + this->hidden, 0);
-            std::fill(posVisibleAct,
-                      posVisibleAct + this->movies * MAX_RATING, 0);
-            std::fill(negVisibleAct,
-                      negVisibleAct + this->movies * MAX_RATING, 0);
-            for ( int h = 0; h < this->hidden; ++h ) {
-                std::fill(posCD[h], posCD[h] + this->movies * MAX_RATING, 0);
-                std::fill(negCD[h], negCD[h] + this->movies * MAX_RATING, 0);
-            } 
-        } // For all users
-#ifndef NDEBUG
-    end = std::chrono::system_clock::now();
-    minutes_elapsed = end - start;
-    cout << "Finished epoch " << (epoch + 1) << " of RBM training in " 
-         << minutes_elapsed.count() << " minutes" << endl;
+#ifndef NTIME
+            section_end = std::chrono::system_clock::now();
+            seconds_elapsed = section_end - section_start;
+            std::cout << "weight & bias updates completed in "
+                      << seconds_elapsed.count() << " seconds for user " 
+                      << user + 1 << std::endl;
+            section_start = std::chrono::system_clock::now();
 #endif
+            memset(posHiddenAct, 0, this->hidden);
+            memset(negHiddenAct, 0, this->hidden);
+            memset(posVisibleAct, 0, this->movies * MAX_RATING);
+            memset(negVisibleAct, 0, this->movies * MAX_RATING);
+            for ( int h = 0; h < this->hidden; ++h ) {
+                memset(posCD[h], 0, this->movies * MAX_RATING);
+                memset(negCD[h], 0, this->movies * MAX_RATING);
+            } 
+#ifndef NTIME
+            user_end = std::chrono::system_clock::now();
+            seconds_elapsed = user_end - section_start;
+            std::cout << "Zeroed loop arrays in " << seconds_elapsed.count()
+                      << " seconds for user " << user + 1 << std::endl;
+            seconds_elapsed = user_end - user_start;
+            std::cout << "Processed user " << user + 1 << " of epoch "
+                      << epoch + 1 << " in " << seconds_elapsed.count()
+                      << " seconds" << std::endl;
+#endif
+        } // For all users
+    end = std::chrono::system_clock::now();
+    seconds_elapsed = end - start;
+    cout << "Finished epoch " << (epoch + 1) << " of RBM training in " 
+         << seconds_elapsed.count() << " seconds" << endl;
     } // Epochs
 
     delete [] hiddenProbs;
@@ -838,6 +850,9 @@ Mat<data_t> RBM::predict (const Mat<data_t> &targets) {
     // Column index in the matrix of targets, and outputs, respectively
     uint16_t col = 0, outputCol = 0;
 
+    uint16_t movie;
+    uint8_t rating;
+    data_t *__restrict__ prob, *__restrict__ weight, *__restrict__ bias;
     while ( col < targets.n_cols ) {
         int user = std::lround(targets.at(USER_ROW, col));
         // Get the source path of the cached indicator matrix for this user
@@ -858,8 +873,6 @@ Mat<data_t> RBM::predict (const Mat<data_t> &targets) {
 
         // Sample the hidden units given the data
 
-        uint16_t movie;
-        uint8_t rating;
         // For each hidden unit
         for ( int h = 0; h < this->hidden; ++h ) {
             hiddenProbs[h] = 0;
@@ -899,62 +912,61 @@ Mat<data_t> RBM::predict (const Mat<data_t> &targets) {
             // For all movies we need ratings for
             for ( std::vector<uint16_t>::const_iterator it = 
                   targetMovies.begin(); it != targetMovies.end(); ++it ) {
-                data_t *prob = GET2DPTR(visibleProbs, MAX_RATING, *it, 0);
-                data_t *weight =
-                    GET2DPTR(this->weights[h], MAX_RATING, *it, 0);
-                // Accumulate contribution to "1" softmax unit
+                prob = GET2DPTR(visibleProbs, MAX_RATING, *it, 0);
+                weight = GET2DPTR(this->weights[h], MAX_RATING, *it, 0);
+                // Accumulate contribution to softmax unit 1
                 *prob++ += hiddenProb * *weight++;
-                // Accumulate contribution to "2" softmax unit
+                // Accumulate contribution to softmax unit 2
                 *prob++ += hiddenProb * *weight++;
-                // Accumulate contribution to "3" softmax unit
+                // Accumulate contribution to softmax unit 3
                 *prob++ += hiddenProb * *weight++;
-                // Accumulate contribution to "4" softmax unit
+                // Accumulate contribution to softmax unit 4
                 *prob++ += hiddenProb * *weight++;
-                // Accumulate contribution to "5" softmax unit
+                // Accumulate contribution to softmax unit 5
                 *prob += hiddenProb * *weight;
             }
         }
         // For all movies we need ratings for
         for ( std::vector<uint16_t>::const_iterator it = targetMovies.begin();
               it != targetMovies.end(); ++it ) {
-            data_t *prob = GET2DPTR(visibleProbs, MAX_RATING, *it, 0);
-            data_t *bias = GET2DPTR(this->visibleBias, MAX_RATING, *it, 0);
+            prob = GET2DPTR(visibleProbs, MAX_RATING, *it, 0);
+            bias = GET2DPTR(this->visibleBias, MAX_RATING, *it, 0);
             data_t total = 0;
             // Calculate P[v_q^k == 1 | h] (Eq. 10 of Salakhutdinov, Mnih,
             // & Hinton 2007) & accumulate total probability (for
             // normalization)
-            // For "1" softmax unit
+            // For softmax unit 1
             *prob = sigmoid<data_t>(*prob + *bias++);
             total += *prob++;
-            // For "2" softmax unit
+            // For softmax unit 2
             *prob = sigmoid<data_t>(*prob + *bias++);
             total += *prob++;
-            // For "3" softmax unit
+            // For softmax unit 3
             *prob = sigmoid<data_t>(*prob + *bias++);
             total += *prob++;
-            // For "4" softmax unit
+            // For softmax unit 4
             *prob = sigmoid<data_t>(*prob + *bias++);
             total += *prob++;
-            // For "5" softmax unit
+            // For softmax unit 5
             *prob = sigmoid<data_t>(*prob + *bias++);
             total += *prob;
             // Normalize activation probabilities
-            // For "5" softmax unit
+            // For softmax unit 5
             *prob-- /= total;
-            // For "4" softmax unit
+            // For softmax unit 4
             *prob-- /= total;
-            // For "3" softmax unit
+            // For softmax unit 3
             *prob-- /= total;
-            // For "2" softmax unit
+            // For softmax unit 2
             *prob-- /= total;
-            // For "1" softmax unit
+            // For softmax unit 1
             *prob /= total;
         }
 
         // Compute the expected value (rating) for target visible units
         for ( std::vector<uint16_t>::const_iterator it = targetMovies.begin();
               it != targetMovies.end(); ++it ) {
-            data_t *prob = GET2DPTR(visibleProbs, MAX_RATING, *it, 1);
+            prob = GET2DPTR(visibleProbs, MAX_RATING, *it, 1);
             data_t rating = *prob++;
             rating += 2 * *prob++;
             rating += 3 * *prob++;

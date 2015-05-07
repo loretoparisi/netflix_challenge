@@ -374,7 +374,7 @@ public:
                        const std::string &fileNameYMat,
                        const std::string &fileNameSumMovieWeights);
     
-    float predict(int user, int item, int date);
+    float predict(int user, int item, int date, bool bound);
 };
 
 #endif // TIMESVDPP_HH

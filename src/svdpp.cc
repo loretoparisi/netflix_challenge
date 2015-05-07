@@ -661,7 +661,7 @@ float SVDPP::computeRMSE(const string &testFileName)
         int date = roundToInt(testSet(DATE_ROW, i));
         float actualRating = testSet(RATING_ROW, i);
         
-        float prediction = predict(user, item, date);
+        float prediction = predict(user, item, date, true);
         
         rmse += pow(actualRating - prediction, 2.0)/nMinusOne;
     }
@@ -686,7 +686,7 @@ float SVDPP::computeRMSE(const string &testFileName)
  * after training!
  *
  */
-float SVDPP::predict(int user, int item, int date)
+float SVDPP::predict(int user, int item, int date, bool bound)
 {
     /*if (!trained)
     {
@@ -718,15 +718,18 @@ float SVDPP::predict(int user, int item, int date)
     fcolvec qi(itemFacMat.col(item));
     predictedRating += dot(qi, userFactorTerm);
 
-    // Put the rating between MIN_RATING and MAX_RATING! Otherwise, the
-    // error will be bad.
-    if (predictedRating < MIN_RATING)
+    if (bound)
     {
-        predictedRating = (float) MIN_RATING;
-    }
-    else if (predictedRating > MAX_RATING)
-    {
-        predictedRating = (float) MAX_RATING;
+        // Put the rating between MIN_RATING and MAX_RATING! Otherwise, the
+        // error will be bad.
+        if (predictedRating < MIN_RATING)
+        {
+            predictedRating = (float) MIN_RATING;
+        }
+        else if (predictedRating > MAX_RATING)
+        {
+            predictedRating = (float) MAX_RATING;
+        }
     }
 
     return predictedRating;

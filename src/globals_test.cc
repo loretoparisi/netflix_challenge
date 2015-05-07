@@ -56,7 +56,6 @@ int main(void)
     // Load from binary.
     fmat trainingSetUM;
     trainingSetUM.load(TRAIN_UM, arma_binary);
-    
     cout << "Loaded training data from " << TRAIN_UM << "."
         << endl;
 
@@ -107,7 +106,7 @@ float computeRMSE(Globals &predAlgo, const string &testFileName)
         int date = roundToInt(testSet(DATE_ROW, i));
         float actualRating = testSet(RATING_ROW, i);
         
-        float prediction = predAlgo.predict(user, item, date);
+        float prediction = predAlgo.predict(user, item, date, true);
         
         rmse += pow(actualRating - prediction, 2.0)/nMinusOne;
     }
@@ -163,7 +162,7 @@ void testOnDataFile(Globals &predAlgo, const string &testFileName,
         int date = thisLineVec[2];
         
         // Output the prediction to file.
-        float prediction = predAlgo.predict(user, item, date);
+        float prediction = predAlgo.predict(user, item, date, true);
         outputFile << setprecision(RATING_SIG_FIGS) << prediction << endl;
     }
     
