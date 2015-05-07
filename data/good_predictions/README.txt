@@ -12,6 +12,63 @@ below.
 
 Further details on predictions in this folder:
 
+TIMESVDPP_QUAL_7.744: This was generated on May 6 at 5:49 pm. TimeSVD++
+with frequency-dependent terms and item-dependent bin terms was carried out
+for 25 iterations with 110 factors and 30 time bins (for item biases and
+item factors). Training was carried out on all of the training data, and
+testing was done on the "qual" set (the reported RMSE is a quiz RMSE). To
+initialize the internal data of the TimeSVDPP, we used the following
+approach:
+    * Initialize userFacMat to random values in [-0.005, 0.005]
+    * Initialize itemFacMat with a similar range of random values.
+    * Initialize itemFacMatTimewise with a similar range of random values.
+    * Initialize yMat with a similar range of random values.
+    * Initialize cUserConst with 1s.
+    * Initialize bUserConst, bUserAlpha, userFacMatAlpha, bItemConst,
+      bItemTimewise, bItemFreq, and itemFacMatFreq to all zeros.
+    * Initialize the sparse bUserTime and cUserTime matrices with small
+      values of 1.0e-9.
+    * Initialize userFacMatTime's vectors to all zeros.
+
+As for our regularization constants and learning rates, we chose:
+    * Regularization:
+        * TIMESVDPP_LAM_B_U = 0.0065
+        * TIMESVDPP_LAM_ALPHA_B_U = 0.0004
+        * TIMESVDPP_LAM_B_U_T = 0.0050
+        * TIMESVDPP_LAM_B_I = 0.005
+        * TIMESVDPP_LAM_B_I_T = 0.0050
+        * TIMESVDPP_LAM_B_I_F_U_T = 6.60e-3
+        * TIMESVDPP_LAM_C_U = 0.010
+        * TIMESVDPP_LAM_C_U_T = 0.0070
+        * TIMESVDPP_LAM_Q_I = 0.0155
+        * TIMESVDPP_LAM_Q_I_BIN = 0.022
+        * TIMESVDPP_LAM_Q_I_F = 0.018
+        * TIMESVDPP_LAM_P_U = 0.0155
+        * TIMESVDPP_LAM_ALPHA_P_U = 0.0004
+        * TIMESVDPP_LAM_P_U_T = 0.015
+        * TIMESVDPP_LAM_Y_J = 0.0155
+    * Learning rates:
+        * TIMESVDPP_GAMMA_B_U = 0.0050
+        * TIMESVDPP_GAMMA_ALPHA_B_U = 0.00003
+        * TIMESVDPP_GAMMA_B_U_T = 0.0028
+        * TIMESVDPP_GAMMA_B_I = 0.005
+        * TIMESVDPP_GAMMA_B_I_T = 0.0001
+        * TIMESVDPP_GAMMA_B_I_F_U_T = 0.00236
+        * TIMESVDPP_GAMMA_C_U = 0.006
+        * TIMESVDPP_GAMMA_C_U_T = 0.001
+        * TIMESVDPP_GAMMA_Q_I = 0.005
+        * TIMESVDPP_GAMMA_Q_I_BIN = 0.0007
+        * TIMESVDPP_GAMMA_Q_I_F = 0.00003
+        * TIMESVDPP_GAMMA_P_U = 0.0048
+        * TIMESVDPP_GAMMA_ALPHA_P_U = 0.00001
+        * TIMESVDPP_GAMMA_P_U_T = 0.0040
+        * TIMESVDPP_GAMMA_Y_J = 0.0048 
+    * Learning rate decay (common to all rates):
+        * TIMESVDPP_GAMMA_MULT_PER_ITER = 0.89
+
+
+
+
 SVDPP_QUAL_6.239: This was generated on April 30 at 6:28 pm. SVD++ was run
 for 25 iterations with 200 factors. Fewer iterations were chosen since 30
 iterations were found to cause overfitting. Training was carried out on the

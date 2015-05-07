@@ -26,40 +26,54 @@ using namespace std::chrono;
  *                              SVD++.
  * @param numTimeBins:          The number of time bins to use for the
  *                              time-dependent item bias.
+ * @param includeUserFacMatTime:    Whether to include userFacMatTime in
+ *                                  the prediction. Note that
+ *                                  userFacMatTime can improve accuracy,
+ *                                  but it takes up lots of memory.
  * @param fileNameN:            Name of the file that contains the
  *                              information needed to populate the N
  *                              mapping. This should be a plain text .dta
  *                              file (or equivalent).
- * @param fileNameHatDevUT:     Name of the file that contains the
- *                              information needed to populate the hatDevUT
- *                              mapping. This should also be a plain text
- *                              .dta file (or equivalent).
+ * @param fileNameHatDevUT:     Same as above, but for hatDevUT.
+ * @param fileNameFUT:          Same as above, but for fUT.
  *
  */
 TimeSVDPP::TimeSVDPP(int numUsers, int numItems, int numTimes,
                      float meanRating, int numFactors, int numIterations,
-                     int numTimeBins,
+                     int numTimeBins, bool includeUserFacMatTime,
                      const std::string &fileNameN,
-                     const std::string &fileNameHatDevUT) :
+                     const std::string &fileNameHatDevUT,
+                     const std::string &fileNameFUT) :
     numUsers(numUsers), numItems(numItems), numTimes(numTimes),
     meanRating(meanRating), numFactors(numFactors),
     numIterations(numIterations), numTimeBins(numTimeBins),
     bUserConst(numUsers), bUserAlpha(numUsers),
     /* initialized later */ bUserTime(), bItemConst(numItems),
-    bItemTimewise(numTimeBins, numItems), userFacMat(numFactors, numUsers),
-    userFacMatAlpha(numFactors, numUsers), yMat(numFactors, numItems),
-    itemFacMat(numFactors, numItems), numItemsTrainingSet(numUsers),
-    sumMovieWeights(numFactors, numUsers), userFacMatTime(numUsers)
+    bItemTimewise(numTimeBins, numItems), 
+    bItemFreq(MAX_F_U_T + 1, numItems),
+    cUserConst(numUsers), /* initialized later */ cUserTime(),
+    userFacMat(numFactors, numUsers), userFacMatAlpha(numFactors, numUsers),
+    userFacMatTime(numUsers), yMat(numFactors, numItems),
+    itemFacMat(numFactors, numItems), 
+    itemFacMatTimewise(numFactors, numTimeBins, numItems),
+    itemFacMatFreq(numFactors, MAX_F_U_T + 1, numItems),
+    numItemsTrainingSet(numUsers),
+    sumMovieWeights(numFactors, numUsers),
+    includeUserFacMatTime(includeUserFacMatTime)
 {
     // Populate N by reading from fileNameN.
     populateN(fileNameN);
-
+    
     // Populate hatDevUT by reading from fileNameHatDevUT
     populateHatDevUT(fileNameHatDevUT);
-
+    
+    // Populate fUT by reading from fileNameFUT.
+    populateFUT(fileNameFUT);
+ 
     // Initialize bUserConst, bUserAlpha, bItemConst, bItemTimewise,
-    // userFacMat, userFacMatAlpha, itemFacMat, and yMat. The sparse
-    // bUserTime matrix doesn't need initialization yet.
+    // cUserConst, userFacMat, userFacMatAlpha, itemFacMat,
+    // itemFacMatTimewise, itemFacMatFreq, and yMat. The sparse bUserTime
+    // and cUserTime matrices don't need initialization yet.
     initInternalData();
 
 #ifndef NDEBUG
@@ -89,14 +103,15 @@ TimeSVDPP::TimeSVDPP(int numUsers, int numItems, int numTimes,
  *                                  Time-SVD++.
  * @param numTimeBins:              The number of time bins to use for the
  *                                  time-dependent item bias.
+ * @param includeUserFacMatTime:    Whether we want to include
+ *                                  userFacMatTime. Including this makes
+ *                                  the algorithm take up way more memory.
  * @param fileNameN:                Name of the file that contains the
  *                                  information needed to populate the N
  *                                  mapping. This should be a plain text
  *                                  .dta file (or equivalent).
- * @param fileNameHatDevUT:         Name of the file that contains the
- *                                  information needed to populate the
- *                                  hatDevUT mapping. This should also be
- *                                  a plain text .dta file (or equivalent).
+ * @param fileNameHatDevUT:         Same as above, but for hatDevUT.
+ * @param fileNameFUT:              Same as above, but for fUT.
  * @param fileNameBUserConst:       Name of file containing data for
  *                                  bUserConst, in Armadillo's
  *                                  machine-dependent binary format.
@@ -104,6 +119,9 @@ TimeSVDPP::TimeSVDPP(int numUsers, int numItems, int numTimes,
  * @param fileNameBUserTime:        Same as above, but for bUserTime.
  * @param fileNameBItemConst:       Same as above, but for bItemConst.
  * @param fileNameBItemTimewise:    Same as above, but for bItemTimewise.
+ * @param fileNameBItemFreq:        Same as above, but for bItemFreq.
+ * @param fileNameCUserConst:       Same as above, but for cUserConst.
+ * @param fileNameCUserTime:        Same as above, but for cUserTime.
  * @param fileNameUserFacMat:       Same as above, but for userFacMat.
  * @param fileNameUserFacMatAlpha:  Same as above, but for userFacMatAlpha.
  * @param fileNameUserFacMatTime:   A time-dependent user factor matrix.
@@ -114,6 +132,9 @@ TimeSVDPP::TimeSVDPP(int numUsers, int numItems, int numTimes,
  *                                  numFactors.
  * @param fileNameItemFacMat:       Another Armadillo binary matrix file,
  *                                  but for itemFacMat.
+ * @param fileNameItemFacMatTimewise:   Same as above, but for
+ *                                      itemFacMatTimewise.
+ * @param fileNameItemFacMatFreq:   Same as above, but for itemFacMatFreq.
  * @param fileNameYMat:             Same as above, but for yMat.
  * @param fileNameSumMovieWeights:  Same as above, but for sumMovieWeights.
  *
@@ -121,17 +142,24 @@ TimeSVDPP::TimeSVDPP(int numUsers, int numItems, int numTimes,
 TimeSVDPP::TimeSVDPP(int numUsers, int numItems, int numTimes,
                      float meanRating, int numFactors, int numIterations,
                      int numTimeBins,
+                     bool includeUserFacMatTime,
                      const std::string &fileNameN,
                      const std::string &fileNameHatDevUT,
+                     const std::string &fileNameFUT,
                      const std::string &fileNameBUserConst,
                      const std::string &fileNameBUserAlpha,
                      const std::string &fileNameBUserTime,
                      const std::string &fileNameBItemConst,
                      const std::string &fileNameBItemTimewise,
+                     const std::string &fileNameBItemFreq,
+                     const std::string &fileNameCUserConst,
+                     const std::string &fileNameCUserTime,
                      const std::string &fileNameUserFacMat,
                      const std::string &fileNameUserFacMatAlpha,
                      const std::string &fileNameUserFacMatTime,
                      const std::string &fileNameItemFacMat,
+                     const std::string &fileNameItemFacMatTimewise,
+                     const std::string &fileNameItemFacMatFreq,
                      const std::string &fileNameYMat,
                      const std::string &fileNameSumMovieWeights) :
     numUsers(numUsers), numItems(numItems), numTimes(numTimes),
@@ -139,10 +167,17 @@ TimeSVDPP::TimeSVDPP(int numUsers, int numItems, int numTimes,
     numIterations(numIterations), numTimeBins(numTimeBins),
     bUserConst(numUsers), bUserAlpha(numUsers),
     bUserTime(numTimes, numUsers), bItemConst(numItems),
-    bItemTimewise(numTimeBins, numItems), userFacMat(numFactors, numUsers),
-    userFacMatAlpha(numFactors, numUsers), yMat(numFactors, numItems),
-    itemFacMat(numFactors, numItems), numItemsTrainingSet() /* unused */,
-    sumMovieWeights(numFactors, numUsers), userFacMatTime(numUsers)
+    bItemTimewise(numTimeBins, numItems), 
+    bItemFreq(MAX_F_U_T + 1, numItems),
+    cUserConst(numUsers), /* initialized later */ cUserTime(),
+    userFacMat(numFactors, numUsers), userFacMatAlpha(numFactors, numUsers),
+    userFacMatTime(numUsers), yMat(numFactors, numItems),
+    itemFacMat(numFactors, numItems), 
+    itemFacMatTimewise(numFactors, numTimeBins, numItems),
+    itemFacMatFreq(numFactors, MAX_F_U_T + 1, numItems),
+    numItemsTrainingSet() /* unused */,
+    sumMovieWeights(numFactors, numUsers),
+    includeUserFacMatTime(includeUserFacMatTime)
 {
     // Populate N by reading from fileNameN.
     populateN(fileNameN);
@@ -150,23 +185,35 @@ TimeSVDPP::TimeSVDPP(int numUsers, int numItems, int numTimes,
     // Populate hatDevUT by reading from fileNameHatDevUT
     populateHatDevUT(fileNameHatDevUT);
 
+    // Populate fUT by reading from fileNameFUT.
+    populateFUT(fileNameFUT);
+
     // Initialize bUserConst, bUserAlpha, bUserTime, bItemConst,
-    // bItemTimewise, userFacMat, userFacMatAlpha, userFacMatTime,
-    // itemFacMat, yMat, and sumMovieWeights by reading from their
+    // bItemTimewise, bItemFreq, cUserConst, cUserTime, userFacMat,
+    // userFacMatAlpha, userFacMatTime, itemFacMat, itemFacMatTimewise,
+    // itemFacMatFreq, yMat, and sumMovieWeights by reading from their
     // plain-text or binary files.
     bUserConst.load(fileNameBUserConst, arma_binary);
     bUserAlpha.load(fileNameBUserAlpha, arma_binary);
     bUserTime.load(fileNameBUserTime, arma_binary);
     bItemConst.load(fileNameBItemConst, arma_binary);
     bItemTimewise.load(fileNameBItemTimewise, arma_binary);
+    bItemFreq.load(fileNameBItemFreq, arma_binary);
+    cUserConst.load(fileNameCUserConst, arma_binary);
+    cUserTime.load(fileNameCUserTime, arma_binary);
     userFacMat.load(fileNameUserFacMat, arma_binary);
     userFacMatAlpha.load(fileNameUserFacMatAlpha, arma_binary);
-
-    // userFacMatTime has to be loaded separately since it is in a separate
-    // format.
-    loadUserFacMatTime(fileNameUserFacMatTime);
+    
+    if (includeUserFacMatTime)
+    {
+        // userFacMatTime has to be loaded separately since it is in a separate
+        // format.
+        loadUserFacMatTime(fileNameUserFacMatTime);
+    }
     
     itemFacMat.load(fileNameItemFacMat, arma_binary);
+    itemFacMatTimewise.load(fileNameItemFacMatTimewise, arma_binary);
+    itemFacMatFreq.load(fileNameItemFacMatFreq, arma_binary);
     yMat.load(fileNameYMat, arma_binary);
     sumMovieWeights.load(fileNameSumMovieWeights, arma_binary);
     
@@ -198,7 +245,7 @@ void TimeSVDPP::loadUserFacMatTime(const std::string
 
     if (fileUserFacMat.fail())
     {
-        throw std::runtime_error("Couldn't find file containing"
+        throw std::runtime_error("Couldn't find file containing "
                                  "userFacMatTime at " + 
                                  fileNameUserFacMatTime);
     }
@@ -388,6 +435,52 @@ void TimeSVDPP::populateN(const std::string &fileNameN)
 
 
 /**
+ * This function populates fUT (the mapping from a user's ID and date
+ * ID (as represented by a UserDate struct) to the f_{ut} value for
+ * that user and that date).
+ *
+ * @param fileNameFUT: Name of the file that contains the information
+ *                     needed to populate the fUT mapping. This should be a
+ *                     plain text .dta file (or equivalent).
+ *
+ */
+void TimeSVDPP::populateFUT(const std::string &fileNameFUT)
+{
+    std::ifstream fileFUT(fileNameFUT);
+
+    if (fileFUT.fail())
+    {
+        throw std::runtime_error("Couldn't find file containing "
+                                 "f_{ut} at " + fileNameFUT);
+    }
+
+    std::string line;
+
+    while (getline(fileFUT, line))
+    {
+        std::istringstream lineSS(line);
+        
+        // Each line should be in the format <USER ID> <DATE ID>
+        // <f_{ut} FOR THAT USER/DAY COMBO>
+        int user;
+        int date;
+        int thisFUT;
+        
+        lineSS >> user >> date >> thisFUT;
+        
+        // Add on to the map fUT.
+        UserDate thisUserDate;
+        thisUserDate.userID = user;
+        thisUserDate.dateID = (unsigned short) date;
+
+        fUT[thisUserDate] = thisFUT;
+    }
+
+    fileFUT.close();
+}
+
+
+/**
  * Given a training set, this function updates numItemsTrainingSet -- an
  * array that stores the number of items in the training set that a given
  * user rated.
@@ -416,9 +509,10 @@ void TimeSVDPP::populateNumItemsTrainingSet(const fmat &data)
  * Currently, randomization is turned on.
  *
  * The matrices to populate are: bUserConst, bUserAlpha, bItemConst,
- * bItemTimewise, userFacMat, userFacMatAlpha, itemFacMat, and yMat. The
- * sparse bUserTime matrix will be populated later (based on the training
- * set), as will userFacMatTime.
+ * bItemTimewise, bItemFreq, cUserConst, userFacMat, userFacMatAlpha,
+ * itemFacMat, itemFacMatTimewise, itemFacMatFreq, and yMat. The sparse
+ * bUserTime and cUserTime matrices will be populated later (based on the
+ * training set), as will userFacMatTime.
  *
  * Some of the initialization suggestions come from those for SVD++
  *  http://www.netflixprize.com/community/viewtopic.php?id=1359&p=2
@@ -434,12 +528,14 @@ void TimeSVDPP::initInternalData()
     //std::uniform_real_distribution<float> distrBUserAlpha(-0.02, 0.04);
     //std::uniform_real_distribution<float> distrBItemConst(-0.5, -0.1);
     //std::uniform_real_distribution<float> distrBItemTimewise(-0.03, 0.03);
-    //std::uniform_real_distribution<float> distrUserFacMat(-0.018, -0.002);
+    std::uniform_real_distribution<float> distrUserFacMat(-0.005, 0.005);
     //std::uniform_real_distribution<float> distrUserFacMatAlpha(-0.005, 0.005);
-    //std::uniform_real_distribution<float> distrItemFacMat(0.004, 0.02);
-    //std::uniform_real_distribution<float> distrYMat(0.01, 0.02);
+    std::uniform_real_distribution<float> distrItemFacMat(-0.005, 0.005);
+    std::uniform_real_distribution<float> distrItemFacMatTimewise
+        (-0.005, 0.005);
+    std::uniform_real_distribution<float> distrYMat(-0.005, 0.005);
     
-    std::uniform_real_distribution<float> coinFlip(-1.0, 1.0);
+    // std::uniform_real_distribution<float> coinFlip(-1.0, 1.0);
 
     // Set the seed to a sequence of random numbers that's large enough to
     // fill the mt19937's state.
@@ -450,31 +546,17 @@ void TimeSVDPP::initInternalData()
     
     // Mersenne twister random number engine, based on the earlier seed.
     std::mt19937 engine(seedSeq);
-
-    std::srand(std::time(NULL));
     
     //bUserConst.imbue( [&]() { return distrBUserConst(engine); } );
     //bUserAlpha.imbue( [&]() { return distrBUserAlpha(engine); } );
     //bItemConst.imbue( [&]() { return distrBItemConst(engine); } );
     //bItemTimewise.imbue( [&]() { return distrBItemTimewise(engine); } );
-    userFacMat.imbue( [&]()
-            {
-                // From post #55 of 
-                // http://www.netflixprize.com/community/viewtopic.php?id=1342&p=3
-                // Note that copysign(1.0, coinFlip) gives a random sign
-                // (either -1 or +1) with 50% probability of each case.
-                return (std::rand() % 14000 + 2000) * 0.000001235 *
-                       std::copysign(1.0, coinFlip(engine)); 
-            });
+    userFacMat.imbue( [&]() { return distrUserFacMat(engine); } );
     //userFacMatAlpha.imbue( [&]() { return distrUserFacMatAlpha(engine); });
-    itemFacMat.imbue( [&]()
-            {
-                // From same source as above.
-                return (std::rand() % 14000 + 2000) * 0.000001235 *
-                       std::copysign(1.0, coinFlip(engine)); 
-            });
-    //itemFacMat.imbue( [&]() { return distrItemFacMat(engine); } );
-    //yMat.imbue( [&]() { return distrYMat(engine); } );
+    itemFacMat.imbue( [&]() { return distrItemFacMat(engine); } );
+    itemFacMatTimewise.imbue( [&]() 
+            { return distrItemFacMatTimewise(engine); } );
+    yMat.imbue( [&]() { return distrYMat(engine); } );
 
     // Some matrices might be better off initialized to zero?
     bUserConst.zeros();
@@ -482,10 +564,16 @@ void TimeSVDPP::initInternalData()
     userFacMatAlpha.zeros();
     bItemConst.zeros();
     bItemTimewise.zeros();
-    yMat.zeros();
+    bItemFreq.zeros();
+    // itemFacMatTimewise.zeros();
+    itemFacMatFreq.zeros();
+    // yMat.zeros();
 
-    // The sparse bUserTime matrix will be partly populated later, as will
-    // userFacMatTime.
+    // Initialize cUserConst to 1s (since this is a scaling factor).
+    cUserConst.fill(1.0);
+    
+    // The sparse bUserTime and cUserTime matrices will be partly
+    // populated later, as will userFacMatTime.
 
     // This is the count of the number of items rated by users in the given
     // training set. We'll set this to zero for now.
@@ -509,12 +597,18 @@ void TimeSVDPP::initInternalData()
  * @param fileNameBUserTime:        Same as above, but for bUserTime.
  * @param fileNameBItemConst:       Same as above, but for bItemConst.
  * @param fileNameBItemTimewise:    Same as above, but for bItemTimewise.
+ * @param fileNameBItemFreq:        Same as above, but for bItemFreq.
+ * @param fileNameCUserConst:       Same as above, but for cUserConst.
+ * @param fileNameCUserTime:        Same as above, but for cUserTime.
  * @param fileNameUserFacMat:       Same as above, but for userFacMat.
  * @param fileNameUserFacMatAlpha:  Same as above, but for userFacMatAlpha.
  * @param fileNameUserFacMatTime:   A plain-text (.dta) file where
  *                                  userFacMatTime will be saved.
  * @param fileNameItemFacMat:       Name of the Armadillo binary file where 
  *                                  itemFacMat will be saved.
+ * @param fileNameItemFacMatTimewise:   Same as above, but for
+ *                                      itemFacMatTimewise.
+ * @param fileNameItemFacMatFreq:   Same as above, but for itemFacMatFreq.
  * @param fileNameYMat:             Same as above, but for yMat.
  * @param fileNameSumMovieWeights:  Same as above, but for sumMovieWeights.
  * 
@@ -525,10 +619,15 @@ void TimeSVDPP::trainAndCache(const fmat &data,
                               const std::string &fileNameBUserTime,
                               const std::string &fileNameBItemConst,
                               const std::string &fileNameBItemTimewise,
+                              const std::string &fileNameBItemFreq,
+                              const std::string &fileNameCUserConst,
+                              const std::string &fileNameCUserTime,
                               const std::string &fileNameUserFacMat,
                               const std::string &fileNameUserFacMatAlpha,
                               const std::string &fileNameUserFacMatTime,
                               const std::string &fileNameItemFacMat,
+                              const std::string &fileNameItemFacMatTimewise,
+                              const std::string &fileNameItemFacMatFreq,
                               const std::string &fileNameYMat,
                               const std::string &fileNameSumMovieWeights)
 {
@@ -536,20 +635,29 @@ void TimeSVDPP::trainAndCache(const fmat &data,
     train(data);
 
     // Save bUserConst, bUserAlpha, bUserTime, bItemConst, bItemTimewise,
-    // userFacMat, userFacMatAlpha, userFacMatTime, itemFacMat, yMat, and
-    // sumMovieWeights.
+    // bItemFreq, cUserConst, cUserTime, userFacMat, userFacMatAlpha,
+    // userFacMatTime, itemFacMat, itemFacMatTimewise, itemFacMatFreq,
+    // yMat, and sumMovieWeights.
     bUserConst.save(fileNameBUserConst, arma_binary);
     bUserAlpha.save(fileNameBUserAlpha, arma_binary);
     bUserTime.save(fileNameBUserTime, arma_binary);
     bItemConst.save(fileNameBItemConst, arma_binary);
     bItemTimewise.save(fileNameBItemTimewise, arma_binary);
+    bItemFreq.save(fileNameBItemFreq, arma_binary);
+    cUserConst.save(fileNameCUserConst, arma_binary);
+    cUserTime.save(fileNameCUserTime, arma_binary);
     userFacMat.save(fileNameUserFacMat, arma_binary);
     userFacMatAlpha.save(fileNameUserFacMatAlpha, arma_binary);
-
-    // userFacMatTime needs to be handled separately.
-    saveUserFacMatTime(fileNameUserFacMatTime);
+    
+    if (includeUserFacMatTime)
+    {
+        // userFacMatTime needs to be handled separately.
+        saveUserFacMatTime(fileNameUserFacMatTime);
+    }
     
     itemFacMat.save(fileNameItemFacMat, arma_binary);
+    itemFacMatTimewise.save(fileNameItemFacMatTimewise, arma_binary);
+    itemFacMatFreq.save(fileNameItemFacMatFreq, arma_binary);
     yMat.save(fileNameYMat, arma_binary);
     sumMovieWeights.save(fileNameSumMovieWeights, arma_binary);
     
@@ -559,10 +667,21 @@ void TimeSVDPP::trainAndCache(const fmat &data,
     cout << "Saved bUserTime to " << fileNameBUserTime << endl;
     cout << "Saved bItemConst to " << fileNameBItemConst << endl; 
     cout << "Saved bItemTimewise to " << fileNameBItemTimewise << endl;
+    cout << "Saved bItemFreq to " << fileNameBItemFreq << endl;
+    cout << "Saved cUserConst to " << fileNameCUserConst << endl;
+    cout << "Saved cUserTime to " << fileNameCUserTime << endl;
     cout << "Saved userFacMat to " << fileNameUserFacMat << endl;
     cout << "Saved userFacMatAlpha to " << fileNameUserFacMatAlpha << endl;
-    cout << "Saved userFacMatTime to " << fileNameUserFacMatTime << endl;
+    
+    if (includeUserFacMatTime)
+    {
+        cout << "Saved userFacMatTime to " << fileNameUserFacMatTime << endl;
+    }
+    
     cout << "Saved itemFacMat to " << fileNameItemFacMat << endl;
+    cout << "Saved itemFacMatTimewise to " << fileNameItemFacMatTimewise
+        << endl;
+    cout << "Saved itemFacMatFreq to " << fileNameItemFacMatFreq << endl;
     cout << "Saved yMat to " << fileNameYMat << endl;
     cout << "Saved sumMovieWeights to " << fileNameSumMovieWeights << endl;
 #endif
@@ -587,10 +706,15 @@ void TimeSVDPP::trainAndCache(const std::string &fileNameData,
                               const std::string &fileNameBUserTime,
                               const std::string &fileNameBItemConst, 
                               const std::string &fileNameBItemTimewise,
+                              const std::string &fileNameBItemFreq,
+                              const std::string &fileNameCUserConst,
+                              const std::string &fileNameCUserTime,
                               const std::string &fileNameUserFacMat,
                               const std::string &fileNameUserFacMatAlpha,
                               const std::string &fileNameUserFacMatTime,
                               const std::string &fileNameItemFacMat,
+                              const std::string &fileNameItemFacMatTimewise,
+                              const std::string &fileNameItemFacMatFreq,
                               const std::string &fileNameYMat,
                               const std::string &fileNameSumMovieWeights)
 {
@@ -598,11 +722,15 @@ void TimeSVDPP::trainAndCache(const std::string &fileNameData,
 
     data.load(fileNameData, arma_binary);
     trainAndCache(data, fileNameBUserConst, fileNameBUserAlpha,
-                  fileNameBUserTime, fileNameBItemConst,
-                  fileNameBItemTimewise, fileNameUserFacMat,
+                  fileNameBUserTime,
+                  fileNameBItemConst,fileNameBItemTimewise, 
+                  fileNameBItemFreq,
+                  fileNameCUserConst, fileNameCUserTime,
+                  fileNameUserFacMat,
                   fileNameUserFacMatAlpha, fileNameUserFacMatTime,
-                  fileNameItemFacMat, fileNameYMat,
-                  fileNameSumMovieWeights);
+                  fileNameItemFacMat, fileNameItemFacMatTimewise,
+                  fileNameItemFacMatFreq,
+                  fileNameYMat, fileNameSumMovieWeights);
 }
 
 
@@ -677,14 +805,16 @@ void TimeSVDPP::train(const fmat &data)
     // time t is:
     //      
     //      rHat_{ui}(t) = mu + b_u + alpha_{b_u} * hat{dev_u(t)} + b_{ut}
-    //                     + b_i + b_{i, Bin(t)} + q_i^T * 
+    //                     + (b_i + b_{i, Bin(t)}) * (c_u + c_{ut}) +
+    //                     b_{i, f_{ut}} + 
+    //                     (q_i + q_{i, Bin(t)} + q_{i, f_{ut}})^T * 
     //                     (p_u + alpha_{p_u} * hat{dev_u(t)} + p_{ut} +
     //                      |N(u)|^{-1/2} sum_{j in N(u)} y_j)
     //
     // Where we use a similar notation as in the BellKor paper (except
     // alpha terms are given more explicit subscripts). The goal of this
     // training procedure is to minimize the following function with
-    // respect to q_*, p_*, y_*, and alpha_*:
+    // respect to q_*, p_*, y_*, b_*, c_*, and alpha_*:
     //
     // min sum_{(u, i, t) in K} ( (r_{ui}(t) - rHat_{ui}(t))^2 +
     //                          TIMESVDPP_LAM_B_U * b_u^2 + 
@@ -692,7 +822,12 @@ void TimeSVDPP::train(const fmat &data)
     //                          TIMESVDPP_LAM_B_U_T * b_{ut}^2
     //                          TIMESVDPP_LAM_B_I_T * b_{i, Bin(t)}^2 +
     //                          TIMESVDPP_LAM_B_I * b_i^2 +
+    //                          TIMESVDPP_LAM_B_I_F_U_T * b_{i, f_{ut}}^2 +
+    //                          TIMESVDPP_LAM_C_U * (c_u - 1)^2 +
+    //                          TIMESVDPP_LAM_C_U_T * c_{ut}^2 +
     //                          TIMESVDPP_LAM_Q_I * |q_i|^2 +
+    //                          TIMESVDPP_LAM_Q_I_BIN * |q_{i, Bin(t)}|^2 +
+    //                          TIMESVDPP_LAM_Q_I_F * |q_{i, f_{ut}}|^2 +
     //                          TIMESVDPP_LAM_P_U * |p_u|^2 +
     //                          TIMESVDPP_LAM_ALPHA_P_U * |alpha_{p_u}|^2 +
     //                          TIMESVDPP_LAM_P_U_T * |p_{ut}|^2 +
@@ -740,32 +875,36 @@ void TimeSVDPP::train(const fmat &data)
 #endif
 
     // It's best if we add a small value epsilon to every entry in
-    // bUserTime that we're actually going to use. This is more efficient
-    // than initializing entries in the sparse matrix one at a time.
+    // bUserTime and cUserTime that we're actually going to use. This is
+    // more efficient than initializing entries in the sparse matrix one at
+    // a time.
     //
-    // We'll also simultaneously initialize userFacMatTime.
+    // We'll also simultaneously initialize userFacMatTime, if this is
+    // desired for this run of the algorithm. This will be initialized to
+    // zeros. 
     
 #ifndef NDEBUG
     // Start timing batch insertion.
     start = system_clock::now();
 #endif
     
-    // Small value to add to bUserTime.
-    float epsilon = 0.0000001;
+    // Small value to add to bUserTime and cUserTime.
+    float epsilon = 1.0e-9;
 
+    // Locations and values for both bUserTime and cUserTime.
     umat locations(2, data.n_cols);
     fcolvec values(data.n_cols);
-
+    
     // Keep track of previous user (assuming that the "data" matrix is
     // sorted by user IDs first).
     int prevUser = -1;
     
     // Keep track of date IDs for each user, to avoid repeats.
     std::unordered_set<unsigned short> dateIDsForThisUser;
-
+    
     // The number of non-garbage entries in locations (and values).
     unsigned int numEntriesLocations = 0;
-
+    
     for (unsigned int i = 0; i < data.n_cols; i++)
     {
         int user = roundToInt(data(USER_ROW, i));
@@ -787,19 +926,26 @@ void TimeSVDPP::train(const fmat &data)
         }
 
         // We want to insert an entry of "epsilon" in row "date" and column
-        // "user" of bUserTime.
+        // "user" of bUserTime and cUserTime.
         locations(0, numEntriesLocations) = date;
         locations(1, numEntriesLocations) = user;
         values(numEntriesLocations) = epsilon;
+        
+        if (includeUserFacMatTime)
+        {
+            // Also add an entry to userFacMatTime, and fill this with
+            // zeros.
+            UserDate thisUserDate;
+            thisUserDate.userID = user;
+            thisUserDate.dateID = date;
+            std::vector<float> userFacVecTime(numFactors, 0.0);
 
-        // Also add an entry to userFacMatTime, filled with zeros.
-        UserDate thisUserDate;
-        thisUserDate.userID = user;
-        thisUserDate.dateID = date;
-        std::vector<float> userFacVecTime(numFactors, 0.0);
-        
-        userFacMatTime[thisUserDate] = userFacVecTime;
-        
+            /*std::generate_n(userFacVecTime.begin(), numFactors, 
+                            genRand(-0.005, 0.005));*/
+            
+            userFacMatTime[thisUserDate] = userFacVecTime;
+        }
+
         dateIDsForThisUser.insert(date);
         prevUser = user;
 
@@ -810,17 +956,25 @@ void TimeSVDPP::train(const fmat &data)
     locations.shed_cols(numEntriesLocations, data.n_cols - 1);
     values.shed_rows(numEntriesLocations, data.n_cols - 1);
 
-    // Batch insertion constructor. The old matrix will be deallocated.
+    // Batch insertion constructors for bUserTime and cUserTime.
     bUserTime = sp_fmat(locations, values, numTimes, numUsers,
+                        /* sort_locations */ true,
+                        /* check_for_zeros */ false);
+    cUserTime = sp_fmat(locations, values, numTimes, numUsers,
                         /* sort_locations */ true,
                         /* check_for_zeros */ false);
 
 #ifndef NDEBUG
     end = system_clock::now();
     minutesElapsed = end - start;
-    cout << "Set up sparse matrix bUserTime via batch insertion in "
-        << minutesElapsed.count() << " minutes." << endl;
-    cout << "Simultaneously set up userFacMatTime." << endl;
+    cout << "Set up sparse matrix bUserTime and cUserTime via batch "
+        << "insertion in " << minutesElapsed.count() << " minutes."
+        << endl;
+
+    if (includeUserFacMatTime)
+    {
+        cout << "Simultaneously set up userFacMatTime." << endl;
+    }
 #endif
 
 
@@ -865,10 +1019,11 @@ void TimeSVDPP::train(const fmat &data)
             // The value of sum_{j in N(u)} y_j for this user.
             fcolvec userSumMovieWeights(sumMovieWeights.col(user));
             
-            // The sum of all values of e_{ui} |N(u)|^{-1/2} * q_i over all
-            // items watched by this user. This is used to update yMat via
-            // gradient descent at the very end.
-            fcolvec sumErrNuNormQi = zeros<fcolvec>(numFactors);
+            // The sum of all values of e_{ui} |N(u)|^{-1/2} * (q_i + q_{i,
+            // Bin(t)} + q_{i, f_{ut}}) over all items watched by this
+            // user. This is used to update yMat via gradient descent at
+            // the very end.
+            fcolvec sumErrNuNormItemFac = zeros<fcolvec>(numFactors);
 
             // Construct a UserDate for this user's ratings. Use this to
             // find hat{dev_u(t)}. Note that dateID will be set in the loop
@@ -893,24 +1048,46 @@ void TimeSVDPP::train(const fmat &data)
                 int timeBin = floor(date / NUM_DATES * numTimeBins);
 
                 float thisHatDevUT = hatDevUT[thisUserDate];
+                int thisFUT = fUT[thisUserDate];
+
                 float oldBUserConst = bUserConst(user); 
                 float oldBUserAlpha = bUserAlpha(user);
                 float oldBUserTime = bUserTime(date, user);
                 float oldBItemConst = bItemConst(item);
                 float oldBItemTimewise = bItemTimewise(timeBin, item);
+                float oldBItemFreq = bItemFreq(thisFUT, item);
+
+                float oldCUserConst = cUserConst(user);
+                float oldCUserTime = cUserTime(date, user);
+
+                float sumBItemConstTimewise = oldBItemConst + 
+                    oldBItemTimewise;
+                float sumCUserConstTime = oldCUserConst + 
+                    oldCUserTime;
                 
                 fcolvec oldPU(userFacMat.col(user));
                 fcolvec oldAlphaPU(userFacMatAlpha.col(user));
-                std::vector<float> *oldPUTimeVec = 
-                    &(userFacMatTime[thisUserDate]);
-                fcolvec oldPUTime(*oldPUTimeVec);
+
+                std::vector<float> *oldPUTimeVec = NULL;
+                fcolvec oldPUTime;
+
+                if (includeUserFacMatTime)
+                {
+                    oldPUTimeVec = &(userFacMatTime[thisUserDate]);
+                    oldPUTime = fcolvec(*oldPUTimeVec);
+                }
+                
                 fcolvec oldQI(itemFacMat.col(item));
+                fcolvec oldQIBin(itemFacMatTimewise.slice(item).col(timeBin));
+                fcolvec oldQIFreq(itemFacMatFreq.slice(item).col(thisFUT));
                 
                 // Get the predicted rating for this user, item, and time,
-                // using the aformentioned formula for rHat_{ui}(t).
+                // using the aformentioned formula for rHat_{ui}(t). Start
+                // off with bias terms.
                 float predictedRating = meanRating + oldBUserConst +
                     oldBUserAlpha * thisHatDevUT + oldBUserTime + 
-                    oldBItemConst + oldBItemTimewise;
+                    sumBItemConstTimewise * sumCUserConstTime +
+                    oldBItemFreq;
                 
                 // Compute the factorized term (i.e. q_i^T * (p_u +
                 // alpha_{p_u} * hat{dev_u(t)} + p_{ut} +
@@ -922,17 +1099,26 @@ void TimeSVDPP::train(const fmat &data)
                 fcolvec userFactorTerm(oldPU);
 
                 // Add the time-dependent user factor biases
-                userFactorTerm += oldAlphaPU * thisHatDevUT + oldPUTime;
-
+                userFactorTerm += oldAlphaPU * thisHatDevUT;
+                
+                if (includeUserFacMatTime)
+                {
+                    userFactorTerm += oldPUTime;
+                }
+                
                 // sumMovieWeights should already have sum_{j in N(u)} y_j
                 // cached (from the previous iteration), so use that old
                 // value.
                 userFactorTerm += userSumMovieWeights * nuNormFac;
                 
-                // Add the factorized term (q_i^T * userFactorTerm) to the
-                // prediction.
-                predictedRating += dot(oldQI, userFactorTerm);
-
+                // Compute the item factor term (i.e. q_i + q_{i, Bin(t)} +
+                // q_{i, f_{ut}})
+                fcolvec itemFactorTerm(oldQI + oldQIBin + oldQIFreq);
+                
+                // Add the factorized term (itemFactorTerm^T *
+                // userFactorTerm) to the prediction.
+                predictedRating += dot(itemFactorTerm, userFactorTerm);
+                
                 // Apply gradient descent on all of the free parameters in our
                 // algorithm EXCEPT FOR yMat (which only needs to be updated at
                 // the end for this user). This just involves subtracting off
@@ -961,63 +1147,104 @@ void TimeSVDPP::train(const fmat &data)
                 //          TIMESVDPP_LAM_B_U_T * b_{ut})
                 bUserTime(date, user) += TIMESVDPP_GAMMA_B_U_T * (eUIT -
                         TIMESVDPP_LAM_B_U_T * oldBUserTime);
-                 
-                // b_i <- b_i + TIMESVDPP_GAMMA_B_I * (e_{uit} -
-                //                      TIMESVDPP_LAM_B_I * b_i)
-                bItemConst(item) += TIMESVDPP_GAMMA_B_I * (eUIT - 
-                        TIMESVDPP_LAM_B_I * oldBItemConst);
+
+                // b_i <- b_i + TIMESVDPP_GAMMA_B_I * (e_{uit} * 
+                //      (c_u + c_{ut}) - TIMESVDPP_LAM_B_I * b_i)
+                bItemConst(item) += TIMESVDPP_GAMMA_B_I * (eUIT *
+                        sumCUserConstTime 
+                        - TIMESVDPP_LAM_B_I * oldBItemConst);
 
                 // b_{i, Bin(t)} <- b_{i, Bin(t)} + TIMESVDPP_GAMMA_B_I_T *
-                //                  (e_{uit} - TIMESVDPP_LAM_B_I_T * 
-                //                   b_{i, Bin(t)})
+                //                  (e_{uit} * (c_u + c_{ut}) - 
+                //                   TIMESVDPP_LAM_B_I_T * b_{i, Bin(t)})
                 bItemTimewise(timeBin, item) += TIMESVDPP_GAMMA_B_I_T *
-                    (eUIT - TIMESVDPP_LAM_B_I_T * oldBItemTimewise);
+                    (eUIT * sumCUserConstTime 
+                     - TIMESVDPP_LAM_B_I_T * oldBItemTimewise);
 
+                // b_{i, f_{ut}} <- b_{i, f_{ut}} +
+                //                  TIMESVDPP_GAMMA_B_I_F_U_T * 
+                //                  (e_{uit} - TIMESVDPP_LAM_B_I_F_U_T *
+                //                   b_{i, f_{ut}})
+                bItemFreq(thisFUT, item) += TIMESVDPP_GAMMA_B_I_F_U_T *
+                    (eUIT - TIMESVDPP_LAM_B_I_F_U_T * oldBItemFreq);
+                
+                // c_u <- c_u + TIMESVDPP_GAMMA_C_U * (e_{uit} * 
+                //        (b_i + b_{i, Bin(t)}) - TIMESVDPP_LAM_C_U * 
+                //        (c_u - 1))
+                cUserConst(user) += TIMESVDPP_GAMMA_C_U * (eUIT *
+                        sumBItemConstTimewise 
+                        - TIMESVDPP_LAM_C_U * (oldCUserConst - 1.0));
+                
+                // c_{ut} <- c_{ut} + TIMESVDPP_GAMMA_C_U_T * (e_{uit} * 
+                //           (b_i + b_{i, Bin(t)}) - TIMESVDPP_LAM_C_U_T *
+                //           c_{ut})
+                cUserTime(date, user) += TIMESVDPP_GAMMA_C_U_T * (eUIT *
+                        sumBItemConstTimewise 
+                        - TIMESVDPP_LAM_C_U_T * oldCUserTime);  
+                
                 // q_i <- q_i + TIMESVDPP_GAMMA_Q_I * 
-                //        (e_{uit} * (p_u + alpha_{p_u} * hat{dev_u(t)} +
-                //         p_{ut} + |N(u)|^{-1/2} sum_{j in N(u)} y_j) - 
-                //         TIMESVDPP_LAM_Q_I * q_i)
+                //      (e_{uit} * userFactorTerm - TIMESVDPP_LAM_Q_I * q_i)
                 itemFacMat.col(item) += TIMESVDPP_GAMMA_Q_I * 
                     (eUIT * userFactorTerm - TIMESVDPP_LAM_Q_I * oldQI);
+
+                // q_{i, Bin(t)} <- q_{i, Bin(t)} + TIMESVDPP_GAMMA_Q_I_BIN
+                //                  * (e_{uit} * userFactorTerm -
+                //                     TIMESVDPP_LAM_Q_I_BIN * 
+                //                     q_{i, Bin(t)})
+                itemFacMatTimewise.slice(item).col(timeBin) +=
+                    TIMESVDPP_GAMMA_Q_I_BIN * (eUIT * userFactorTerm -
+                            TIMESVDPP_LAM_Q_I_BIN * oldQIBin);
+
+                // q_{i, f_{ut}} <- q_{i, f_{ut}} + TIMESVDPP_GAMMA_Q_I_F *
+                //                  (e_{uit} * userFactorTerm -
+                //                   TIMESVDPP_LAM_Q_I_F * q_{i, f_{ut}})
+                itemFacMatFreq.slice(item).col(thisFUT) +=
+                    TIMESVDPP_GAMMA_Q_I_F * (eUIT * userFactorTerm -
+                            TIMESVDPP_LAM_Q_I_F * oldQIFreq);
                 
-                // p_u <- p_u + TIMESVDPP_GAMMA_P_U * (e_{uit} * q_i -
-                //          TIMESVDPP_LAM_P_U * p_u)
-                userFacMat.col(user) += TIMESVDPP_GAMMA_P_U * (eUIT * oldQI
-                        - TIMESVDPP_LAM_P_U * oldPU);
+                // p_u <- p_u + TIMESVDPP_GAMMA_P_U * (e_{uit} * 
+                //          itemFactorTerm - TIMESVDPP_LAM_P_U * p_u)
+                userFacMat.col(user) += TIMESVDPP_GAMMA_P_U * (eUIT * 
+                        itemFactorTerm - TIMESVDPP_LAM_P_U * oldPU);
                 
                 // alpha_{p_u} <- alpha_{p_u} + TIMESVDPP_GAMMA_ALPHA_P_U *
-                //          (e_{uit} * q_i * hat{dev_u(t)} -
+                //          (e_{uit} * itemFactorTerm * hat{dev_u(t)} -
                 //           TIMESVDPP_LAM_ALPHA_P_U * alpha_{p_u})
                 userFacMatAlpha.col(user) += TIMESVDPP_GAMMA_ALPHA_P_U *
-                    (eUIT * oldQI * thisHatDevUT - 
+                    (eUIT * itemFactorTerm * thisHatDevUT - 
                      TIMESVDPP_LAM_ALPHA_P_U * oldAlphaPU);
 
                 // p_{ut} <- p_{ut} + TIMESVDPP_GAMMA_P_U_T *
-                //           (e_{uit} * q_i - TIMESVDPP_LAM_P_U_T * p_{ut})
-                for (int i = 0; i < numFactors; i ++)
+                //           (e_{uit} * itemFactorTerm 
+                //            - TIMESVDPP_LAM_P_U_T * p_{ut})
+                if (includeUserFacMatTime)
                 {
-                    (*oldPUTimeVec)[i] += TIMESVDPP_GAMMA_P_U_T * 
-                        (eUIT * oldQI[i] - TIMESVDPP_LAM_P_U_T * 
-                         (*oldPUTimeVec)[i]);
+                    for (int i = 0; i < numFactors; i ++)
+                    {
+                        (*oldPUTimeVec)[i] += TIMESVDPP_GAMMA_P_U_T * 
+                            (eUIT * itemFactorTerm[i] - 
+                             TIMESVDPP_LAM_P_U_T * (*oldPUTimeVec)[i]);
+                    }
                 }
                 
-                // Update sumErrNuNormQi, which is the sum of all e_{uit}
-                // |N(u)|^{-1/2} * q_i for this user (see SVD++ code).
-                sumErrNuNormQi += eUIT * nuNormFac * oldQI;
+                // Update sumErrNuNormItemFac, which is the sum of all
+                // e_{uit} |N(u)|^{-1/2} * itemFactorTerm for this user
+                // (see SVD++ code).
+                sumErrNuNormItemFac += eUIT * nuNormFac * itemFactorTerm;
             }
             
             // Go through each item in N[u] and update yMat for those
             // columns. Don't update sumMovieWeights for this user yet;
             // that'll happen on the next iteration.
-            for (std::vector<int>::size_type ind = 0; ind < nu.size();
-                 ind++)
+            for (std::vector<int>::size_type ind = 0; 
+                 ind < (unsigned int) nuSize; ind++)
             {
                 // y_j <- y_j + TIMESVDPP_GAMMA_Y_J * (e_{ui} |N(u)|^{-1/2}
-                //          * q_i - TIMESVDPP_LAM_Y_J * y_j)
+                //          * itemFactorTerm - TIMESVDPP_LAM_Y_J * y_j)
                 int j = nu[ind];
                 fcolvec oldYJ = yMat.col(j);
                 
-                yMat.col(j) += TIMESVDPP_GAMMA_Y_J * (sumErrNuNormQi -
+                yMat.col(j) += TIMESVDPP_GAMMA_Y_J * (sumErrNuNormItemFac -
                         TIMESVDPP_LAM_Y_J * oldYJ);
             }
 
@@ -1037,7 +1264,12 @@ void TimeSVDPP::train(const fmat &data)
         TIMESVDPP_GAMMA_B_U_T *= TIMESVDPP_GAMMA_MULT_PER_ITER;
         TIMESVDPP_GAMMA_B_I *= TIMESVDPP_GAMMA_MULT_PER_ITER;
         TIMESVDPP_GAMMA_B_I_T *= TIMESVDPP_GAMMA_MULT_PER_ITER;
+        TIMESVDPP_GAMMA_B_I_F_U_T *= TIMESVDPP_GAMMA_MULT_PER_ITER;
+        TIMESVDPP_GAMMA_C_U *= TIMESVDPP_GAMMA_MULT_PER_ITER;
+        TIMESVDPP_GAMMA_C_U_T *= TIMESVDPP_GAMMA_MULT_PER_ITER;
         TIMESVDPP_GAMMA_Q_I *= TIMESVDPP_GAMMA_MULT_PER_ITER;
+        TIMESVDPP_GAMMA_Q_I_BIN *= TIMESVDPP_GAMMA_MULT_PER_ITER;
+        TIMESVDPP_GAMMA_Q_I_F *= TIMESVDPP_GAMMA_MULT_PER_ITER;
         TIMESVDPP_GAMMA_P_U *= TIMESVDPP_GAMMA_MULT_PER_ITER;
         TIMESVDPP_GAMMA_ALPHA_P_U *= TIMESVDPP_GAMMA_MULT_PER_ITER;
         TIMESVDPP_GAMMA_P_U_T *= TIMESVDPP_GAMMA_MULT_PER_ITER;
@@ -1104,7 +1336,8 @@ float TimeSVDPP::computeRMSE(const std::string &testFileName)
         int date = roundToInt(testSet(DATE_ROW, i));
         float actualRating = testSet(RATING_ROW, i);
         
-        float prediction = predict(user, item, date, true);
+        // Don't bound while computing RMSE for diagnosis purposes.
+        float prediction = predict(user, item, date, false);
         
         rmse += pow(actualRating - prediction, 2.0)/nMinusOne;
     }
@@ -1132,6 +1365,7 @@ float TimeSVDPP::computeRMSE(const std::string &testFileName)
  */
 float TimeSVDPP::predict(int user, int item, int date, bool bound)
 {
+    // TODO: uncomment?
     /*if (!trained)
     {
         throw std::logic_error("Tried to predict a rating but the Time-"
@@ -1142,8 +1376,10 @@ float TimeSVDPP::predict(int user, int item, int date, bool bound)
     // time t is:
     //      
     //      rHat_{ui}(t) = mu + b_u + alpha_{b_u} * hat{dev_u(t)} + b_{ut}
-    //                     + b_i + b_{i, Bin(t)} + q_i^T * 
-    //                     (p_u + alpha_{p_u} * hat{dev_u(t)} + p_{ut} + 
+    //                     + (b_i + b_{i, Bin(t)}) * (c_u + c_{ut}) 
+    //                     b_{i, f_{ut}} + 
+    //                     (q_i + q_{i, Bin(t)} + q_{i, f_{ut}})^T * 
+    //                     (p_u + alpha_{p_u} * hat{dev_u(t)} + p_{ut} +
     //                      |N(u)|^{-1/2} sum_{j in N(u)} y_j)
     
     // Construct a UserDate for this rating, and use this to find
@@ -1154,29 +1390,27 @@ float TimeSVDPP::predict(int user, int item, int date, bool bound)
     
     std::vector<int> nu = N[user];
     float nuNormFac = 1.0/sqrt(nu.size());
-    float thisHatDevUT = 0.0;
-    
-    // Only use thisHatDevUT if it's in the dictionary.
-    if (hatDevUT.count(thisUserDate) != 0)
-    {
-        thisHatDevUT = hatDevUT[thisUserDate];
-    }
+    float thisHatDevUT = hatDevUT[thisUserDate];
+    int thisFUT = fUT[thisUserDate];
     
     // Item-wise time bins can range from 0 to numTimeBins. We evenly
     // divide (zero-indexed) dates into these bins.
     int timeBin = floor(date / NUM_DATES * numTimeBins);
 
     // Get the predicted rating for this user, item, and time, using the
-    // aformentioned formula for rHat_{ui}(t).
+    // aformentioned formula for rHat_{ui}(t). First, combine the bias
+    // terms.
     float predictedRating = meanRating + bUserConst(user) +
         bUserAlpha(user) * thisHatDevUT + bUserTime(date, user) + 
-        bItemConst(item) + bItemTimewise(timeBin, item);
+        (bItemConst(item) + bItemTimewise(timeBin, item)) *
+        (cUserConst(user) + cUserTime(date, user)) +
+        bItemFreq(thisFUT, item);
 
     // p_{ut} for this user and time (if this user date combination
     // is valid).
     fcolvec puTime;
     
-    if (userFacMatTime.count(thisUserDate) != 0)
+    if (includeUserFacMatTime && userFacMatTime.count(thisUserDate) != 0)
     {
         puTime = userFacMatTime[thisUserDate];
     }
@@ -1185,8 +1419,9 @@ float TimeSVDPP::predict(int user, int item, int date, bool bound)
         puTime = zeros<fcolvec>(numFactors);
     }
     
-    // Compute the factorized term (i.e. q_i^T * (p_u + alpha_{p_u} *
-    // hat{dev_u(t)} + p_{ut} + |N(u)|^{-1/2} sum_{j in N(u)} y_j)).
+    // Compute the factorized term (i.e. itemFactorTerm^T * (p_u +
+    // alpha_{p_u} * hat{dev_u(t)} + p_{ut} + |N(u)|^{-1/2} sum_{j in N(u)}
+    // y_j)).
     //
     // First find p_u + alpha_{p_u} * hat{dev_u(t)} + p_{ut} +
     // |N(u)|^{-1/2} sum_{j in N(u)} y_j, the "userFactorTerm".  Start off
@@ -1199,9 +1434,13 @@ float TimeSVDPP::predict(int user, int item, int date, bool bound)
     // Get sum_{j in N(u)} y_j and multiply by nuNormFac.
     userFactorTerm += sumMovieWeights.col(user) * nuNormFac;
     
-    // Add the factorized term (q_i^T * userFactorTerm) to the prediction.
-    fcolvec qi(itemFacMat.col(item));
-    predictedRating += dot(qi, userFactorTerm);
+    // Add the factorized term (itemFactorTerm^T * userFactorTerm) to the
+    // prediction.
+    fcolvec itemFactorTerm(itemFacMat.col(item) +
+                           itemFacMatTimewise.slice(item).col(timeBin) +
+                           itemFacMatFreq.slice(item).col(thisFUT));
+    
+    predictedRating += dot(itemFactorTerm, userFactorTerm);
     
     // Put the rating between MIN_RATING and MAX_RATING! Otherwise, the
     // error will be bad.

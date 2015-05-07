@@ -1,4 +1,5 @@
 from libcpp.string cimport string
+from libcpp cimport bool as bool_t
 
 cdef extern from "svdpp.hh":
     cdef cppclass SVDPP:
@@ -26,7 +27,7 @@ cdef extern from "svdpp.hh":
                            const string &fileNameYMat,
                            const string &fileNameSumMovieWeights)
     
-        float predict(int user, int item, int date)
+        float predict(int user, int item, int date, bool_t bound)
 
 
 # Cython wrapper class for SVDPP.
@@ -79,5 +80,5 @@ cdef class PySVDPP:
                                fileNameYMat, fileNameSumMovieWeights)
     
     
-    def predict(self, int user, int item, int date):
-        return self.obj.predict(user, item, date)
+    def predict(self, int user, int item, int date, bool_t bound):
+        return self.obj.predict(user, item, date, bound)

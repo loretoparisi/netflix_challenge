@@ -26,14 +26,15 @@ using namespace netflix; // challenge-related constants/functions.
 /* Constants */
 
 // The Armadillo binary file to use for training.
-//const string TIMESVDPP_TRAIN_FILE = HIDDEN_BIN;
-const string TIMESVDPP_TRAIN_FILE = BASE_HIDDEN_VALID_BIN;
+// const string TIMESVDPP_TRAIN_FILE = HIDDEN_BIN;
+// const string TIMESVDPP_TRAIN_FILE = BASE_HIDDEN_VALID_BIN;
+const string TIMESVDPP_TRAIN_FILE = ALL_TRAIN_BIN;
 
 // The number of factors to use for Time-SVD++.
-const int NUM_FACTORS = 130;
+const int NUM_FACTORS = 110;
 
 // The number of iterations of Time-SVD++ to carry out.
-const int NUM_ITERATIONS = 30;
+const int NUM_ITERATIONS = 25;
 
 // The number of time bins to use for movies in Time-SVD++. BellKor used 30
 // so we will too for now.
@@ -45,8 +46,12 @@ const string OUTPUT_FN = "data/timesvdpp_predictions.dta";
 // Sig-figs for output file.
 const int RATING_SIG_FIGS = 4;
 
+// Whether we'll use userFacMatTime. Setting this to false saves a lot of
+// RAM utilization, but might slightly impact accuracy.
+const bool INCLUDE_USER_FAC_MAT_TIME = true;
+
 // Whether the data will be cached after training.
-const bool WILL_CACHE_DATA = true;
+const bool WILL_CACHE_DATA = false;
 
 // Whether we're using cached data **instead of** training.
 const bool USING_CACHED_DATA = false;
@@ -63,6 +68,12 @@ const string B_ITEM_CONST_FN =          "data/timesvdpp_cached/"
                                         "b_item_const.mat";
 const string B_ITEM_TIMEWISE_FN =       "data/timesvdpp_cached/"
                                         "b_item_timewise.mat";
+const string B_ITEM_FREQ_FN =           "data/timesvdpp_cached/"
+                                        "b_item_freq.mat";
+const string C_USER_CONST_FN =          "data/timesvdpp_cached/"
+                                        "c_user_const.mat";
+const string C_USER_TIME_FN =           "data/timesvdpp_cached/"
+                                        "c_user_time.mat";
 const string USER_FAC_MAT_FN =          "data/timesvdpp_cached/"
                                         "user_fac.mat";
 const string USER_FAC_MAT_ALPHA_FN =    "data/timesvdpp_cached/"
@@ -71,6 +82,10 @@ const string USER_FAC_MAT_TIME_FN =     "data/timesvdpp_cached/"
                                         "user_fac_time.dta";
 const string ITEM_FAC_MAT_FN =          "data/timesvdpp_cached/"
                                         "item_fac.mat";
+const string ITEM_FAC_MAT_TIMEWISE_FN = "data/timesvdpp_cached/"
+                                        "item_fac_timewise.mat";
+const string ITEM_FAC_MAT_FREQ_FN =     "data/timesvdpp_cached/"
+                                        "item_fac_freq.mat";
 const string Y_MAT_FN =                 "data/timesvdpp_cached/y.mat";
 const string SUM_MOVIE_WEIGHTS_FN =     "data/timesvdpp_cached/"
                                         "user_sum_y.mat";
@@ -106,13 +121,18 @@ int main(void)
         TimeSVDPP predAlgo(NUM_USERS, NUM_MOVIES, NUM_DATES,
                            MEAN_RATING_TRAINING_SET, NUM_FACTORS,
                            NUM_ITERATIONS, NUM_TIME_BINS,
-                           N_FN, HAT_DEV_U_T_FN,
+                           INCLUDE_USER_FAC_MAT_TIME,
+                           N_FN, HAT_DEV_U_T_FN, F_U_T_FN,
                            B_USER_CONST_FN, B_USER_ALPHA_FN,
                            B_USER_TIME_FN,
                            B_ITEM_CONST_FN, B_ITEM_TIMEWISE_FN,
+                           B_ITEM_FREQ_FN,
+                           C_USER_CONST_FN, C_USER_TIME_FN,
                            USER_FAC_MAT_FN, USER_FAC_MAT_ALPHA_FN,
                            USER_FAC_MAT_TIME_FN,
-                           ITEM_FAC_MAT_FN, Y_MAT_FN,
+                           ITEM_FAC_MAT_FN, ITEM_FAC_MAT_TIMEWISE_FN,
+                           ITEM_FAC_MAT_FREQ_FN,
+                           Y_MAT_FN,
                            SUM_MOVIE_WEIGHTS_FN);
          
         // Go through qual.dta and produce a prediction file.
@@ -135,7 +155,8 @@ int main(void)
         TimeSVDPP predAlgo(NUM_USERS, NUM_MOVIES, NUM_DATES,
                            MEAN_RATING_TRAINING_SET, NUM_FACTORS,
                            NUM_ITERATIONS, NUM_TIME_BINS,
-                           N_FN, HAT_DEV_U_T_FN);
+                           INCLUDE_USER_FAC_MAT_TIME,
+                           N_FN, HAT_DEV_U_T_FN, F_U_T_FN);
         
         // Check if we want to cache.
         if (WILL_CACHE_DATA)
@@ -148,15 +169,19 @@ int main(void)
                                    B_USER_CONST_FN, B_USER_ALPHA_FN,
                                    B_USER_TIME_FN,
                                    B_ITEM_CONST_FN, B_ITEM_TIMEWISE_FN,
+                                   B_ITEM_FREQ_FN,
+                                   C_USER_CONST_FN, C_USER_TIME_FN,
                                    USER_FAC_MAT_FN, USER_FAC_MAT_ALPHA_FN,
                                    USER_FAC_MAT_TIME_FN,
-                                   ITEM_FAC_MAT_FN, Y_MAT_FN,
+                                   ITEM_FAC_MAT_FN, ITEM_FAC_MAT_TIMEWISE_FN,
+                                   ITEM_FAC_MAT_FREQ_FN,
+                                   Y_MAT_FN,
                                    SUM_MOVIE_WEIGHTS_FN);
         }
         else
         {
             // If not, just train.
-            cout << "\nTraining Time-SVD++. The resulting matrices won't "
+            cout << "\nTraining Time-SVD++. The resulting matrices WON'T "
                     "be cached." << endl;
             predAlgo.train(trainingSet);
         }        
