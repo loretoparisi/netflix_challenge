@@ -30,10 +30,10 @@ using namespace netflix; // challenge-related constants/functions.
 const string TRAIN_UM = BASE_BIN;
 
 // Minimum common neighbors required for decent prediction.
-const int MIN_COMMON = 25;
+const int MIN_COMMON = 24;
 
 // Max weight elements to consider when predicting.
-const unsigned int MAX_WEIGHT = 5;
+const unsigned int MAX_WEIGHT = 30;
 
 // If P is already precomputed, only need to load.
 const bool LOAD_P = true;
@@ -48,19 +48,14 @@ const int RATING_SIG_FIGS = 4;
 const string P_PATH = "data/knn_cached/knn-p.dta";
 
 // The name of the output file to use (for predictions on "qual").
-const string OUTPUT_FN = "data/knn_cached/knn_min25_max5_predictions.dta";
+const string OUTPUT_FN = "data/knn_cached/knn_test_predictions.dta";
 
-// Helper function that carries out "predAlgo" on the test file specified
-// by testFileName, and then puts the prediction results (for each (user,
-// item, time) in testFileName) in outputFileName.
-void testOnDataFile(KNN *predAlgo, const string &testFileName,
+// Test on qual file for KNN and output the file to store.
+void testOnDataFile(KNN &predAlgo, const string &testFileName,
                     const string &outputFileName);
 
-// Helper function that carries out "predAlgo" on the test file specified
-// by testFileName (most likely the "probe" dataset), and calculates the
-// RMSE based on those results. Note that testFileName must refer to an
-// Armadillo binary in this case.
-float computeRMSE(KNN *predAlgo, const string &testFileName);
+// Compute the probe RMSE of our KNN model.
+float computeRMSE(KNN &predAlgo, const string &testFileName);
 
 int main(void)
 {
@@ -72,30 +67,8 @@ int main(void)
     cout << "Finished loading UM matrix." << endl;
 
     // Initializing the KNN.
-    //KNN knn(NUM_USERS, NUM_MOVIES, MIN_COMMON, MAX_WEIGHT,
-        //TRAIN_MU, P_PATH);
-    KNN *knn = new KNN(NUM_USERS, NUM_MOVIES, MIN_COMMON, MAX_WEIGHT,
+    KNN knn(NUM_USERS, NUM_MOVIES, MIN_COMMON, MAX_WEIGHT,
         P_PATH);
-    knn->train_(trainingSetUM);
-    if (LOAD_P)
-        knn->loadP();
-    else
-    {
-        knn->calcP();
-        if (SAVE_P)
-            knn->saveP();
-    }
-
-    // Go through qual.dta to produce a prediction file.
-    testOnDataFile(knn, QUAL_DATA_FN, OUTPUT_FN);
-
-    // Get probe RMSE.
-    float probeRMSE = computeRMSE(knn, PROBE_BIN);
-
-    cout << "Probe RMSE: " << probeRMSE << endl;
-
-    cout << "KNN completed.\n";
-    /*
     knn.train(trainingSetUM);
     if (LOAD_P)
         knn.loadP();
@@ -113,9 +86,7 @@ int main(void)
     float probeRMSE = computeRMSE(knn, PROBE_BIN);
 
     cout << "Probe RMSE: " << probeRMSE << endl;
-
     cout << "KNN completed.\n";
-    */
 }
 
 /**
@@ -125,7 +96,7 @@ int main(void)
  * number of test points.
  *
  */
-float computeRMSE(KNN *predAlgo, const string &testFileName)
+float computeRMSE(KNN &predAlgo, const string &testFileName)
 {
     // Load from binary.
     fmat testSet;
@@ -151,7 +122,7 @@ float computeRMSE(KNN *predAlgo, const string &testFileName)
         int date = roundToInt(testSet(DATE_ROW, i));
         float actualRating = testSet(RATING_ROW, i);
         
-        float prediction = predAlgo->predict(user, item, date, true);
+        float prediction = predAlgo.predict(user, item, date, true);
         
         rmse += pow(actualRating - prediction, 2.0)/nMinusOne;
     }
@@ -165,7 +136,7 @@ float computeRMSE(KNN *predAlgo, const string &testFileName)
  * specified output file.
  *
  */
-void testOnDataFile(KNN *predAlgo, const string &testFileName,
+void testOnDataFile(KNN &predAlgo, const string &testFileName,
                     const string &outputFileName)
 {
     ifstream testDataFile(testFileName);
@@ -207,7 +178,7 @@ void testOnDataFile(KNN *predAlgo, const string &testFileName,
         int date = thisLineVec[2];
         
         // Output the prediction to file.
-        float prediction = predAlgo->predict(user, item, date, true);
+        float prediction = predAlgo.predict(user, item, date, true);
         outputFile << setprecision(RATING_SIG_FIGS) << prediction << endl;
     }
     
@@ -216,3 +187,4 @@ void testOnDataFile(KNN *predAlgo, const string &testFileName,
     cout << "\nOutputted predictions on " << testFileName << " to the " 
         "output file " << outputFileName << endl;
 }
+

@@ -102,22 +102,21 @@ class KNN : public SingleAlgorithm
         const std::string &pFilename;
 
         // um: for every user, stores (movie, rating) pairs.
-        std::vector<um_pair> um[NUM_USERS];
+        std::vector<std::vector<um_pair>> um;
 
         // mu: for every movie, stores (user, rating) pairs.
-        std::vector<mu_pair> mu[NUM_MOVIES];
+        std::vector<std::vector<mu_pair>> mu;
 
         // Pearson coefficients for every movie pair
         // When accessing P[i][j], it must always be the case that:
         // i <= j (symmetry is assumed)
-        s_pear P[NUM_MOVIES][NUM_MOVIES];
-        float movieAvg[NUM_MOVIES];
+        std::vector<std::vector<s_pear>> P;
+        std::vector<float> movieAvg;
 
     public:
         KNN(const int numUsers, const int numItems, const int minCommon,
             const unsigned int maxWeight, const std::string &pFilename);
         void train(const fmat &data);
-        void train_(fmat &data);
         float predict(int user, int item, int date, bool bound);
         void calcP();
         void saveP();
