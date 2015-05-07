@@ -69,6 +69,26 @@ struct UserDateHasher
     }
 };
 
+// A random-number-generating struct used to populate a vector. Takes
+// minimum and maximum values as arguments.
+struct genRand 
+{ 
+    float range;    // (maxVal - minVal) / RAND_MAX
+    float minVal;
+public:
+    genRand(float minVal, float maxVal) : 
+        range((maxVal - minVal) / RAND_MAX),
+        minVal(minVal)
+    {
+        std::srand(std::time(NULL));
+    }
+     
+    double operator()() 
+    { 
+        return std::rand() * range + minVal;
+    }
+};
+
 
 // This can technically be a subclass of SVDPP, but there's no real point
 // in nesting the hierarchy that much. Especially since SVDPP's internals
@@ -79,36 +99,50 @@ private:
     // Regularization constants for each internal variable. See the train()
     // method for more on what these mean. These values came from a
     // combination of posts #50 and #57 on
-    // http://www.netflixprize.com/community/viewtopic.php?id=1342&p=3
+    // http://www.netflixprize.com/community/viewtopic.php?id=1342&p=3,
+    // http://www.netflixprize.com/assets/GrandPrize2009_BPC_BellKor.pdf,
     // as well as some other tweaks.
-    static constexpr float TIMESVDPP_LAM_B_U = 0.005;
-    static constexpr float TIMESVDPP_LAM_ALPHA_B_U = 0.0004;
-    static constexpr float TIMESVDPP_LAM_B_U_T = 0.005; 
-    static constexpr float TIMESVDPP_LAM_B_I = 0.005;
-    static constexpr float TIMESVDPP_LAM_B_I_T = 0.005;
-    static constexpr float TIMESVDPP_LAM_Q_I = 0.015;
-    static constexpr float TIMESVDPP_LAM_P_U = 0.015;
-    static constexpr float TIMESVDPP_LAM_ALPHA_P_U = 0.0004;
-    static constexpr float TIMESVDPP_LAM_P_U_T = 0.015;
-    static constexpr float TIMESVDPP_LAM_Y_J = 0.015;
-    
+    static constexpr float TIMESVDPP_LAM_B_U = 0.0065;          // Laksh
+    static constexpr float TIMESVDPP_LAM_ALPHA_B_U = 0.0004;    // Laksh
+    static constexpr float TIMESVDPP_LAM_B_U_T = 0.0050;        // Laksh
+    static constexpr float TIMESVDPP_LAM_B_I = 0.005;           // Laksh
+    static constexpr float TIMESVDPP_LAM_B_I_T = 0.0050;        // Laksh
+    static constexpr float TIMESVDPP_LAM_B_I_F_U_T = 6.60e-3;   // Laksh
+    static constexpr float TIMESVDPP_LAM_C_U = 0.010;           // Laksh
+    static constexpr float TIMESVDPP_LAM_C_U_T = 0.0070;        // Laksh
+    static constexpr float TIMESVDPP_LAM_Q_I = 0.0155;          // Laksh
+    static constexpr float TIMESVDPP_LAM_Q_I_BIN = 0.022;       // Laksh
+    static constexpr float TIMESVDPP_LAM_Q_I_F = 0.018;         // Laksh
+    static constexpr float TIMESVDPP_LAM_P_U = 0.0155;          // Laksh
+    static constexpr float TIMESVDPP_LAM_ALPHA_P_U = 0.0004;    // Laksh
+    static constexpr float TIMESVDPP_LAM_P_U_T = 0.015;         // Laksh
+    static constexpr float TIMESVDPP_LAM_Y_J = 0.0155;          // Laksh
+    // static constexpr float TIMESVDPP_LAM_Y_J_BIN = 0.015;       // ?
+
     // Step sizes used for stochastic gradient descent. See the train()
     // method for more on which parameters these apply to. These came from
-    // a combination of the abovementioned forum link and other tweaks.
-    float TIMESVDPP_GAMMA_B_U = 0.007;
-    float TIMESVDPP_GAMMA_ALPHA_B_U = 0.00001;
-    float TIMESVDPP_GAMMA_B_U_T = 0.007;
-    float TIMESVDPP_GAMMA_B_I = 0.007;
-    float TIMESVDPP_GAMMA_B_I_T = 0.007;
-    float TIMESVDPP_GAMMA_Q_I = 0.007;
-    float TIMESVDPP_GAMMA_P_U = 0.007;
-    float TIMESVDPP_GAMMA_ALPHA_P_U = 0.00001;
-    float TIMESVDPP_GAMMA_P_U_T = 0.003;
-    float TIMESVDPP_GAMMA_Y_J = 0.007;
+    // a combination of the abovementioned forum link, BellKor's [PQ1]
+    // model, and other tweaks.
+    float TIMESVDPP_GAMMA_B_U = 0.0050;                 // Laksh
+    float TIMESVDPP_GAMMA_ALPHA_B_U = 0.00003;          // Laksh
+    float TIMESVDPP_GAMMA_B_U_T = 0.0028;               // Laksh
+    float TIMESVDPP_GAMMA_B_I = 0.005;                  // Laksh
+    float TIMESVDPP_GAMMA_B_I_T = 0.0001;               // Laksh
+    float TIMESVDPP_GAMMA_B_I_F_U_T = 0.00236;          // Laksh
+    float TIMESVDPP_GAMMA_C_U = 0.006;                  // Laksh
+    float TIMESVDPP_GAMMA_C_U_T = 0.001;                // Laksh
+    float TIMESVDPP_GAMMA_Q_I = 0.005;                  // Laksh
+    float TIMESVDPP_GAMMA_Q_I_BIN = 0.0007;             // Laksh
+    float TIMESVDPP_GAMMA_Q_I_F = 0.00003;              // Laksh
+    float TIMESVDPP_GAMMA_P_U = 0.0048;                 // Laksh
+    float TIMESVDPP_GAMMA_ALPHA_P_U = 0.00001;          // Laksh
+    float TIMESVDPP_GAMMA_P_U_T = 0.0040;               // Laksh
+    float TIMESVDPP_GAMMA_Y_J = 0.0048;                 // Laksh 
+    // float TIMESVDPP_GAMMA_Y_J_BIN = 0.0001;          // ?
     
     // The fraction by which the step sizes will be multiplied on each
     // iteration (as recommended in the SVD++ Koren paper).
-    static constexpr float TIMESVDPP_GAMMA_MULT_PER_ITER = 0.9;
+    static constexpr float TIMESVDPP_GAMMA_MULT_PER_ITER = 0.89;
     
     // The number of factors used in matrix factorization.
     const int numFactors;
@@ -134,6 +168,11 @@ private:
     // recently a user rated a given movie, relative to the median date at
     // which they've rated movies.
     std::unordered_map<UserDate, float, UserDateHasher> hatDevUT;
+
+    // A mapping from a user ID and a date ID to the f_{ut} log-frequency
+    // value for that user and that date. This measures how frequently a
+    // user rated on a given date.
+    std::unordered_map<UserDate, int, UserDateHasher> fUT;
 
     // A mapping from a user's ID to the items that the user indicated an
     // implicit preference for. These are essentially just the items that
@@ -169,6 +208,24 @@ private:
     // time-bin-wise biases for the ith movie.
     fmat bItemTimewise;
 
+    // The frequency-dependent bias for each item. This is b_{i, f_t} in
+    // the BellKor paper. This is stored as a (MAX_F_U_T + 1) x numItems
+    // matrix, where the ith column corresponds to the frequency-dependent
+    // item biases for the ith movie. The +1 comes from the fact that
+    // f_{ut} can range from 0 to MAX_F_U_T inclusive.
+    fmat bItemFreq;
+
+    // The constant, user-dependent scaling factor c_u for the item bias.
+    // Note that this is a column vector with numUsers entries. We
+    // initialize this to 1 and also regularize it towards 1.
+    fcolvec cUserConst;
+
+    // The time-dependent, user-dependent scaling factor c_{ut} for the
+    // item bias. Note that this is a sparse fmat with a shape of numTimes
+    // x numUsers, where the uth column corresponds to the time-dependent
+    // scaling factor entries for user u.
+    sp_fmat cUserTime;
+
     // The number of items rated by each user in the training set. This is
     // a column vector with numUsers elements. The nth element corresponds
     // to the number of items rated by user n (in the training set).
@@ -199,19 +256,38 @@ private:
     std::unordered_map<UserDate, std::vector<float>, UserDateHasher> 
         userFacMatTime;
 
-    // The item factor matrix. This is a numFactors x numItems matrix. The
-    // nth column represents the item factor array q_n, using the
-    // convention of the BellKor paper.
+    // The time-independent item factor matrix. This is a numFactors x
+    // numItems matrix. The nth column represents the item factor array
+    // q_n, using the convention of the BellKor paper.
     fmat itemFacMat;
 
-    // The "y" matrix. This is a numFactors x numItems matrix. The jth
-    // column of this is "y_j" in the convention of the BellKor paper; it
-    // is supposed to weight the implicit preferences of the user (i.e. the
-    // preferences in N(u)).
+    // The time-bin-dependent item factor matrix q_{i, Bin(t)}. This is a
+    // numFactors x numTimeBins x numItems dense fcube. The ith slice
+    // represents the data for the ith item, and the bth column of this
+    // slice is the factor vector to use for bin "b".
+    fcube itemFacMatTimewise;
+
+    // The frequency-dependent item factor matrix q_{i, f_{ut}}. This is a
+    // numFactors x (MAX_F_U_T + 1) x numItems dense fcube. The ith slice
+    // represents data for the ith item, and the fth column of this slice
+    // is the factor vector to use for log-frequency "f".
+    fcube itemFacMatFreq;
+    
+    // The time-independent "y" matrix. This is a numFactors x numItems
+    // matrix. The jth column of this is "y_j" in the convention of the
+    // BellKor paper; it is supposed to weight the implicit preferences of
+    // the user (i.e. the preferences in N(u)).
     fmat yMat;
+
+    // The time-dependent (binwise) component of the "y" matrix. This is a
+    // dense numFactors x numTimeBins x numItems cube.
+    // fcube yMatBinwise;
 
     // Whether the algorithm has been trained yet or not.
     bool trained = false;
+
+    // Whether we'll include userFacMatTime in the training algorithm.
+    bool includeUserFacMatTime;
     
     // Whether we're using cached data or not.
     bool usingCachedData = false;
@@ -219,6 +295,7 @@ private:
     void initInternalData();
     void populateHatDevUT(const std::string &fileNameHatDevUT);
     void populateN(const std::string &fileNameN);
+    void populateFUT(const std::string &fileNamePUT);
     void populateNumItemsTrainingSet(const fmat &data);
     void updateSumMovieWeights(int lowUserNum, int highUserNum);
     inline void updateUserSumMovieWeights(int user);
@@ -229,22 +306,31 @@ private:
 public:
     TimeSVDPP(int numUsers, int numItems, int numTimes, float meanRating,
               int numFactors, int numIterations, int numTimeBins,
+              bool includeUserFacMatTime,
               const std::string &fileNameN,
-              const std::string &fileNameHatDevUT);
+              const std::string &fileNameHatDevUT,
+              const std::string &fileNameFUT);
     
     TimeSVDPP(int numUsers, int numItems, int numTimes, float meanRating,
               int numFactors, int numIterations, int numTimeBins,
+              bool includeUserFacMatTime,
               const std::string &fileNameN,
               const std::string &fileNameHatDevUT,
+              const std::string &fileNameFUT,
               const std::string &fileNameBUserConst,
               const std::string &fileNameBUserAlpha,
               const std::string &fileNameBUserTime,
               const std::string &fileNameBItemConst,
               const std::string &fileNameBItemTimewise,
+              const std::string &fileNameBItemFreq,
+              const std::string &fileNameCUserConst,
+              const std::string &fileNameCUserTime,
               const std::string &fileNameUserFacMat,
               const std::string &fileNameUserFacMatAlpha,
               const std::string &fileNameUserFacMatTime,
               const std::string &fileNameItemFacMat,
+              const std::string &fileNameItemFacMatTimewise,
+              const std::string &fileNameItemFacMatFreq,
               const std::string &fileNameYMat,
               const std::string &fileNameSumMovieWeights);
      
@@ -258,10 +344,15 @@ public:
                        const std::string &fileNameBUserTime,
                        const std::string &fileNameBItemConst,
                        const std::string &fileNameBItemTimewise,
+                       const std::string &fileNameBItemFreq,
+                       const std::string &fileNameCUserConst,
+                       const std::string &fileNameCUserTime,
                        const std::string &fileNameUserFacMat,
                        const std::string &fileNameUserFacMatAlpha,
                        const std::string &fileNameUserFacMatTime,
                        const std::string &fileNameItemFacMat,
+                       const std::string &fileNameItemFacMatTimewise,
+                       const std::string &fileNameItemFacMatFreq,
                        const std::string &fileNameYMat,
                        const std::string &fileNameSumMovieWeights);
     
@@ -271,10 +362,15 @@ public:
                        const std::string &fileNameBUserTime,
                        const std::string &fileNameBItemConst,
                        const std::string &fileNameBItemTimewise,
+                       const std::string &fileNameBItemFreq,
+                       const std::string &fileNameCUserConst,
+                       const std::string &fileNameCUserTime,
                        const std::string &fileNameUserFacMat,
                        const std::string &fileNameUserFacMatAlpha,
                        const std::string &fileNameUserFacMatTime,
                        const std::string &fileNameItemFacMat,
+                       const std::string &fileNameItemFacMatTimewise,
+                       const std::string &fileNameItemFacMatFreq,
                        const std::string &fileNameYMat,
                        const std::string &fileNameSumMovieWeights);
     
