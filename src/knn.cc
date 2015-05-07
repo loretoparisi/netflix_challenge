@@ -7,11 +7,20 @@ int operator<(const s_neighbors &a, const s_neighbors &b)
 }
 
 
+
 KNN::KNN(const int numUsers, const int numItems, const int minCommon,
     const unsigned int maxWeight, const std::string &pFilename) :
     numUsers(numUsers), numItems(numItems), minCommon(minCommon),
     maxWeight(maxWeight), pFilename(pFilename)
 {
+    um.resize(numUsers);
+    mu.resize(numItems);
+    P.resize(numItems);
+    for (unsigned int j = 0; j < P.size(); j++)
+    {
+        P[j].resize(numItems);
+    }
+    movieAvg.resize(numItems);
     // Make sure specified file paths make sense.
     std::ofstream pfile(pFilename, ios::app);
     if (pfile.fail())
@@ -21,7 +30,6 @@ KNN::KNN(const int numUsers, const int numItems, const int minCommon,
     }
     pfile.close();
 }
-
 
 void KNN::train(const fmat &data)
 {
