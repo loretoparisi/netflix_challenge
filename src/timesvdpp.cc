@@ -1336,7 +1336,8 @@ float TimeSVDPP::computeRMSE(const std::string &testFileName)
         int date = roundToInt(testSet(DATE_ROW, i));
         float actualRating = testSet(RATING_ROW, i);
         
-        float prediction = predict(user, item, date, true);
+        // Don't bound while computing RMSE for diagnosis purposes.
+        float prediction = predict(user, item, date, false);
         
         rmse += pow(actualRating - prediction, 2.0)/nMinusOne;
     }
