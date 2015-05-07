@@ -27,7 +27,7 @@ using namespace netflix; // challenge-related constants/functions.
 // The Armadillo binary file to use for training.
 // Make sure that both UM and MU data are using the same
 // "type" of training resource (eg. probe, hidden, base, etc.)
-const string TRAIN_UM = BASE_BIN;
+const string TRAIN_UM = VALID_BIN;
 
 // Minimum common neighbors required for decent prediction.
 const int MIN_COMMON = 24;
@@ -48,7 +48,7 @@ const int RATING_SIG_FIGS = 4;
 const string P_PATH = "data/knn_cached/knn-p.dta";
 
 // The name of the output file to use (for predictions on "qual").
-const string OUTPUT_FN = "data/knn_cached/knn_test_predictions.dta";
+const string OUTPUT_FN = "data/knn_cached/knn_test_probe.dta";
 
 // Test on qual file for KNN and output the file to store.
 void testOnDataFile(KNN &predAlgo, const string &testFileName,
@@ -80,7 +80,7 @@ int main(void)
     }
 
     // Go through qual.dta to produce a prediction file.
-    testOnDataFile(knn, QUAL_DATA_FN, OUTPUT_FN);
+    testOnDataFile(knn, PROBE_BIN, OUTPUT_FN);
 
     // Get probe RMSE.
     float probeRMSE = computeRMSE(knn, PROBE_BIN);

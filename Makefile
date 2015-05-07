@@ -80,6 +80,7 @@ $(libdir)/timesvdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/timesvdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/two_algo.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/combo_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/knn_on_globals.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 
 # Implicit rule to generate object files
 $(libdir)/%.o: %.cc | mklib
@@ -117,6 +118,7 @@ $(bindir)/svd_only_test: $(libdir)/svd.o $(libdir)/netflix.o
 $(bindir)/svdpp_test: $(libdir)/svdpp.o $(libdir)/netflix.o
 $(bindir)/timesvdpp_test: $(libdir)/timesvdpp.o $(libdir)/netflix.o
 $(bindir)/combo_test: $(libdir)/globals.o $(libdir)/timesvdpp.o $(libdir)/two_algo.o $(libdir)/netflix.o
+$(bindir)/knn_on_globals: $(libdir)/globals.o $(libdir)/knn.o $(libdir)/two_algo.o $(libdir)/netflix.o
 
 # Additional linker flags for all binary targets go here (using EXTRA_LDFLAGS)
 $(bindir)/globals_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
@@ -126,6 +128,7 @@ $(bindir)/svd_only_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/svdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/timesvdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/combo_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+$(bindir)/knn_on_globals: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 
 # Default rule for compiling binaries
 $(bindir)/%: $(libdir)/%.o | mkbin
