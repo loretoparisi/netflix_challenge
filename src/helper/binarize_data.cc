@@ -71,7 +71,7 @@ int main(void)
 
     {
         // Base MU for Global Effect
-        cout << "Starting to parse training BASE MU data..." << endl;
+        cout << "Starting to parse BASE MU data..." << endl;
         fmat trainMUHiddenData = parseData(INDEX_PATH_MU,
             DATA_PATH_MU, BASE_IDX);
         trainMUHiddenData.save(MU_BASE_BIN, arma_binary);
@@ -101,6 +101,17 @@ int main(void)
 
         cout << "Saved all training data to " << ALL_TRAIN_BIN << 
             ".\n" << endl;
+    }
+
+    {
+        // All training data in MU order.
+        cout << "Starting to parse all MU data..." << endl;
+        fmat allTrainDataMu = parseData(INDEX_PATH_MU, DATA_PATH_MU,
+                                        ALL_TRAIN_IDX);
+        allTrainDataMu.save(MU_ALL_TRAIN_BIN, arma_binary);
+
+        cout << "Saved all MU training data to " << MU_ALL_TRAIN_BIN 
+            << ".\n" << endl;
     }
 
     cout << "\nSaved all desired data in Armadillo binary format." << endl;
