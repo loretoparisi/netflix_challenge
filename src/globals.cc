@@ -27,7 +27,11 @@ Globals::Globals (int numUsers, int numItems,
 //  Level 3 or higher: sqrt time averages.
 bool Globals::setAverages(const fmat &dataUM)
 {
-    fprintf(stderr, "Setting global averages.\n");
+
+#ifndef NDEBUG
+    cout << "Setting global averages." << endl;
+#endif
+
     movieAverages.clear();
     userAverages.clear();
     movieUserAverages.clear();
@@ -44,7 +48,7 @@ bool Globals::setAverages(const fmat &dataUM)
         int votedatesum = 0;
         for(int j = 0; j < count; j++)
         {
-            float rating = roundToInt(dataMU(RATING_ROW, curr));
+            float rating = dataMU(RATING_ROW, curr);
             sum += rating;
             if(level > 2)
             {
@@ -78,7 +82,7 @@ bool Globals::setAverages(const fmat &dataUM)
         int votedatesum = 0;
         for(int j = 0; j < count; j++)
         {
-            float rating = roundToInt(dataUM(RATING_ROW, curr));
+            float rating = dataUM(RATING_ROW, curr);
             sum += rating;
             if(level > 2)
             {
@@ -104,8 +108,10 @@ bool Globals::setAverages(const fmat &dataUM)
     //  Break out of the function if the level is not 3 or higher
     if(level < 3)
     {
-        fprintf(stderr, "Done setting global averages. Average: %f\n",
-            globalAverage);
+#ifndef NDEBUG
+        cout << "Done setting global averages. Average: " << globalAverage
+            << endl;
+#endif
         return true;
     }
 
@@ -113,7 +119,11 @@ bool Globals::setAverages(const fmat &dataUM)
     // can calculate average time differences.
     float sqrtMovieTimeMovieSum = 0;
     float sqrtMovieTimeUserSum = 0;
+    
+#ifndef NDEBUG
     cout << "Start calculating sqrtMovieTimeSum..." << endl;
+#endif
+
     curr = 0;
     for(int i = 0; i< numItems; i++)
     {
@@ -149,13 +159,18 @@ bool Globals::setAverages(const fmat &dataUM)
     }
     sqrtUserTimeUserAverage = sqrtUserTimeUserSum / dataUM.n_cols;
     sqrtUserTimeMovieAverage = sqrtUserTimeMovieSum / dataUM.n_cols;
-    fprintf(stderr, "Done setting global averages.\n");
-    fprintf(stderr, "sqrtMovieTimeMovieAverage: %f\n"
-        "sqrtMovieTimeUserAverage: %f\nsqrtUserTimeUserAverage: %f\n"
-        "sqrtUserTimeMovieAverage: %f\n", sqrtMovieTimeMovieAverage,
-        sqrtMovieTimeUserAverage, sqrtUserTimeUserAverage,
-        sqrtUserTimeMovieAverage);
+
+#ifndef NDEBUG
+    cout << "Done setting global averages." << endl;
+    /*
+    cout << "sqrtMovieTimeMovieAverage: " << sqrtMovieTimeMovieAverage <<
+        "\nsqrtMovieTimeUserAverage: " << sqrtMovieTimeUserAverage <<
+        "\nsqrtUserTimeUserAverage: " << sqrtUserTimeUserAverage <<
+        "\nsqrtUserTimeMovieAverage: " << sqrtUserTimeMovieAverage << endl;
+    */
     cout << "Start calculating user averages of movie..." << endl;
+#endif
+
     curr = 0;
     for(int i = 0; i < numItems; i++)
     {
@@ -170,7 +185,11 @@ bool Globals::setAverages(const fmat &dataUM)
         float average = (float)sum / count;
         movieUserAverages.push_back(average);
     }
+
+#ifndef NDEBUG
     cout << "Start calculating averages of user and movie support..." << endl;
+#endif
+
     curr = 0;
     for(int i = 0; i < numItems; i++)
     {
@@ -199,6 +218,12 @@ bool Globals::setAverages(const fmat &dataUM)
         float average = (float)sum / count;
         userMovieSupportAverages.push_back(std::sqrt(average));
     }
+
+#ifndef NDEBUG
+    cout << "Finished calculating averages of user and movie support." <<
+        endl;
+#endif
+
     return true;
 }
 
@@ -209,8 +234,11 @@ bool Globals::setAverages(const fmat &dataUM)
  */
 void Globals::populateNumItemsTrainingSet(const fmat &data)
 {
+#ifndef NDEBUG
     cout << "Populated numItemsTrainingSet." << endl;
-    for(unsigned int i = 0; i < data.n_cols; i++)
+#endif
+    
+    for (unsigned int i = 0; i < data.n_cols; i++)
     {
         // Based on the user that this rating was by, increment the
         // appropriate element of numItemsTrainingSet.
@@ -226,8 +254,11 @@ void Globals::populateNumItemsTrainingSet(const fmat &data)
  */
 void Globals::populateNumUsersTrainingSet(const fmat &data)
 {
+#ifndef NDEBUG
     cout << "Populated numUsersTrainingSet." << endl;
-    for(unsigned int i = 0; i < data.n_cols; i++)
+#endif
+    
+    for (unsigned int i = 0; i < data.n_cols; i++)
     {
         // Based on the movie that this rating was by, increment the
         // appropriate element of numUsersTrainingSet.
@@ -255,7 +286,7 @@ void Globals::setVariances(const fmat &dataUM){
         float varraw = 0;
         for(int j = 0; j < count; j++)
         {
-            float rating = roundToInt(dataMU(RATING_ROW, curr));
+            float rating = dataMU(RATING_ROW, curr);
             varraw += pow(rating - movieAverages.at(i), 2);
             curr ++;
         }
@@ -269,7 +300,7 @@ void Globals::setVariances(const fmat &dataUM){
         float varraw = 0;
         for(int j = 0; j < count; j++)
         {
-            float rating = roundToInt(dataUM(RATING_ROW, curr));
+            float rating = dataUM(RATING_ROW, curr);
             varraw += pow(rating - userAverages.at(i), 2);
         }
         float variance = varraw / (count - 1);
@@ -283,26 +314,24 @@ bool Globals::setThetas(const fmat &dataUM)
     userThetas.clear();
     userMovieAverageThetas.clear();
     userMovieSupportThetas.clear();
+        
+    // Movie effect
     float xysum = 0;
     float xxsum = 0;
     int curr = 0;
 
-    // Movie effect
     for(int i = 0; i < numItems; i++)
     {
         xysum = 0;
         xxsum = 0;
+        
         int count = numUsersTrainingSet[i];
+        
         for(int j = 0; j < count; j++)
         {
-            float rating = roundToInt(dataMU(RATING_ROW, curr));
-            int userid = roundToInt(dataMU(USER_ROW, curr));
-            int movieid = roundToInt(dataMU(MOVIE_ROW, curr));
+            float rating = dataMU(RATING_ROW, curr);
             float residual = rating - globalAverage;
-            UserMovie thisUserMovie;
-            thisUserMovie.userID = userid;
-            thisUserMovie.movieID = (unsigned short) movieid;
-            residualStorage[thisUserMovie] = residual;
+           
             xysum += residual * 1;
             xxsum += 1 * 1;
             curr++;
@@ -312,6 +341,11 @@ bool Globals::setThetas(const fmat &dataUM)
         theta = count * theta / (count + LEVEL1_ALPHA);
         movieThetas.push_back(theta);
     }
+    
+#ifndef NDEBUG
+    cout << "Done with level 1." << endl;
+#endif
+
     if(level <= 1) return true;
 
     // User effect
@@ -323,14 +357,12 @@ bool Globals::setThetas(const fmat &dataUM)
         int count = numItemsTrainingSet[i];
         for(int j = 0; j < count; j++)
         {
-            int userid = roundToInt(dataUM(USER_ROW, curr));
-            int movieid = roundToInt(dataUM(MOVIE_ROW, curr));
-            UserMovie thisUserMovie;
-            thisUserMovie.userID = userid;
-            thisUserMovie.movieID = (unsigned short) movieid;
-            float residual = residualStorage[thisUserMovie]
-                - movieThetas.at(movieid);
-            residualStorage[thisUserMovie] = residual;
+            int movieID = roundToInt(dataUM(MOVIE_ROW, curr));
+            float rating = dataUM(RATING_ROW, curr);
+            
+            float residual = rating - globalAverage -
+                movieThetas.at(movieID);
+            
             xysum += residual * 1;
             xxsum += 1 * 1;
             curr ++;
@@ -341,6 +373,11 @@ bool Globals::setThetas(const fmat &dataUM)
         //theta = log(count)*theta / (log(count+43));
         userThetas.push_back(theta);
     }
+
+#ifndef NDEBUG
+    cout << "Done with level 2." << endl;
+#endif
+
     if(level <= 2) return true;
 
     // User*Time(user)
@@ -352,16 +389,16 @@ bool Globals::setThetas(const fmat &dataUM)
         int count = numItemsTrainingSet[i];
         for(int j = 0; j < count; j++)
         {
-            int userid = roundToInt(dataUM(USER_ROW, curr));
-            int movieid = roundToInt(dataUM(MOVIE_ROW, curr));
-            int votedate = roundToInt(dataUM(DATE_ROW, curr));
-            UserMovie thisUserMovie;
-            thisUserMovie.userID = userid;
-            thisUserMovie.movieID = (unsigned short) movieid;
-            float residual = residualStorage[thisUserMovie]
-                - userThetas.at(i);
-            residualStorage[thisUserMovie] = residual;
-            float x = std::sqrt(votedate - userFirstDates.at(i))
+            int userID = roundToInt(dataUM(USER_ROW, curr));
+            int movieID = roundToInt(dataUM(MOVIE_ROW, curr));
+            int dateID = roundToInt(dataUM(DATE_ROW, curr));
+            float rating = dataUM(RATING_ROW, curr);
+            
+            float residual = rating - globalAverage -
+                movieThetas.at(movieID) - 
+                userThetas.at(userID);
+
+            float x = std::sqrt(dateID - userFirstDates.at(userID))
                 - sqrtUserTimeUserAverage;
             xysum += residual * x;
             xxsum += x * x;
@@ -372,6 +409,11 @@ bool Globals::setThetas(const fmat &dataUM)
         theta = count * theta / (count + LEVEL3_ALPHA);
         userTimeUserThetas.push_back(theta);
     }
+
+#ifndef NDEBUG
+    cout << "Done with level 3." << endl;
+#endif
+
 
     if(level <= 3) return true;
 
@@ -384,18 +426,19 @@ bool Globals::setThetas(const fmat &dataUM)
         int count = numItemsTrainingSet[i];
         for(int j = 0; j < count; j++)
         {
-            int userid = roundToInt(dataUM(USER_ROW, curr));
-            int movieid = roundToInt(dataUM(MOVIE_ROW, curr));
-            int votedate = roundToInt(dataUM(DATE_ROW, curr));
-            UserMovie thisUserMovie;
-            thisUserMovie.userID = userid;
-            thisUserMovie.movieID = (unsigned short) movieid;
-            float residual = residualStorage[thisUserMovie]
-                - userTimeUserThetas.at(i)
-                * ( std::sqrt(votedate-userFirstDates.at(i))
+            int userID = roundToInt(dataUM(USER_ROW, curr));
+            int movieID = roundToInt(dataUM(MOVIE_ROW, curr));
+            int dateID = roundToInt(dataUM(DATE_ROW, curr));
+            float rating = dataUM(RATING_ROW, curr);
+            
+            float residual = rating - globalAverage -
+                movieThetas.at(movieID) - 
+                userThetas.at(userID) -
+                userTimeUserThetas.at(userID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
                     - sqrtUserTimeUserAverage);
-            residualStorage[thisUserMovie] = residual;
-            float x = std::sqrt(votedate - movieFirstDates.at(movieid))
+
+            float x = std::sqrt(dateID - movieFirstDates.at(movieID))
                 - sqrtUserTimeMovieAverage;
             xysum += residual * x;
             xxsum += x * x;
@@ -407,6 +450,11 @@ bool Globals::setThetas(const fmat &dataUM)
         theta = count * theta / (count + LEVEL4_ALPHA);
         userTimeMovieThetas.push_back(theta);
     }
+
+#ifndef NDEBUG
+    cout << "Done with level 4." << endl;
+#endif
+
     if(level <= 4) return true;
 
     // Movie*Time(movie)
@@ -418,18 +466,22 @@ bool Globals::setThetas(const fmat &dataUM)
         int count = numUsersTrainingSet[i];
         for(int j = 0; j < count; j++)
         {
-            int userindex = roundToInt(dataMU(USER_ROW, curr));
-            int movieid = roundToInt(dataMU(MOVIE_ROW, curr));
-            int votedate = roundToInt(dataMU(DATE_ROW, curr));
-            UserMovie thisUserMovie;
-            thisUserMovie.userID = userindex;
-            thisUserMovie.movieID = (unsigned short) movieid;
-            float residual = residualStorage[thisUserMovie]
-                - userTimeMovieThetas.at(userindex)
-                * ( std::sqrt(votedate - movieFirstDates.at(i))
+            int userID = roundToInt(dataMU(USER_ROW, curr));
+            int movieID = roundToInt(dataMU(MOVIE_ROW, curr));
+            int dateID = roundToInt(dataMU(DATE_ROW, curr));
+            float rating = dataMU(RATING_ROW, curr);
+            
+            float residual = rating - globalAverage -
+                movieThetas.at(movieID) - 
+                userThetas.at(userID) -
+                userTimeUserThetas.at(userID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
+                    - sqrtUserTimeUserAverage) -
+                userTimeMovieThetas.at(userID)
+                * ( std::sqrt(dateID - movieFirstDates.at(movieID))
                     - sqrtUserTimeMovieAverage );
-            residualStorage[thisUserMovie] = residual;
-            float x = std::sqrt(votedate - movieFirstDates.at(i))
+            
+            float x = std::sqrt(dateID - movieFirstDates.at(movieID))
                 - sqrtMovieTimeMovieAverage;
             xysum += residual * x;
             xxsum += x * x;
@@ -440,6 +492,11 @@ bool Globals::setThetas(const fmat &dataUM)
         theta = count*theta / (count + LEVEL5_ALPHA);
         movieTimeMovieThetas.push_back(theta);
     }
+
+#ifndef NDEBUG
+    cout << "Done with level 5." << endl;
+#endif
+
     if(level <= 5) return true;
 
     //  Movie*Time(user)
@@ -451,18 +508,25 @@ bool Globals::setThetas(const fmat &dataUM)
         int count = numUsersTrainingSet[i];
         for(int j = 0; j < count; j++)
         {
-            int userindex = roundToInt(dataMU(USER_ROW, curr));
-            int movieid = roundToInt(dataMU(MOVIE_ROW, curr));
-            int votedate = roundToInt(dataMU(DATE_ROW, curr));
-            UserMovie thisUserMovie;
-            thisUserMovie.userID = userindex;
-            thisUserMovie.movieID = (unsigned short) movieid;
-            float residual = residualStorage[thisUserMovie]
-                - movieTimeMovieThetas.at(i)
-                * ( std::sqrt(votedate-movieFirstDates.at(i))
-                    - sqrtMovieTimeMovieAverage );
-            residualStorage[thisUserMovie] = residual;
-            float x = std::sqrt(votedate - userFirstDates.at(userindex))
+            int userID = roundToInt(dataMU(USER_ROW, curr));
+            int movieID = roundToInt(dataMU(MOVIE_ROW, curr));
+            int dateID = roundToInt(dataMU(DATE_ROW, curr));
+            float rating = dataMU(RATING_ROW, curr);
+
+            float residual = rating - globalAverage -
+                movieThetas.at(movieID) - 
+                userThetas.at(userID) -
+                userTimeUserThetas.at(userID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
+                    - sqrtUserTimeUserAverage) -
+                userTimeMovieThetas.at(userID)
+                * ( std::sqrt(dateID - movieFirstDates.at(movieID))
+                    - sqrtUserTimeMovieAverage ) -
+                movieTimeMovieThetas.at(movieID)
+                * (std::sqrt(dateID - movieFirstDates.at(movieID))
+                    - sqrtMovieTimeMovieAverage);
+            
+            float x = std::sqrt(dateID - userFirstDates.at(userID))
                 - sqrtMovieTimeUserAverage;
             xysum += residual * x;
             xxsum += x * x;
@@ -473,6 +537,12 @@ bool Globals::setThetas(const fmat &dataUM)
         theta = count*theta / (count + LEVEL6_ALPHA);
         movieTimeUserThetas.push_back(theta);
     }
+
+#ifndef NDEBUG
+    cout << "Done with level 6." << endl;
+#endif
+
+
     if(level <= 6) return true;
 
     // User*Movie Average
@@ -484,18 +554,28 @@ bool Globals::setThetas(const fmat &dataUM)
         int count = numItemsTrainingSet[i];
         for(int j = 0; j < count; j++)
         {
-            int userid = roundToInt(dataUM(USER_ROW, curr));
-            int movieid = roundToInt(dataUM(MOVIE_ROW, curr));
-            int votedate = roundToInt(dataUM(DATE_ROW, curr));
-            UserMovie thisUserMovie;
-            thisUserMovie.userID = userid;
-            thisUserMovie.movieID = (unsigned short) movieid;
-            float residual = residualStorage[thisUserMovie]
-                - movieTimeUserThetas.at(movieid)
-                * ( std::sqrt(votedate - userFirstDates.at(i))
-                    - sqrtMovieTimeUserAverage );
-            residualStorage[thisUserMovie] = residual;
-            float x = movieAverages.at(movieid) - globalAverage;
+            int userID = roundToInt(dataUM(USER_ROW, curr));
+            int movieID = roundToInt(dataUM(MOVIE_ROW, curr));
+            int dateID = roundToInt(dataUM(DATE_ROW, curr));
+            float rating = dataUM(RATING_ROW, curr);
+            
+            float residual = rating - globalAverage -
+                movieThetas.at(movieID) - 
+                userThetas.at(userID) -
+                userTimeUserThetas.at(userID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
+                    - sqrtUserTimeUserAverage) -
+                userTimeMovieThetas.at(userID)
+                * ( std::sqrt(dateID - movieFirstDates.at(movieID))
+                    - sqrtUserTimeMovieAverage ) -
+                movieTimeMovieThetas.at(movieID)
+                * (std::sqrt(dateID - movieFirstDates.at(movieID))
+                    - sqrtMovieTimeMovieAverage) -
+                movieTimeUserThetas.at(movieID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
+                    - sqrtMovieTimeUserAverage);
+            
+            float x = movieAverages.at(movieID) - globalAverage;
             xysum += residual * x;
             xxsum += x * x;
             curr++;
@@ -505,6 +585,10 @@ bool Globals::setThetas(const fmat &dataUM)
         theta = count * theta / (count + LEVEL7_ALPHA);
         userMovieAverageThetas.push_back(theta);
     }
+
+#ifndef NDEBUG
+    cout << "Done with level 7." << endl;
+#endif
 
     if(level <= 7) return true;
 
@@ -517,17 +601,31 @@ bool Globals::setThetas(const fmat &dataUM)
         int count = numItemsTrainingSet[i];
         for(int j=0; j < count; j++)
         {
-            int userid = roundToInt(dataUM(USER_ROW, curr));
-            int movieid = roundToInt(dataUM(MOVIE_ROW, curr));
-            UserMovie thisUserMovie;
-            thisUserMovie.userID = userid;
-            thisUserMovie.movieID = (unsigned short) movieid;
-            float residual = residualStorage[thisUserMovie]
-                - userMovieAverageThetas.at(i)
-                * (movieAverages.at(movieid) - globalAverage);
-            residualStorage[thisUserMovie] = residual;
-            float x = std::sqrt(numUsersTrainingSet[movieid])
-                - userMovieSupportAverages.at(i);
+            int userID = roundToInt(dataUM(USER_ROW, curr));
+            int movieID = roundToInt(dataUM(MOVIE_ROW, curr));
+            int dateID = roundToInt(dataUM(DATE_ROW, curr));
+            float rating = dataUM(RATING_ROW, curr);
+            
+            float residual = rating - globalAverage -
+                movieThetas.at(movieID) - 
+                userThetas.at(userID) -
+                userTimeUserThetas.at(userID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
+                    - sqrtUserTimeUserAverage) -
+                userTimeMovieThetas.at(userID)
+                * ( std::sqrt(dateID - movieFirstDates.at(movieID))
+                    - sqrtUserTimeMovieAverage ) -
+                movieTimeMovieThetas.at(movieID)
+                * (std::sqrt(dateID - movieFirstDates.at(movieID))
+                    - sqrtMovieTimeMovieAverage) -
+                movieTimeUserThetas.at(movieID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
+                    - sqrtMovieTimeUserAverage) -
+                userMovieAverageThetas.at(userID)
+                * (movieAverages.at(movieID) - globalAverage);
+            
+            float x = std::sqrt(numUsersTrainingSet[movieID])
+                - userMovieSupportAverages.at(userID);
             xysum += residual * x;
             xxsum += x * x;
             curr++;
@@ -537,6 +635,10 @@ bool Globals::setThetas(const fmat &dataUM)
         theta = count * theta / (count + LEVEL8_ALPHA);
         userMovieSupportThetas.push_back(theta);
     }
+
+#ifndef NDEBUG
+    cout << "Done with level 8." << endl;
+#endif
 
     if(level <= 8) return true;
 
@@ -549,17 +651,34 @@ bool Globals::setThetas(const fmat &dataUM)
         int count = numUsersTrainingSet[i];
         for(int j = 0; j < count; j++)
         {
-            int userindex = roundToInt(dataMU(USER_ROW, curr));
-            int movieid = roundToInt(dataMU(MOVIE_ROW, curr));
-            UserMovie thisUserMovie;
-            thisUserMovie.userID = userindex;
-            thisUserMovie.movieID = (unsigned short) movieid;
-            float residual = residualStorage[thisUserMovie]
-                - userMovieSupportThetas.at(userindex)
+            int userID = roundToInt(dataMU(USER_ROW, curr));
+            int movieID = roundToInt(dataMU(MOVIE_ROW, curr));
+            int dateID = roundToInt(dataMU(DATE_ROW, curr));
+            float rating = dataMU(RATING_ROW, curr);
+            
+            float residual = rating - globalAverage -
+                movieThetas.at(movieID) - 
+                userThetas.at(userID) -
+                userTimeUserThetas.at(userID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
+                    - sqrtUserTimeUserAverage) -
+                userTimeMovieThetas.at(userID)
+                * ( std::sqrt(dateID - movieFirstDates.at(movieID))
+                    - sqrtUserTimeMovieAverage ) -
+                movieTimeMovieThetas.at(movieID)
+                * (std::sqrt(dateID - movieFirstDates.at(movieID))
+                    - sqrtMovieTimeMovieAverage) -
+                movieTimeUserThetas.at(movieID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
+                    - sqrtMovieTimeUserAverage) -
+                userMovieAverageThetas.at(userID)
+                * (movieAverages.at(movieID) - globalAverage) -
+                userMovieSupportThetas.at(userID)
                 * (std::sqrt(count)
-                    - userMovieSupportAverages.at(userindex));
-            residualStorage[thisUserMovie] = residual;
-            float x = userAverages.at(userindex) - movieUserAverages.at(i);
+                    - userMovieSupportAverages.at(userID));
+
+            float x = userAverages.at(userID) -
+                movieUserAverages.at(movieID);
             xysum += residual * x;
             xxsum += x * x;
             curr++;
@@ -569,6 +688,11 @@ bool Globals::setThetas(const fmat &dataUM)
         theta = count * theta / (count + LEVEL9_ALPHA);
         movieUserAverageThetas.push_back(theta);
     }
+
+#ifndef NDEBUG
+    cout << "Done with level 9." << endl;
+#endif
+
     if(level <= 9) return true;
 
     //  Movie*User(support)
@@ -580,26 +704,51 @@ bool Globals::setThetas(const fmat &dataUM)
         int count = numUsersTrainingSet[i];
         for(int j = 0; j < count; j++)
         {
-            int userindex = roundToInt(dataMU(USER_ROW, curr));
-            int movieid = roundToInt(dataMU(MOVIE_ROW, curr));
-            UserMovie thisUserMovie;
-            thisUserMovie.userID = userindex;
-            thisUserMovie.movieID = (unsigned short) movieid;
-            float residual = residualStorage[thisUserMovie]
-                - movieUserAverageThetas.at(i)
-                * (userAverages.at(userindex) - movieUserAverages.at(i));
-            residualStorage[thisUserMovie] = residual;
-            float x = std::sqrt(numItemsTrainingSet[userindex])
-                - movieUserSupportAverages.at(i);
+            int userID = roundToInt(dataMU(USER_ROW, curr));
+            int movieID = roundToInt(dataMU(MOVIE_ROW, curr));
+            int dateID = roundToInt(dataMU(DATE_ROW, curr));
+            float rating = dataMU(RATING_ROW, curr);
+            
+            float residual = rating - globalAverage -
+                movieThetas.at(movieID) - 
+                userThetas.at(userID) -
+                userTimeUserThetas.at(userID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
+                    - sqrtUserTimeUserAverage) -
+                userTimeMovieThetas.at(userID)
+                * ( std::sqrt(dateID - movieFirstDates.at(movieID))
+                    - sqrtUserTimeMovieAverage ) -
+                movieTimeMovieThetas.at(movieID)
+                * (std::sqrt(dateID - movieFirstDates.at(movieID))
+                    - sqrtMovieTimeMovieAverage) -
+                movieTimeUserThetas.at(movieID)
+                * (std::sqrt(dateID - userFirstDates.at(userID))
+                    - sqrtMovieTimeUserAverage) -
+                userMovieAverageThetas.at(userID)
+                * (movieAverages.at(movieID) - globalAverage) -
+                userMovieSupportThetas.at(userID)
+                * (std::sqrt(count)
+                    - userMovieSupportAverages.at(userID)) -
+                movieUserAverageThetas.at(movieID)
+                * (userAverages.at(userID) - movieUserAverages.at(movieID));
+            
+            float x = std::sqrt(numItemsTrainingSet[userID])
+                - movieUserSupportAverages.at(movieID);
             xysum += residual * x;
             xxsum += x*x;
             curr++;
         }
+
         float theta = 0;
         if(xxsum != 0) theta = xysum / xxsum;
         theta = count * theta / (count + LEVEL10_ALPHA);
         movieUserSupportThetas.push_back(theta);
     }
+
+#ifndef NDEBUG
+    cout << "Done with level 10." << endl;
+#endif
+
     return true;
 }
 

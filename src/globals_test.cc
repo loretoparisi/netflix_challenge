@@ -33,7 +33,7 @@ const string TRAIN_MU = MU_BASE_BIN;
 const int level = 10;
 
 // The name of the output file to use (for predictions on "qual").
-const string OUTPUT_FN = "data/globals_predictions.dta";
+const string OUTPUT_FN = "data/global_predictions/globals_predictions.dta";
 
 // Sig-figs for output file.
 const int RATING_SIG_FIGS = 4;

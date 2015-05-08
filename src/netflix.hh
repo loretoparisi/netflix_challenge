@@ -112,8 +112,10 @@ namespace netflix
                                                   "valid.mat";
     const std::string ALL_TRAIN_BIN             = "data/um/base_hidden_valid_"
                                                   "probe.mat";
-    const std::string MU_BASE_BIN               = "data/base-mu.mat";
-    
+    const std::string MU_BASE_BIN               = "data/mu/base.mat";
+    const std::string MU_ALL_TRAIN_BIN          = "data/mu/base_hidden_"
+                                                  "valid_probe.mat";
+
     // The number of columns in the data files (not including qual).
     constexpr int COLUMNS = 4;
 
