@@ -12,7 +12,13 @@ below.
 
 Further details on predictions in this folder:
 
-GLOBALS_KNN_COMBO_QUAL_1.075: This was generated on May 8 at 3:19 pm. kNN
+TIMESVDPP_QUAL_7.697: This was generated on May 8 at 8:31 am. Time-SVD++
+was carried out with a learning rate decay of 0.9, 110 factors, 30 time
+bins, and 80 iterations. The remaining parameters were the same as those
+mentioned for TIMESVDPP_QUAL_7.749.dta.
+
+
+GLOBALS_KNN_COMBO_QUAL_1.075: This was generated on May 8 at 3:19 am. kNN
 was carried out on the residuals of 10 global effects, where both of these
 algorithms were trained on the entire training dataset. For kNN, the
 following parameters were used:
