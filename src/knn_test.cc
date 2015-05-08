@@ -27,7 +27,8 @@ using namespace netflix; // challenge-related constants/functions.
 // The Armadillo binary file to use for training.
 // Make sure that both UM and MU data are using the same
 // "type" of training resource (eg. probe, hidden, base, etc.)
-const string TRAIN_UM = VALID_BIN;
+// const string TRAIN_UM = VALID_BIN;
+const string TRAIN_UM = ALL_TRAIN_BIN;
 
 // Minimum common neighbors required for decent prediction.
 const int MIN_COMMON = 24;
@@ -35,7 +36,8 @@ const int MIN_COMMON = 24;
 // Max weight elements to consider when predicting.
 const unsigned int MAX_WEIGHT = 30;
 
-// If P is already precomputed, only need to load.
+// If P is already precomputed, we only need to load, so set this to true.
+// If P hasn't been computed, set this to false.
 const bool LOAD_P = true;
 
 // Whether we want to save the output of P.
@@ -48,7 +50,7 @@ const int RATING_SIG_FIGS = 4;
 const string P_PATH = "data/knn_cached/knn-p.dta";
 
 // The name of the output file to use (for predictions on "qual").
-const string OUTPUT_FN = "data/knn_cached/knn_test_probe.dta";
+const string OUTPUT_FN = "data/knn_cached/knn_qual_predictions.dta";
 
 // Test on qual file for KNN and output the file to store.
 void testOnDataFile(KNN &predAlgo, const string &testFileName,
@@ -68,19 +70,11 @@ int main(void)
 
     // Initializing the KNN.
     KNN knn(NUM_USERS, NUM_MOVIES, MIN_COMMON, MAX_WEIGHT,
-        P_PATH);
+            LOAD_P, SAVE_P, P_PATH);
     knn.train(trainingSetUM);
-    if (LOAD_P)
-        knn.loadP();
-    else
-    {
-        knn.calcP();
-        if (SAVE_P)
-            knn.saveP();
-    }
 
     // Go through qual.dta to produce a prediction file.
-    testOnDataFile(knn, PROBE_BIN, OUTPUT_FN);
+    testOnDataFile(knn, QUAL_DATA_FN, OUTPUT_FN);
 
     // Get probe RMSE.
     float probeRMSE = computeRMSE(knn, PROBE_BIN);

@@ -27,15 +27,19 @@ using namespace netflix; // challenge-related constants/functions.
 // The Armadillo binary file to use for training.
 // Make sure that both UM and MU data are using the same
 // "type" of training resource (eg. probe, hidden, base, etc.)
-const string TRAIN_UM = VALID_BIN;
+// const string TRAIN_UM = VALID_BIN;
+const string TRAIN_UM = ALL_TRAIN_BIN;
+// const string TRAIN_UM = BASE_BIN;
 
 // MU train matrix for global effect. Note that
 // the index type should match that of TRAIN_UM.
-const string TRAIN_MU = "data/valid-mu.mat";
+// const string TRAIN_MU = "data/valid-mu.mat";
+const string TRAIN_MU = MU_ALL_TRAIN_BIN;
+// const string TRAIN_MU = MU_BASE_BIN;
 
 // The "level" of global effect we want to train on.
 // (See globals_README in "data" dir for more detail)
-const int level = 10;
+const int LEVEL = 10;
 
 // Sig-figs for output file.
 const int RATING_SIG_FIGS = 4;
@@ -46,37 +50,47 @@ const int MIN_COMMON = 24;
 // Max weight elements to consider when predicting.
 const unsigned int MAX_WEIGHT = 30;
 
-// Original output qual file for the KNN.
-const string KNN_QUAL = "data/knn_cached/knn_test_predictions.dta";
+// A temporary file name where intermediate qual predictions (made by the
+// unbounded first algorithm) will be saved.
+const string INTERMED_PRED_FILE = "data/intermed_pred_temp.dta";
+
+// Whether we want to load P. If this is false, then P will be recomputed.
+const bool LOAD_P = true;
+
+// Whether we want to save P after computing it.
+const bool SAVE_P = false;
 
 // Pearson value file path.
 const string P_FN = "data/knn_cached/knn-p.dta";
 
 // Final output file for this combo algorithm.
-const string OUTPUT_FILENAME = "data/globals_knn_test.dta";
+const string OUTPUT_FILENAME = "data/globals_knn_combo_predictions.dta";
+
 
 int main(void)
 {
-    Two_Algo combine(TRAIN_UM, RATING_SIG_FIGS);
-    cout << "Loaded training data from " << TRAIN_UM << "." << endl;
+    Two_Algo combine(TRAIN_UM, INTERMED_PRED_FILE, RATING_SIG_FIGS);
 
-    Globals predAlgoGE(NUM_USERS, NUM_MOVIES, level, TRAIN_MU);
+    {
+        Globals predAlgoGE(NUM_USERS, NUM_MOVIES, LEVEL, TRAIN_MU);
+        
+        combine.trainFirst(predAlgoGE);
+        combine.saveFirstQualPredictions(predAlgoGE, QUAL_DATA_FN);
+        combine.computeFirstResiduals(predAlgoGE);
 
-    combine.trainFirst(predAlgoGE);
+        /*
+        float newAverage = combine.getAverage();
 
-    combine.firstResiduals(predAlgoGE);
+        cout << "New average is: " << newAverage << endl;
+        */
+    }
 
-    float newAverage = combine.getAverage();
+    {
+        KNN predAlgoKNN(NUM_USERS, NUM_MOVIES, MIN_COMMON, MAX_WEIGHT, 
+                        LOAD_P, SAVE_P, P_FN);
 
-    cout << "New average is: " << newAverage << endl;
-
-    combine.saveResiduals("data/residualStore.dta");
-
-    KNN predAlgoKNN(NUM_USERS, NUM_MOVIES, MIN_COMMON, MAX_WEIGHT, P_FN);
-
-    combine.trainSecond(predAlgoKNN);
-    combine.outputQual(predAlgoKNN,
-        QUAL_DATA_FN, KNN_QUAL, OUTPUT_FILENAME);
-    cout << "Output is in " << OUTPUT_FILENAME << " ." << endl;
+        combine.trainSecond(predAlgoKNN);
+        combine.saveSecondQualPredictions(predAlgoKNN, QUAL_DATA_FN,
+                                          OUTPUT_FILENAME);
+    }
 }
-

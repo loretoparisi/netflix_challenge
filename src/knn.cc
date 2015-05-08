@@ -7,12 +7,21 @@ int operator<(const s_neighbors &a, const s_neighbors &b)
 }
 
 
-
 KNN::KNN(const int numUsers, const int numItems, const int minCommon,
-    const unsigned int maxWeight, const std::string &pFilename) :
+         const unsigned int maxWeight, bool loadPFromFile, 
+         bool savePToFile, const std::string &pFilename) :
     numUsers(numUsers), numItems(numItems), minCommon(minCommon),
-    maxWeight(maxWeight), pFilename(pFilename)
+    maxWeight(maxWeight), loadPFromFile(loadPFromFile), 
+    savePToFile(savePToFile), pFilename(pFilename)
 {
+
+    // We should only save P if we're not already loading it.
+    if (savePToFile && loadPFromFile)
+    {
+        throw std::logic_error("Should not be saving P to file "
+                "if we're going to be loading it from file.");
+    }
+
     um.resize(numUsers);
     mu.resize(numItems);
     P.resize(numItems);
@@ -21,19 +30,21 @@ KNN::KNN(const int numUsers, const int numItems, const int minCommon,
         P[j].resize(numItems);
     }
     movieAvg.resize(numItems);
+    
     // Make sure specified file paths make sense.
     std::ofstream pfile(pFilename, ios::app);
+    
     if (pfile.fail())
     {
-        cout << pFilename << " cannot be allocated!" << endl;
-        exit(-1);
+        throw std::invalid_argument(pFilename + " cannot be opened");
     }
+    
     pfile.close();
 }
 
+
 void KNN::train(const fmat &data)
 {
-    cout << "Populating UM and MU data..." << endl;
     unsigned int i;
     int last_seen = 0, curr_count = -1;
     int user, item;
@@ -42,7 +53,7 @@ void KNN::train(const fmat &data)
     {
         user = roundToInt(data(USER_ROW, i));
         item = roundToInt(data(MOVIE_ROW, i));
-        rating = roundToInt(data(RATING_ROW, i));
+        rating = data(RATING_ROW, i);
 
         if (last_seen == user)
         {
@@ -63,8 +74,31 @@ void KNN::train(const fmat &data)
         m_pair.rating = rating;
         mu[item].push_back(m_pair);
     }
-    cout << "Finished populating UM and MU data." << endl;
+
+#ifndef NDEBUG
+    cout << "Finished populating UM and MU data for kNN." << endl;
+#endif
+    
+    // Load P or calculate P, depending on what was specified.
+    if (loadPFromFile)
+    {
+        loadP();
+    }
+    else
+    {
+        calcP();
+        
+        if (savePToFile)
+        {
+            saveP();
+        }
+    }
+
+#ifndef NDEBUG
+    cout << "Finished training kNN predictior." << endl;
+#endif
 }
+
 
 void KNN::calcP()
 {
@@ -79,7 +113,10 @@ void KNN::calcP()
     s_inter tmp[numItems];
     float tmp_f;
 
+#ifndef NDEBUG
     cout << "Calculating P..." << endl;
+#endif
+    
     // Compute intermediates
     for (i = 0; i < numItems; i++)
     {
@@ -96,8 +133,10 @@ void KNN::calcP()
 
         size1 = mu[i].size();
 
+#ifndef NDEBUG
         if ((i % 1000) == 0)
             cout << "Finished handling movie " << i << "." << endl;
+#endif
 
         // For each user that rated movie i
         for (u = 0; u < size1; u++)
@@ -152,7 +191,7 @@ void KNN::calcP()
             {
                 denom = (float)std::sqrt(n * xx - x * x) * (float)std::sqrt(n * yy - y * y);
                 // Check for NaN
-                if (std::abs(denom) < EPISILON)
+                if (std::abs(denom) < EPSILON)
                 {
                     tmp_f = 0.0;
                 }
@@ -167,14 +206,16 @@ void KNN::calcP()
             }
         }
     }
+#ifndef NDEBUG
     cout << "P calculated." << endl;
+#endif
 }
 
 
 void KNN::saveP()
 {
     int i, j;
-    cout << "Saving P..." << endl;
+    
     std::ofstream pfile(pFilename, ios::app);
     for (i = 0; i < numItems; i++)
     {
@@ -187,7 +228,10 @@ void KNN::saveP()
         }
     }
     pfile.close();
-    cout << "P saved." << endl;
+    
+#ifndef NDEBUG
+    cout << "P saved to " << pFilename << "." << endl;
+#endif
 }
 
 
@@ -198,11 +242,10 @@ void KNN::loadP()
     char c_line[100];
     std::string line;
 
-    cout << "Loading P..." << endl;
     std::ifstream pfile(pFilename, ios::app);
     if (!pfile.is_open())
     {
-        cout << "Cannot open p val file at " << pFilename << "." << endl;
+        cerr << "Cannot open p val file at " << pFilename << "." << endl;
         exit(-1);
     }
     while (getline(pfile, line))
@@ -223,7 +266,10 @@ void KNN::loadP()
         P[i][j].common = common;
     }
     pfile.close();
-    cout << "P loaded." << endl;
+
+#ifndef NDEBUG
+    cout << "P loaded from " << pFilename << "." << endl;
+#endif
 }
 
 
@@ -328,7 +374,7 @@ float KNN::predict(int user, int item, int date, bool bound)
     }
 
     // If result is nan, return avg
-    if (std::abs(denom) < EPISILON)
+    if (std::abs(denom) < EPSILON)
     {
         result = MEAN_RATING_TRAINING_SET;
     }
@@ -345,8 +391,7 @@ float KNN::predict(int user, int item, int date, bool bound)
             result = MAX_RATING;
         }
     }
-    // Get rid of unused "date" variable warning.
-    date = date;
+    
     return result;
 }
 

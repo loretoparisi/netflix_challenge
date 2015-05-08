@@ -29,7 +29,7 @@
 #include <netflix.hh>
 #include <singlealgorithm.hh>
 
-#define EPISILON 0.0000000001
+#define EPSILON 0.0000000001
 
 // Idea of optimization, speed up is from:
 // http://dmnewbie.blogspot.com/2009/06/calculating-316-million-movie.html
@@ -93,6 +93,13 @@ class KNN : public SingleAlgorithm
         const int numUsers;
         const int numItems;
 
+        // Whether or not to load P from file (i.e. from pFileName). If
+        // false, we'll compute P instead.
+        bool loadPFromFile;
+
+        // Whether we want to save P to file after computing it.
+        bool savePToFile;
+
         // Minimum common neighbors required for decent prediction.
         const int minCommon;
 
@@ -115,7 +122,8 @@ class KNN : public SingleAlgorithm
 
     public:
         KNN(const int numUsers, const int numItems, const int minCommon,
-            const unsigned int maxWeight, const std::string &pFilename);
+            const unsigned int maxWeight, bool loadPFromFile,
+            bool savePToFile, const std::string &pFilename);
         void train(const fmat &data);
         float predict(int user, int item, int date, bool bound);
         void calcP();

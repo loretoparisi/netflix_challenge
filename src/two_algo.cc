@@ -1,22 +1,94 @@
 #include <two_algo.hh>
 
+
 Two_Algo::Two_Algo(const std::string &trainingSet,
-    const int ratingSigFig) :
+        const std::string &intermediatePredFileName,
+        const int ratingSigFig) :
+    intermediatePredFileName(intermediatePredFileName),
     ratingSigFig(ratingSigFig)
 {
     currentTrain.load(trainingSet, arma_binary);
+
+#ifndef NDEBUG
+    cout << "Set up Two_Algo by loading data from " <<
+        trainingSet << endl;
+#endif
 }
 
-void Two_Algo::trainFirst(SingleAlgorithm &predAlgo)
+
+void Two_Algo::trainFirst(SingleAlgorithm &firstAlgo)
 {
-    cout << "Start training on first model: Global effects..." << endl;
-    predAlgo.train(currentTrain);
-    cout << "Finished training on global effects." << endl;
+#ifndef NDEBUG
+    cout << "\nStarted training first model." << endl;
+#endif
+
+    firstAlgo.train(currentTrain);
+
+#ifndef NDEBUG
+    cout << "Finished training first model." << endl;
+#endif
 }
 
-void Two_Algo::firstResiduals(SingleAlgorithm &predAlgo)
+
+void Two_Algo::saveFirstQualPredictions(SingleAlgorithm &firstAlgo,
+        const std::string &qualFileName)
 {
-    cout << "Start outputting residuals of first model..." << endl;
+    // Output predictions to intermediatePredFileName
+    std::ifstream qualDataFile(qualFileName);
+    std::ofstream outputFile(intermediatePredFileName); 
+
+    if (qualDataFile.fail())
+    {
+        throw std::runtime_error("Couldn't find qual file at "
+            + qualFileName);
+    }
+
+    if (outputFile.fail())
+    {
+        throw std::runtime_error("Couldn't open output file at " 
+            + intermediatePredFileName);
+    }
+
+    std::string qualDataLine;
+
+    while (getline(qualDataFile, qualDataLine))
+    {
+        // Read the line and split it.
+        std::vector<int> thisLineVec;
+        splitIntoInts(qualDataLine, DELIMITER, thisLineVec);
+
+        if (thisLineVec.size() != 3)
+        {
+            throw std::logic_error("The line \"" + qualDataLine + "\" did not "
+                              "contain three delimiter-separated "
+                              "entries!");
+        }
+
+        // The first entry is the user ID, the second entry is the item ID,
+        // and the third entry is the date.
+        int user = thisLineVec[0];
+        int item = thisLineVec[1];
+        int date = thisLineVec[2];
+
+        // Output the prediction of the first algorithm to
+        // intermediatePredFileName. Don't bound predictions since we want
+        // the second algorithm to correct on where the first went awry.
+        float prediction = firstAlgo.predict(user, item, date, false);
+        outputFile << std::setprecision(ratingSigFig) << prediction << endl;
+    }
+
+    outputFile.close();
+
+#ifndef NDEBUG
+    cout << "Outputted first algorithm's qual predictions to the temporary"
+        << " file " << intermediatePredFileName << "." << endl;
+#endif
+
+}
+
+
+void Two_Algo::computeFirstResiduals(SingleAlgorithm &firstAlgo)
+{
     int user, item, date;
     float actualRating, predictedRating;
     unsigned int i;
@@ -27,11 +99,15 @@ void Two_Algo::firstResiduals(SingleAlgorithm &predAlgo)
         date = roundToInt(currentTrain(DATE_ROW, i));
         actualRating = currentTrain(RATING_ROW, i);
 
-        predictedRating = predAlgo.predict(user, item, date, true);
+        predictedRating = firstAlgo.predict(user, item, date, false);
         currentTrain.at(RATING_ROW, i) = actualRating - predictedRating;
     }
-    cout << "Finished outputting residuals of first model." << endl;
+    
+#ifndef NDEBUG
+    cout << "Finished computing residuals of first model." << endl;
+#endif
 }
+
 
 float Two_Algo::getAverage()
 {
@@ -41,6 +117,7 @@ float Two_Algo::getAverage()
         sum += currentTrain(RATING_ROW, i);
     return sum / currentTrain.n_cols;
 }
+
 
 void Two_Algo::saveResiduals(const std::string residualsFile)
 {
@@ -54,52 +131,68 @@ void Two_Algo::saveResiduals(const std::string residualsFile)
     }
 }
 
-void Two_Algo::trainSecond(SingleAlgorithm &predAlgo)
+
+void Two_Algo::trainSecond(SingleAlgorithm &secondAlgo)
 {
-    predAlgo.train(currentTrain);
+#ifndef NDEBUG
+    cout << "\nStarted training second model." << endl;
+#endif
+
+    secondAlgo.train(currentTrain);
+
+#ifndef NDEBUG
+    cout << "Finished training second model." << endl;
+#endif
+
 }
 
-void Two_Algo::outputQual(SingleAlgorithm &predAlgo,
-    const std::string &testFileName,
-    const std::string &previousOutputName,
-    const std::string &newOutputFileName)
-{
-    std::ifstream testDataFile(testFileName);
-    std::ifstream previousOutputFile(previousOutputName);
-    std::ofstream outputFile(newOutputFileName); 
 
-    if (testDataFile.fail())
+/**
+ * Note: This actually saves the combined predictions of the two algorithms
+ * to file, and then deletes the temp file at intermediatePredFileName.
+ */
+void Two_Algo::saveSecondQualPredictions(SingleAlgorithm &secondAlgo,
+    const std::string &qualFileName,
+    const std::string &outputFileName)
+{
+    // Open up the first algorithm's qual predictions too.
+    std::ifstream qualDataFile(qualFileName);
+    std::ifstream firstAlgoPredFile(intermediatePredFileName);
+    std::ofstream outputFile(outputFileName); 
+
+    if (qualDataFile.fail())
     {
-        throw std::runtime_error("Couldn't find test file at "
-            + testFileName);
+        throw std::runtime_error("Couldn't find qual file at "
+            + qualFileName);
     }
 
-    if (previousOutputFile.fail())
+    if (firstAlgoPredFile.fail())
     {
-        throw std::runtime_error("Couldn't find test file at "
-            + previousOutputName);
+        throw std::runtime_error("Couldn't find first algorithm's "
+                "predictions at " + intermediatePredFileName);
     }
 
     if (outputFile.fail())
     {
         throw std::runtime_error("Couldn't open output file at " 
-            + newOutputFileName);
+            + outputFileName);
     }
 
-    std::string testDataLine;
-    float originalRating;
-    cout << "Testing on data in " << testFileName << "..." << endl;
+    std::string qualDataLine;
+    float firstAlgoPred;
 
-    while (getline(testDataFile, testDataLine))
+    while (getline(qualDataFile, qualDataLine))
     {
-        previousOutputFile >> originalRating;
-        // Read the line and split it.
-        std::vector<int> thisLineVec;
-        splitIntoInts(testDataLine, DELIMITER, thisLineVec);
+        // Store the previous algorithm's rating in firstAlgoPred.
+        firstAlgoPredFile >> firstAlgoPred;
 
+        // Read a line from the qual dataset and split it.
+        std::vector<int> thisLineVec;
+        splitIntoInts(qualDataLine, DELIMITER, thisLineVec);
+        
         if (thisLineVec.size() != 3)
         {
-            throw std::logic_error("The line \"" + testDataLine + "\" did not "
+            throw std::logic_error("The line \"" + qualDataLine + "\" did not "
                               "contain three delimiter-separated "
                               "entries!");
         }
@@ -110,22 +203,51 @@ void Two_Algo::outputQual(SingleAlgorithm &predAlgo,
         int user = thisLineVec[0];
         int item = thisLineVec[1];
         int date = thisLineVec[2];
+        
+        // Combine the second algorithm's prediction with the first
+        // algorithm's prediction. Bound the sum and then save that to
+        // file.
+        float secondAlgoPred = secondAlgo.predict(user, item, date, false);
+        float comboPred = firstAlgoPred + secondAlgoPred;
 
-        // Output the prediction to file.
-        float prediction = predAlgo.predict(user, item, date, false);
-        prediction = originalRating + prediction;
-        if (prediction > MAX_RATING)
-            prediction = MAX_RATING;
-        if (prediction < MIN_RATING)
-            prediction = MIN_RATING;
-        outputFile << std::setprecision(ratingSigFig) << prediction << endl;
+        if (comboPred > MAX_RATING)
+        {
+            comboPred = MAX_RATING;
+        }
+        if (comboPred < MIN_RATING)
+        {
+            comboPred = MIN_RATING;
+        }
+
+        outputFile << std::setprecision(ratingSigFig) << comboPred << endl;
     }
 
+    qualDataFile.close();
+    firstAlgoPredFile.close();
     outputFile.close();
 
-    cout << "Outputted predictions on " << testFileName << " to the " 
-        "output file " << newOutputFileName << endl;
+#ifndef NDEBUG
+    cout << "\nOutputted combined algorithm's qual predictions to " <<
+        outputFileName << "." << endl;
+#endif
+
+    // Delete the temporary file at intermediatePredFileName
+    if (std::remove(intermediatePredFileName.c_str()) != 0)
+    {
+#ifndef NDEBUG
+        cerr << "Unable to delete temporary file at " << 
+            intermediatePredFileName << endl;
+#endif
+    }
+    else
+    {
+#ifndef NDEBUG
+        cout << "Deleted temporary file at " << intermediatePredFileName <<
+            endl;
+#endif
+    }
 }
+
 
 Two_Algo::~Two_Algo()
 {

@@ -34,17 +34,32 @@ class Two_Algo : public ComboAlgorithm
 {
     private:
         fmat currentTrain;
+        
+        /*
+         * The file name where intermediate qual predictions will be stored
+         * (i.e. the unbounded predictions made by the first algorithm).
+         */
+        std::string intermediatePredFileName;
+
         int ratingSigFig;
 
     public:
         Two_Algo(const std::string &trainingSet,
-            const int ratingSigFig);
+                 const std::string &intermediatePredFileName,
+                 const int ratingSigFig);
 
         /* Train on the first model normally. */
-        void trainFirst(SingleAlgorithm &predAlgo);
-
+        void trainFirst(SingleAlgorithm &firstAlgo);
+        
+        /* 
+         * Save the first algorithm's qual predictions to 
+         * intermediatePredFileName.
+         */
+        void saveFirstQualPredictions(SingleAlgorithm &firstAlgo,
+                const std::string &qualFileName);
+         
         /* Update the fmat for the residuals of training set. */
-        void firstResiduals(SingleAlgorithm &predAlgo);
+        void computeFirstResiduals(SingleAlgorithm &firstAlgo);
 
         /* Return the current average for the training set. */
         float getAverage();
@@ -53,14 +68,13 @@ class Two_Algo : public ComboAlgorithm
         void saveResiduals(const std::string residualsFile);
 
         /* Train on the second model with residuals. */
-        void trainSecond(SingleAlgorithm &predAlgo);
+        void trainSecond(SingleAlgorithm &secondAlgo);
 
-        /* Output predicted residuals to qual. */
-        void outputQual(SingleAlgorithm &predAlgo,
-            const std::string &testFileName,
-            const std::string &previousOutputName,
-            const std::string &newOutputFileName);
-
+        /* Output the combined algorithms' predictions on qual. */
+        void saveSecondQualPredictions(SingleAlgorithm &secondAlgo,
+                const std::string &qualFileName,
+                const std::string &outputFileName);
+        
         ~Two_Algo();
 };
 

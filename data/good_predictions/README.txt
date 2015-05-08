@@ -12,6 +12,14 @@ below.
 
 Further details on predictions in this folder:
 
+GLOBALS_KNN_COMBO_QUAL_1.075: This was generated on May 8 at 3:19 pm. kNN
+was carried out on the residuals of 10 global effects, where both of these
+algorithms were trained on the entire training dataset. For kNN, the
+following parameters were used:
+    * MIN_COMMON = 24
+    * MAX_WEIGHT = 30
+
+
 TIMESVDPP_QUAL_7.765: This was generated on May 7 at 10:00 am. The internal
 parameters were unchanged relative to TIMESVDPP_QUAL_7.749, but I instead
 carried out *40 iterations* of training with 110 factors and 30 time
