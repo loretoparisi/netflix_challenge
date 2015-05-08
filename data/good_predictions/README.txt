@@ -12,6 +12,13 @@ below.
 
 Further details on predictions in this folder:
 
+TIMESVDPP_QUAL_7.765: This was generated on May 7 at 10:00 am. The internal
+parameters were unchanged relative to TIMESVDPP_QUAL_7.749, but I instead
+carried out *40 iterations* of training with 110 factors and 30 time
+bins. More than 40 iterations seems to lead to some amount of overfitting
+(although it's very slight).
+
+
 TIMESVDPP_QUAL_7.749: This was generated on May 7 at 12:14 am. TimeSVD++
 with frequency-dependent terms and item-dependent bin terms was carried out
 for 25 iterations with 110 factors and 30 time bins (for item biases and
