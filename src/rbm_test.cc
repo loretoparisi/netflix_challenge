@@ -19,7 +19,7 @@ const std::set<int> TRAINING_SET_INDICES = {BASE_SET};
 const int RATING_SIG_FIGS = 4;
 
 // The name of the output file to use (for predictions on "qual").
-const std::string OUTPUT_FN = "data/rbm_predictions.dta";
+const std::string OUTPUT_FN = "data/rbm_predictions.mat";
 
 /*
  * Goes through the test file and saves the prediction results to the
@@ -90,9 +90,15 @@ double computeRMSE(const Mat<data_t> &data, const Mat<data_t> &predictions) {
     double rmse = 0.0;
 
     for ( unsigned col = 0; col < data.n_cols; ++col ) {
-        assert(data.at(USER_ROW, col) == predictions.at(USER_ROW, col));
-        assert(data.at(MOVIE_ROW, col) == predictions.at(MOVIE_ROW, col));
-        rmse += pow(data.at(RATING_ROW, col) - predictions.at(2, col), 2.0);
+        double delta = pow((double)data.at(RATING_ROW, col) - 
+                           (double)predictions.at(2, col), 2.0);
+        rmse += delta * (1 / data.n_cols);
+        if ( col % 100000 == 0 ) {
+            std::cout << delta << ", " << rmse << std::endl;
+            std::cout << (double)data.at(RATING_ROW, col) << " " 
+                      << (double)predictions.at(2, col)
+                      << std::endl;
+        }
     }
     rmse /= data.n_cols - 1;
 
@@ -103,11 +109,14 @@ int main() {
     std::cout << "Intializing RBM" << std::endl;
     RBM rbm(NUM_USERS, NUM_MOVIES, HIDDEN, EPSILON, MOMENTUM);
     std::cout << "Training RBM" << std::endl;
-    rbm.train(BASE_BIN);
+    fmat data;
+    data.load(BASE_BIN);
+    rbm.train(data);
     std::cout << "Generating predictions on probe set" << std::endl;
     Mat<data_t> probe;
     probe.load(PROBE_BIN);
     Mat<data_t> predictions = rbm.predict(probe);
+    predictions.save(OUTPUT_FN);
     double rmse = computeRMSE(probe, predictions);
     std::cout << "RBM achieved RMSE of " << rmse << " on probe set" 
               << std::endl;

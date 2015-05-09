@@ -8,7 +8,7 @@
 #include <singlealgorithm.hh>
 #include <netflix.hh>
 
-#define HIDDEN 100
+#define HIDDEN 32
 #define EPSILON 0.001
 #define MOMENTUM 0.9
 #define DELTA 0.00002
@@ -17,6 +17,13 @@ using namespace arma;
 using namespace netflix;
 
 typedef float data_t;
+
+// Type for storing rating information about a movie
+struct rating_t {
+    unsigned movie : 32;
+    unsigned score : 8;
+    unsigned softmax : 8;
+};
 
 template <typename T, typename K>
 int binary_search(const T &data, K key, std::function<int(T, K, int)> probe, 
@@ -54,7 +61,7 @@ int binary_search(const T &data, K key, std::function<int(T, K, int)> probe,
 
 template <typename T>
 inline T sigmoid(const T &x) {
-    return 1 / (1 + exp(-1 * x));
+    return 1.0 / (1.0 + exp(-1.0 * x));
 }
 
 class RBM : public SingleAlgorithm {

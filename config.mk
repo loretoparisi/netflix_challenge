@@ -24,7 +24,7 @@ bindir = bin
 
 
 # Default compiler flags (for C and C++)
-override CFLAGS += -Wall -Wextra -I$(incdir) -march=core-avx2 -m64 -Ofast \
+override CFLAGS += -Wall -Wextra -I$(incdir) -march=core-avx2 -m64 -O3 \
 -flto -fomit-frame-pointer -pipe -Wno-reorder -Wno-unused-function \
 -Wno-parentheses
 # Default compiler flags for C++
@@ -37,9 +37,9 @@ override LD_FLAGS += -L$(libdir) -Wl,-O3,--sort-common,--as-needed,-z,relro \
 ARMA_LDFLAGS = -larmadillo
 
 # Compiler flags for compiling with Intel math kernel library
-MKL_CFLAGS =  -ffast-math -ftree-vectorize -mveclibabi=svml
+MKL_CFLAGS =  -ffast-math -ftree-vectorize -fopt-info-vec -mveclibabi=svml
 # Extra linker flags for Intel math kernel library
-MKL_LDFLAGS = -L/opt/intel/lib -lsvml
+MKL_LDFLAGS = -L/opt/intel/lib -lsvml -ffast-math
 
 # Default Cython flags
 CYTHON_FLAGS = -2
