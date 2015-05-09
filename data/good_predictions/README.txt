@@ -12,15 +12,23 @@ below.
 
 Further details on predictions in this folder:
 
+TIMESVDPP_QUAL_7.598: This was generated on May 8 at 11:56 pm. Time-SVD++
+was carried out on the entire training dataset with the same LRs/RFs as in
+TIMESVDPP_QUAL_7.749, except *60 factors*, 40 iterations, and 30 time bins
+were used.
+
+
 TIMESVDPP_QUAL_6.803: This was generated on May 9 at 12:21 am. Time-SVD++
 was carried out with the same parameters as in TIMESVDPP_QUAL_7.749, except
-*20 factors*, 40 iterations, and 30 time bins were used.
+*20 factors*, 40 iterations, and 30 time bins were used. Note that this run
+also used the entire dataset.
 
 
 TIMESVDPP_QUAL_7.697: This was generated on May 8 at 8:31 am. Time-SVD++
 was carried out with a learning rate decay of 0.9, 110 factors, 30 time
 bins, and 80 iterations. The remaining parameters were the same as those
-mentioned for TIMESVDPP_QUAL_7.749.dta.
+mentioned for TIMESVDPP_QUAL_7.749.dta. Note that this run also used the
+entire training dataset.
 
 
 GLOBALS_KNN_COMBO_QUAL_1.075: This was generated on May 8 at 3:19 am. kNN
@@ -35,7 +43,8 @@ TIMESVDPP_QUAL_7.765: This was generated on May 7 at 10:00 am. The internal
 parameters were unchanged relative to TIMESVDPP_QUAL_7.749, but I instead
 carried out *40 iterations* of training with 110 factors and 30 time
 bins. More than 40 iterations seems to lead to some amount of overfitting
-(although it's very slight).
+(although it's very slight). Note that this run also used the entire
+dataset.
 
 
 TIMESVDPP_QUAL_7.749: This was generated on May 7 at 12:14 am. TimeSVD++

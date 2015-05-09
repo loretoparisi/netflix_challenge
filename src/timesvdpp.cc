@@ -888,81 +888,85 @@ void TimeSVDPP::train(const fmat &data)
     start = system_clock::now();
 #endif
     
-    // Small value to add to bUserTime and cUserTime.
-    float epsilon = 1.0e-9;
-
-    // Locations and values for both bUserTime and cUserTime.
-    umat locations(2, data.n_cols);
-    fcolvec values(data.n_cols);
-    
-    // Keep track of previous user (assuming that the "data" matrix is
-    // sorted by user IDs first).
-    int prevUser = -1;
-    
-    // Keep track of date IDs for each user, to avoid repeats.
-    std::unordered_set<unsigned short> dateIDsForThisUser;
-    
-    // The number of non-garbage entries in locations (and values).
-    unsigned int numEntriesLocations = 0;
-    
-    for (unsigned int i = 0; i < data.n_cols; i++)
+    // Scoping temporary variables.
     {
-        int user = roundToInt(data(USER_ROW, i));
-        unsigned short date = (unsigned short) roundToInt(data(DATE_ROW, i));
+        // Small value to add to bUserTime and cUserTime.
+        float epsilon = 1.0e-9;
 
-        if (user == prevUser)
-        {
-            // Check if we've seen this date ID for this user before. If
-            // so, continue.
-            if (dateIDsForThisUser.count(date) != 0)
-            {
-                continue;
-            }
-        }
-        else
-        {
-            // The user changed; reinstantiate the set of date IDs.
-            dateIDsForThisUser.clear();
-        }
-
-        // We want to insert an entry of "epsilon" in row "date" and column
-        // "user" of bUserTime and cUserTime.
-        locations(0, numEntriesLocations) = date;
-        locations(1, numEntriesLocations) = user;
-        values(numEntriesLocations) = epsilon;
+        // Locations and values for both bUserTime and cUserTime.
+        umat locations(2, data.n_cols);
+        fcolvec values(data.n_cols);
         
-        if (includeUserFacMatTime)
+        // Keep track of previous user (assuming that the "data" matrix is
+        // sorted by user IDs first).
+        int prevUser = -1;
+        
+        // Keep track of date IDs for each user, to avoid repeats.
+        std::unordered_set<unsigned short> dateIDsForThisUser;
+        
+        // The number of non-garbage entries in locations (and values).
+        unsigned int numEntriesLocations = 0;
+        
+        for (unsigned int i = 0; i < data.n_cols; i++)
         {
-            // Also add an entry to userFacMatTime, and fill this with
-            // zeros.
-            UserDate thisUserDate;
-            thisUserDate.userID = user;
-            thisUserDate.dateID = date;
-            std::vector<float> userFacVecTime(numFactors, 0.0);
+            int user = roundToInt(data(USER_ROW, i));
+            unsigned short date = 
+                (unsigned short) roundToInt(data(DATE_ROW, i));
 
-            /*std::generate_n(userFacVecTime.begin(), numFactors, 
-                            genRand(-0.005, 0.005));*/
+            if (user == prevUser)
+            {
+                // Check if we've seen this date ID for this user before.
+                // If so, continue.
+                if (dateIDsForThisUser.count(date) != 0)
+                {
+                    continue;
+                }
+            }
+            else
+            {
+                // The user changed; reinstantiate the set of date IDs.
+                dateIDsForThisUser.clear();
+            }
+
+            // We want to insert an entry of "epsilon" in row "date" and
+            // column "user" of bUserTime and cUserTime.
+            locations(0, numEntriesLocations) = date;
+            locations(1, numEntriesLocations) = user;
+            values(numEntriesLocations) = epsilon;
             
-            userFacMatTime[thisUserDate] = userFacVecTime;
+            if (includeUserFacMatTime)
+            {
+                // Also add an entry to userFacMatTime, and fill this with
+                // zeros.
+                UserDate thisUserDate;
+                thisUserDate.userID = user;
+                thisUserDate.dateID = date;
+                std::vector<float> userFacVecTime(numFactors, 0.0);
+
+                /*std::generate_n(userFacVecTime.begin(), numFactors, 
+                                genRand(-0.005, 0.005));*/
+                
+                userFacMatTime[thisUserDate] = userFacVecTime;
+            }
+
+            dateIDsForThisUser.insert(date);
+            prevUser = user;
+
+            numEntriesLocations++;
         }
 
-        dateIDsForThisUser.insert(date);
-        prevUser = user;
+        // Remove unused entries from "locations" and "values".
+        locations.shed_cols(numEntriesLocations, data.n_cols - 1);
+        values.shed_rows(numEntriesLocations, data.n_cols - 1);
 
-        numEntriesLocations++;
+        // Batch insertion constructors for bUserTime and cUserTime.
+        bUserTime = sp_fmat(locations, values, numTimes, numUsers,
+                            /* sort_locations */ true,
+                            /* check_for_zeros */ false);
+        cUserTime = sp_fmat(locations, values, numTimes, numUsers,
+                            /* sort_locations */ true,
+                            /* check_for_zeros */ false);
     }
-
-    // Remove unused entries from "locations" and "values".
-    locations.shed_cols(numEntriesLocations, data.n_cols - 1);
-    values.shed_rows(numEntriesLocations, data.n_cols - 1);
-
-    // Batch insertion constructors for bUserTime and cUserTime.
-    bUserTime = sp_fmat(locations, values, numTimes, numUsers,
-                        /* sort_locations */ true,
-                        /* check_for_zeros */ false);
-    cUserTime = sp_fmat(locations, values, numTimes, numUsers,
-                        /* sort_locations */ true,
-                        /* check_for_zeros */ false);
 
 #ifndef NDEBUG
     end = system_clock::now();
