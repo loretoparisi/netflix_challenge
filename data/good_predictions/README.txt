@@ -12,6 +12,24 @@ below.
 
 Further details on predictions in this folder:
 
+SVDPP_QUAL_6.833: This was generated on May 11 at 2:33 pm. SVD++ was
+carried out on the whole dataset, with 500 factors and 40 iterations. The
+internal parameters were as follows:
+    * Regularization constants:
+        * SVDPP_LAM_B_I = 0.005
+        * SVDPP_LAM_B_U = 0.005
+        * SVDPP_LAM_Q_I = 0.015
+        * SVDPP_LAM_P_U = 0.015
+        * SVDPP_LAM_Y_J = 0.015
+    * Learning rates:
+        * SVDPP_GAMMA_B_I = 0.007
+        * SVDPP_GAMMA_B_U = 0.007
+        * SVDPP_GAMMA_Q_I = 0.007
+        * SVDPP_GAMMA_P_U = 0.007
+        * SVDPP_GAMMA_Y_J = 0.007
+    * Learning rate decay: 0.9 for all LRs.
+
+
 TIMESVDPP_QUAL_7.547: This was generated on May 11 at 4:50 am. Time-SVD++
 was carried out on the whole dataset *without userFacMatTime*, with *100*
 factors, 40 iterations, and 30 time bins. The remaining parameters
