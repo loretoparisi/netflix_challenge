@@ -12,6 +12,12 @@ below.
 
 Further details on predictions in this folder:
 
+TIMESVDPP_QUAL_7.547: This was generated on May 11 at 4:50 am. Time-SVD++
+was carried out on the whole dataset *without userFacMatTime*, with *100*
+factors, 40 iterations, and 30 time bins. The remaining parameters
+(LRs/RFs) were the same as those in TIMESVDPP_QUAL_7.749.
+
+
 TIMESVDPP_QUAL_7.620: This was generated on May 10 at 1:14 am. Time-SVD++
 was carried out on the whole dataset *without userFacMatTime*, with *200*
 factors, 40 iterations, and 30 time bins. The remaining parameters (i.e.
