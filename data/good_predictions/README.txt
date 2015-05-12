@@ -12,6 +12,11 @@ below.
 
 Further details on predictions in this folder:
 
+SVDPP_QUAL_6.771: This was generated on May 11 at 6:41 pm. SVD++ was
+carried out on the whole dataset, with 200 factors and 40 iterations. The
+internal parameters were the same as in SVDPP_QUAL_6.833.
+
+
 SVDPP_QUAL_6.833: This was generated on May 11 at 2:33 pm. SVD++ was
 carried out on the whole dataset, with 500 factors and 40 iterations. The
 internal parameters were as follows:
@@ -28,6 +33,12 @@ internal parameters were as follows:
         * SVDPP_GAMMA_P_U = 0.007
         * SVDPP_GAMMA_Y_J = 0.007
     * Learning rate decay: 0.9 for all LRs.
+
+And the following initializations were used:
+    * userFacMat and itemFacMat's entries were randomly initialized to 
+      (rand() % 4500 + 500) * 0.000001235 * copysign(1.0, coinFlip(engine))
+      where the "copysign" part just generates a random sign.
+    * bUser, bItem, and yMat were initialized to zero.
 
 
 TIMESVDPP_QUAL_7.547: This was generated on May 11 at 4:50 am. Time-SVD++
