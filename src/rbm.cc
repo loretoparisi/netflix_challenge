@@ -1,6 +1,6 @@
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
-#include <ctime>
 #include <dirent.h>
 #include <fstream>
 #include <numeric>
@@ -8,7 +8,6 @@
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
-#include <utility>
 #include <vector>
 
 #if !defined(NDEBUG) || !defined(NTIME)
@@ -27,17 +26,12 @@
 #define GET2DINDEX(d1, i, j) (d1 * i + j)
 // Get an element in a flat "2d" array
 #define GET2D(array, d1, i, j) *(array + GET2DINDEX(d1, i, j))
-// Get a pointer to an element in a flat "2d" array
-#define GET2DPTR(array, d1, i, j) array + GET2DINDEX(d1, i, j)
-
-// Width of a (movie, rating) pair in words (assuming 8-byte words)
-#define PAIR_WIDTH 3
 
 #define EPOCHS 10
 #define CD_STEPS 1
 #define DECAY 0.0001
 
-RBM::RBM (int users, int movies, int hidden, float rate, float momentum) : 
+RBM::RBM (int users, int movies, int hidden, data_t rate, data_t momentum) : 
     users(users), movies(movies), hidden(hidden), rate(rate), 
     momentum(momentum) {
     // Allocate weight matrix
@@ -121,20 +115,32 @@ static void loadIndicator (std::vector<struct rating_t> **indicators,
     indicators[user] = ratings;
 }
 
-void RBM::train (const fmat &data) {
-    // Allocate an array for storing each user's sparse indicator matrix
-    // This array is not contiguous in memory on purpose; we don't want
-    // all users' (sparse) indicator matrices taking up cache space when we
-    // only need one at a time, and it makes indexing way easier
-    std::vector<struct rating_t> **const indicators = 
-        new std::vector<struct rating_t>*[this->users];
-
+void RBM::train (const Mat<data_t> &data) {
+    // // Ensure we got a valid probe range (empty range is fine)
+    // if ( start < -1 || stop < -1 || stop - start < 0 
+    //      || start >= (int) data.n_cols || stop >= (int) data.n_cols ) {
+    //     std::ostringstream msg;
+    //     msg << "Invalid range [" << start << ", " << stop << ")";
+    //     throw std::logic_error(msg.str());
+    // // If the end of the range is unspecified
+    // } else if ( start > -1 && stop == -1 ) {
+    //     // Go to the end of the data
+    //     stop = data.n_cols;
+    // }
+    // // Initialize probe set by copying the selected columns of data
+    // Mat<data_t> probe(data.n_rows, stop - start);
+    // for ( int i = 0; i < probe.n_cols; ++i ) {
+    //     for ( int j = 0; j < data.n_rows; ++i ) {
+    //         probe.at(j, i) = data.at(j, i + start);
+    //     }
+    // }
     // Initialize weights & biases
 
     // Mean & standard deviation of our normal distribution
     const data_t mean = 0.0;
     const data_t stddev = 0.01;
-    std::mt19937 engine(time(NULL));
+    std::random_device rd;
+    std::mt19937 engine(rd());
     std::normal_distribution<data_t> normal(mean, stddev);
 #ifndef NDEBUG
     std::cout << "Initializing weight matrix" << std::endl;
@@ -145,17 +151,19 @@ void RBM::train (const fmat &data) {
             this->weights[h][i] = normal(engine);
         }
     }
+
 #ifdef RANDOM
   #ifndef NDEBUG
-    std::cout << "Initializing biases of hidden units" << std::endl;
+    std::cout << "Initializing biases for the hidden units" << std::endl;
   #endif
     // Randomly initialize the biases of the hidden units
     for ( int i = 0; i < this->hidden; ++i ) {
         this->hiddenBias[i] = normal(engine);
     }
 #endif
+
 #ifndef NDEBUG
-    std::cout << "Initializing biases of the visible units" << std::endl;
+    std::cout << "Initializing biases for the visible units" << std::endl;
 #endif
     struct stat statBuffer;
     // If a cached ranking pmf matrix does not exist
@@ -163,7 +171,6 @@ void RBM::train (const fmat &data) {
 #ifndef NDEBUG
         std::cout << "Caching rating pmf's for all movies" 
                   << std::endl;
-        std::cout << "cols: " << data.n_cols << "; rows: " << data.n_rows << std::endl;
 #endif
         int movie, rating;
         // For each column in the data matrix (rating entry)
@@ -207,6 +214,13 @@ void RBM::train (const fmat &data) {
                        this->movies * MAX_RATING * sizeof(data_t));
         biasCache.close();
     }
+
+    // Allocate an array for storing each user's sparse indicator matrix
+    // This array is not contiguous in memory on purpose; we don't want
+    // all users' (sparse) indicator matrices taking up cache space when we
+    // only need one at a time, and it makes indexing way easier
+    std::vector<struct rating_t> **const indicators = 
+        new std::vector<struct rating_t>*[this->users];
     // Vector for marking indicator matrices as found; all are initialized as
     // missing
     std::vector<bool> found(this->users, 0);
@@ -353,12 +367,12 @@ void RBM::train (const fmat &data) {
     }
 
 #ifndef NDEBUG
-    std::chrono::time_point<std::chrono::system_clock> start, end;
+    std::chrono::time_point<std::chrono::system_clock> begin, end;
     std::chrono::duration<double> seconds_elapsed;
 #endif
 #ifndef NTIME
     std::chrono::time_point<std::chrono::system_clock> 
-        user_start, user_end, section_start, section_end;
+        user_begin, user_end, section_begin, section_end;
 #endif
 
     // Initialize uniform distribution once
@@ -376,11 +390,16 @@ void RBM::train (const fmat &data) {
 #endif
     // For the specified number of epochs (should be while RMSE is decreasing)
     for ( int epoch = 0; epoch < EPOCHS; ++epoch ) {
-        start = std::chrono::system_clock::now();
+        begin = std::chrono::system_clock::now();
+        // Total RMSE for this epoch
+        double epochRMSE = 0.0;
+        // Number of ratings contributing to the RMSE for this epoch
+        double rmseCount = 0;
+
         // For each user
         for ( int user = 0; user < this->users; ++user ) {
 #ifndef NTIME
-            user_start = std::chrono::system_clock::now();
+            user_begin = std::chrono::system_clock::now();
 #endif
             // This user's sparse indicator matrix
             std::vector<struct rating_t> *const indicator = indicators[user];
@@ -431,8 +450,23 @@ void RBM::train (const fmat &data) {
                     }
                 }
             }
+
+            // For each rated movie
+            for ( std::vector<struct rating_t>::const_iterator it =
+                  indicator->cbegin(); it != indicator->cend(); ++it ) {
+                visInd = GET2DINDEX(MAX_RATING, it->movie, 1);
+                // Compute expected value for the corresponding softmax unit
+                double expectation = 
+                    (visibleProbsRMSE[visInd] 
+                     + 2.0 * visibleProbsRMSE[visInd + 1]) +
+                    (3.0 * visibleProbsRMSE[visInd + 2] 
+                     + 4.0 * visibleProbsRMSE[visInd + 3]);
+                // Accumulate contribution to per-epoch RMSE
+                epochRMSE += pow((double) it->score - expectation, 2.0);
+                ++rmseCount;
+            }
 #ifndef NTIME
-            section_start = std::chrono::system_clock::now();
+            section_begin = std::chrono::system_clock::now();
 #endif
             // Run the desired number of contrastive divergence iterations
             for ( int k = CD_STEPS; k > 0; --k ) {
@@ -520,7 +554,7 @@ void RBM::train (const fmat &data) {
                     // For each hidden unit
                     for ( int h = 0; h < this->hidden; ++h ) {
                         // Train on this data
-                        negHiddenAct[h] = negHiddenStates[h];
+                        negHiddenAct[h] += negHiddenStates[h];
                     }
                     // For all (movie, rating) pairs 
                     for ( std::vector<struct rating_t>::const_iterator it =
@@ -540,10 +574,10 @@ void RBM::train (const fmat &data) {
             } // CD-k iterations
 #ifndef NTIME
             section_end = std::chrono::system_clock::now();
-            seconds_elapsed = section_end - section_start;
+            seconds_elapsed = section_end - section_begin;
             std::cout << "CD-k comleted in " << seconds_elapsed.count()
                       << " seconds for user " << user + 1 << std::endl;
-            section_start = std::chrono::system_clock::now();
+            section_begin = std::chrono::system_clock::now();
 #endif
             // Accumulate changes in the weights
 
@@ -640,17 +674,18 @@ void RBM::train (const fmat &data) {
             }
 #ifndef NTIME
             section_end = std::chrono::system_clock::now();
-            seconds_elapsed = section_end - section_start;
+            seconds_elapsed = section_end - section_begin;
             std::cout << "weight & bias updates completed in "
                       << seconds_elapsed.count() << " seconds for user " 
                       << user + 1 << std::endl;
-            section_start = std::chrono::system_clock::now();
+            section_begin = std::chrono::system_clock::now();
 #endif
 
             // TODO: is there a way to avoid zeroing all these arrays?
             //       is reallocating faster? can I bit pack an over-allocated
             //       array?
 
+            memset(negHiddenAct, 0, this->hidden);
             memset(posVisibleAct, 0, this->movies * MAX_RATING);
             memset(negVisibleAct, 0, this->movies * MAX_RATING);
             for ( int h = 0; h < this->hidden; ++h ) {
@@ -659,19 +694,20 @@ void RBM::train (const fmat &data) {
             } 
 #ifndef NTIME
             user_end = std::chrono::system_clock::now();
-            seconds_elapsed = user_end - section_start;
+            seconds_elapsed = user_end - section_begin;
             std::cout << "Zeroed loop arrays in " << seconds_elapsed.count()
                       << " seconds for user " << user + 1 << std::endl;
-            seconds_elapsed = user_end - user_start;
+            seconds_elapsed = user_end - user_begin;
             std::cout << "Processed user " << user + 1 << " of epoch "
-                      << epoch + 1 << " in " << seconds_elapsed.count()
+                      << epoch << " in " << seconds_elapsed.count()
                       << " seconds" << std::endl;
 #endif
         } // For all users
     end = std::chrono::system_clock::now();
-    seconds_elapsed = end - start;
-    cout << "Finished epoch " << (epoch + 1) << " of RBM training in " 
-         << seconds_elapsed.count() << " seconds" << endl;
+    seconds_elapsed = end - begin;
+    cout << "Finished epoch " << epoch << " of RBM training in " 
+         << seconds_elapsed.count() << " seconds.  RMSE: " 
+         << sqrt(epochRMSE / rmseCount) << std::endl;
     } // Epochs
 
     // delete [] hiddenProbs;
@@ -721,13 +757,13 @@ fmat RBM::predict (const fmat &targets) {
     data_t datum;
     data_t *__restrict__ weight;
 #ifndef NTIME
-    std::chrono::time_point<std::chrono::system_clock> start, end;
+    std::chrono::time_point<std::chrono::system_clock> begin, end;
     std::chrono::duration<double> seconds_elapsed;
 #endif
 
     while ( col < targets.n_cols ) {
 #ifndef NTIME
-        start = std::chrono::system_clock::now();
+        begin = std::chrono::system_clock::now();
 #endif
         int user = std::lround(targets.at(USER_ROW, col));
         // Get the source path of the cached indicator matrix for this user
@@ -833,7 +869,7 @@ fmat RBM::predict (const fmat &targets) {
         memset(visibleProbs, 0, this->movies * MAX_RATING * sizeof(data_t));
 #ifndef NTIME
         end = std::chrono::system_clock::now();
-        seconds_elapsed = end - start;
+        seconds_elapsed = end - begin;
         std::cout << "Generated predictions for user " << user + 1 << " in "
                   << seconds_elapsed.count() << " seconds" << std::endl;
 #endif
@@ -842,8 +878,8 @@ fmat RBM::predict (const fmat &targets) {
     return output;
 }
 
-fmat RBM::predict (const std::string &targetPath) {
-    fmat targets;
+Mat<data_t> RBM::predict (const std::string &targetPath) {
+    Mat<data_t> targets;
     targets.load(targetPath);
     return this->predict(targets);
 }

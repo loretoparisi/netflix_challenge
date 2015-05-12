@@ -5,7 +5,7 @@
 #include <cmath>
 #include <functional>
 
-#include <singlealgorithm.hh>
+#include <basealgorithm.hh>
 #include <netflix.hh>
 
 #define HIDDEN 32
@@ -15,8 +15,6 @@
 
 using namespace arma;
 using namespace netflix;
-
-typedef float data_t;
 
 // Type for storing rating information about a movie
 struct rating_t {
@@ -64,7 +62,7 @@ inline T sigmoid(const T &x) {
     return 1.0 / (1.0 + exp(-1.0 * x));
 }
 
-class RBM : public SingleAlgorithm {
+class RBM : public BaseAlgorithm {
 private:
 
     // TODO: different learning rates for weights & biases, dynamic momentum
@@ -79,10 +77,10 @@ private:
     int hidden;
 
     // Learning rate
-    float rate;
+    data_t rate;
 
     // Momentum
-    float momentum;
+    data_t momentum;
 
     // Weights between the hidden & visible units (W)
     data_t **weights;
@@ -94,14 +92,15 @@ private:
     data_t *hiddenBias;
 
 public:
-    RBM(int users, int movies, int hidden, float rate, float momentum);
+    RBM(int users, int movies, int hidden, data_t rate, data_t momentum);
     ~RBM();
 
     void train(const Mat<data_t> &data);
-    // void train(const Mat<data_t> &data, const Mat<data_t> &probe);
-    float predict(int user, int item, int date) { return 0.0; }
-    Mat<data_t> predict(const Mat<data_t> &targets);
-    Mat<data_t> predict(const std::string &targetPath);
+
+    Mat<data_t> predict (const Mat<data_t> &targets);
+    Mat<data_t> predict (const std::string &targetPath);
+
+    float predict(int user, int item, int date, bool bound) { return 0.0; };
 };
 
 #endif // __RBM_HH__
