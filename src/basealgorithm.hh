@@ -1,11 +1,13 @@
-#ifndef SINGLEALGORITHM_HH
-#define SINGLEALGORITHM_HH
+#ifndef __BASEALGORITHM_HH__
+#define __BASEALGORITHM_HH__
 
 #include <armadillo>
 
 using namespace arma;
 
-class SingleAlgorithm 
+typedef float data_t;
+
+class BaseAlgorithm 
 {
 public:
     /**
@@ -13,7 +15,7 @@ public:
      * its shape will be 4 x NUM_TRAINING_PTS, where "4" is the number of
      * attributes in a "rating" (i.e. user, item, date, rating).
      */
-    virtual void train(const fmat &data) = 0;
+    virtual void train (const Mat<data_t> &data) = 0;
 
     /**
      * This function also trains, but it works with file names specifying
@@ -26,19 +28,19 @@ public:
      *                  the train(const fmat &data) function.
      *
      */
-    virtual void train(const std::string &dataPath) {
-        fmat data;
+    virtual void train (const std::string &dataPath) {
+        Mat<data_t> data;
         data.load(dataPath);
         this->train(data);
     }
 
     /**
      * Note: Some algorithms do not use the date aspect, but this has been
-     * added for consistency across all SingleAlgorithms.
+     * added for consistency across all BaseAlgorithms.
      */
     virtual float predict(int user, int item, int date, bool bound) = 0;
 
-    virtual ~SingleAlgorithm() {}
+    virtual ~BaseAlgorithm() {}
 };
 
-#endif // SINGLEALGORITHM_HH
+#endif // __BASEALGORITHM_HH__

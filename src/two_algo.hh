@@ -49,17 +49,17 @@ class Two_Algo : public ComboAlgorithm
                  const int ratingSigFig);
 
         /* Train on the first model normally. */
-        void trainFirst(SingleAlgorithm &firstAlgo);
+        void trainFirst(BaseAlgorithm &firstAlgo);
         
         /* 
          * Save the first algorithm's qual predictions to 
          * intermediatePredFileName.
          */
-        void saveFirstQualPredictions(SingleAlgorithm &firstAlgo,
+        void saveFirstQualPredictions(BaseAlgorithm &firstAlgo,
                 const std::string &qualFileName);
          
         /* Update the fmat for the residuals of training set. */
-        void computeFirstResiduals(SingleAlgorithm &firstAlgo);
+        void computeFirstResiduals(BaseAlgorithm &firstAlgo);
 
         /* Return the current average for the training set. */
         float getAverage();
@@ -68,10 +68,10 @@ class Two_Algo : public ComboAlgorithm
         void saveResiduals(const std::string residualsFile);
 
         /* Train on the second model with residuals. */
-        void trainSecond(SingleAlgorithm &secondAlgo);
+        void trainSecond(BaseAlgorithm &secondAlgo);
 
         /* Output the combined algorithms' predictions on qual. */
-        void saveSecondQualPredictions(SingleAlgorithm &secondAlgo,
+        void saveSecondQualPredictions(BaseAlgorithm &secondAlgo,
                 const std::string &qualFileName,
                 const std::string &outputFileName);
         
