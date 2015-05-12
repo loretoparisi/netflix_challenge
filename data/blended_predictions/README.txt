@@ -12,8 +12,27 @@ quiz RMSEs they achieved (added on in the same format as in the
 ADDITIONAL DETAILS
 ===========================================================================
 
-BLEND_MAY_7_QRMSE_0.87651.dta: This came from a quiz blend that added on to
-the previous blend. The following qual prediction data was used:
+BLEND_MAY_11_QRMSE_0.87552: This came from a quiz blend of the following
+qual prediction data, all of which was trained on the entire dataset:
+    * SVDPP_FAC_200_EPOCH_40_QRMSE_0.88698.dta
+    * SVDPP_FAC_500_EPOCH_40_QRMSE_0.88639.dta
+    * TIMESVDPP_FAC_110_EPOCH_40_QRMSE_0.87752.dta
+    * TIMESVDPP_FAC_110_EPOCH_80_QRMSE_0.87817.dta
+    * TIMESVDPP_FAC_20_EPOCH_40_QRMSE_0.88668.dta
+    * TIMESVDPP_FAC_60_EPOCH_40_QRMSE_0.87911.dta
+    * TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40_QRMSE_0.8796.dta
+    * TIMESVDPP_NO_UFMT_FAC_200_EPOCH_40_QRMSE_0.8789.dta
+    * TIMESVDPP_NO_UFMT_FAC_20_EPOCH_40_QRMSE_0.88863.dta
+    * TIMESVDPP_NO_UFMT_FAC_500_EPOCH_40_QRMSE_0.87834.dta 
+
+The improvement over the previous set of blended predictions is only
+marginal. Possible reason: negative coefficients were produced for
+TIMESVDPP_NO_UFMT_FAC_200_EPOCH_40, TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40
+(huge negative coefficient), and TIMESVDPP_FAC_60_EPOCH_40. Perhaps these
+didn't work as well with the other data...
+
+BLEND_MAY_7_QRMSE_0.87651: This came from a quiz blend that added on to the
+previous blend. The following qual prediction data was used:
     * SVDPP_FAC_200_EPOCH_25_QRMSE_0.89204.dta
     * TIMESVDPP_FAC_110_EPOCH_25_QRMSE_0.87768.dta (new)
     * TIMESVDPP_FAC_130_EPOCH_30_QRMSE_0.88515.dta
@@ -26,7 +45,7 @@ negative weight in this blend (indicating possible issues with blending too
 many Time-SVD++ models with similar factors?)
 
 
-BLEND_MAY_3_QRMSE_0.88427.dta: This came from a quiz blend (that I (Laksh)
+BLEND_MAY_3_QRMSE_0.88427: This came from a quiz blend (that I (Laksh)
 tried as a test) on the following qual prediction data:
     * SVDPP_FAC_200_EPOCH_25_QRMSE_0.89204.dta
     * TIMESVDPP_FAC_130_EPOCH_30_QRMSE_0.88515.dta

@@ -28,7 +28,7 @@ QBLEND_DIR = "data/quiz_blend/"
 PRED_EXT = ".dta"
 
 # The string that comes before RMSEs in file names.
-BEFORE_RMSE = "QRMSE_"
+BEFORE_RMSE = "_QRMSE_"
 
 # Regularization constant for our linear regression. This value was used by
 # BigChaos.
@@ -168,6 +168,9 @@ def main():
         thisQuizRMSE = float(fileName[rmseStart:rmseEnd])
         predQRMSEs[predInd] = thisQuizRMSE
 
+        # Also get the predictor's name (the part before the QRMSE).
+        predName = fileName[0:beforeRMSEStart];
+
         # Parse the data in this prediction file. Make sure the number of
         # lines equals NUM_QUAL_RAT as expected.
         lineNum = 0
@@ -192,7 +195,7 @@ def main():
         sumXColSquared[predInd] = np.sum(np.square(X[:, predInd]))
 
         if verbose:
-            print("Finished parsing data for predictor " + str(predInd) +
+            print("Finished parsing data for predictor " + predName +
                   ", which had a QRMSE of " + str(thisQuizRMSE))
 
         predInd += 1

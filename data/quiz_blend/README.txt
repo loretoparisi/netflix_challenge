@@ -29,30 +29,47 @@ ADDITIONAL DETAILS
 ===========================================================================
 
 
-TIME-SVD++
------------
+TIME-SVD++ (overfit)
+---------------------
 
-TIMESVDPP_FAC_110_EPOCH_25_QRMSE_0.87768.dta - this is an extension to
-SVD++^(3), with frequency-dependent biases and extra bin-wise item factors.
-This was generated using the parameters specified in "good_predictions" for
-TIMESVDPP_QUAL_7.749.dta. Note that this predictor has been trained on
-probe as well.
+TIMESVDPP_FAC_110_EPOCH_80_QRMSE_0.87817: See TIMESVDPP_QUAL_7.697 in
+"good_predictions". This run did use userFacMatTime, and was slightly
+overfitted (learning rate decay set to 0.90).
 
-TIMESVDPP_FAC_130_EPOCH_30_QRMSE_0.88515.dta - this is SVD++^(3), generated
-using the parameters specified in "good_predictions" for
-TIMESVDPP_QUAL_6.963.dta. Note that this has not been trained on probe.
 
-TIMESVDPP_FAC_500_EPOCH_30_QRMSE_0.88572.dta - this is SVD++^(1), generated
-using the parameters specified in "good_predictions" for
-TIMESVDPP_QUAL_6.904.dta. Note that this has not been trained on probe.
+TIME-SVD++ (not overfit)
+-------------------------
+
+TIMESVDPP_FAC_110_EPOCH_40_QRMSE_0.87752: See TIMESVDPP_QUAL_7.765 in
+"good_predictions". This run did use userFacMatTime.
+
+TIMESVDPP_FAC_60_EPOCH_40_QRMSE_0.87911: See TIMESVDPP_QUAL_7.598 in
+"good_predictions". This run did use userFacMatTIme.
+
+TIMESVDPP_FAC_20_EPOCH_40_QRMSE_0.88668: See TIMESVDPP_QUAL_6.803 in
+"good_predictions". This run did use userFacMatTime.
+
+TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40_QRMSE_0.8796: See TIMESVDPP_QUAL_7.547
+in "good_predictions". This run did not use userFacMatTime.
+
+TIMESVDPP_NO_UFMT_FAC_200_EPOCH_40_QRMSE_0.8789: See TIMESVDPP_QUAL_7.620
+in "good_predictions". This run did not use userFacMatTime.
+
+TIMESVDPP_NO_UFMT_FAC_20_EPOCH_40_QRMSE_0.88863: See TIMESVDPP_QUAL_6.598
+in "good_predictions". This run did not use userFacMatTime.
+
+TIMESVDPP_NO_UFMT_FAC_500_EPOCH_40_QRMSE_0.87834: See TIMESVDPP_QUAL_7.679
+in "good_predictions". This run did not use userFacMatTime.
 
 
 SVD++
 ------
 
-SVDPP_FAC_200_EPOCH_25_QRMSE_0.89204.dta - this is SVD++, generated using
-the parameters specified in good_predictions.dta for SVDPP_QUAL_6.239.dta.
-Note that this has not been trained on probe.
+SVDPP_FAC_200_EPOCH_40_QRMSE_0.88698: See SVDPP_QUAL_6.771 in
+"good_predictions".
+
+SVDPP_FAC_500_EPOCH_40_QRMSE_0.88639: See SVDPP_QUAL_6.833 in
+"good_predictions".
 
 
 RBM (which type?)
@@ -64,4 +81,4 @@ A
 Residual kNN
 -------------
 
-X.dta - this is kNN trained on the residuals of
+(Tried adding one to the blend; it was bad. See "old_predictors" folder.)
