@@ -92,7 +92,7 @@ double computeRMSE(const Mat<data_t> &data, const Mat<data_t> &predictions) {
     for ( unsigned col = 0; col < data.n_cols; ++col ) {
         double delta = pow((double)data.at(RATING_ROW, col) - 
                            (double)predictions.at(2, col), 2.0);
-        rmse += delta;
+        rmse += delta / (double) data.n_cols;
         if ( col % 100000 == 0 ) {
             std::cout << delta << ", " << rmse << std::endl;
             std::cout << (double)data.at(RATING_ROW, col) << " " 
@@ -100,7 +100,6 @@ double computeRMSE(const Mat<data_t> &data, const Mat<data_t> &predictions) {
                       << std::endl;
         }
     }
-    rmse *= (1.0 / data.n_cols);
 
     return sqrt(rmse);
 }

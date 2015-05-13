@@ -39,7 +39,8 @@ ARMA_LDFLAGS = -larmadillo
 # Compiler flags for compiling with Intel math kernel library
 MKL_CFLAGS =  -ffast-math -ftree-vectorize -fopt-info-vec -mveclibabi=svml
 # Extra linker flags for Intel math kernel library
-MKL_LDFLAGS = -L/opt/intel/lib -lsvml -ffast-math
+MKL_LDFLAGS = -L/opt/intel/lib -lsvml 
+#-ffast-math
 
 # Default Cython flags
 CYTHON_FLAGS = -2

@@ -393,8 +393,6 @@ void RBM::train (const Mat<data_t> &data) {
         begin = std::chrono::system_clock::now();
         // Total RMSE for this epoch
         double epochRMSE = 0.0;
-        // Number of ratings contributing to the RMSE for this epoch
-        double rmseCount = 0;
 
         // For each user
         for ( int user = 0; user < this->users; ++user ) {
@@ -435,17 +433,15 @@ void RBM::train (const Mat<data_t> &data) {
                 // unit for training purposes (sample from data)
                 posHiddenStates[h] = hiddenStatesBuffer[h] = (uint8_t) active;
                 posHiddenAct[h] = (uint8_t) active;
-
-                // For all (movie, rating) pairs
-                for ( std::vector<struct rating_t>::const_iterator it = 
+                // Calculate non-regularized probabilities for RMSE
+                // reporting
+                for ( std::vector<struct rating_t>::const_iterator it =
                       indicator->cbegin(); it != indicator->cend(); ++it ) {
-                    // Calculate non-regularized probabilities for RMSE
-                    // reporting
                     visInd = GET2DINDEX(MAX_RATING, it->movie, 0);
                     // For each softmax unit
                     for ( int r = 0; r < MAX_RATING; ++r ) {
                         // Calculate non-regularized activation probability
-                        visibleProbsRMSE[visInd + r] = 
+                        visibleProbsRMSE[visInd + r] += 
                             prob * weight[visInd + r];
                     }
                 }
@@ -454,16 +450,37 @@ void RBM::train (const Mat<data_t> &data) {
             // For each rated movie
             for ( std::vector<struct rating_t>::const_iterator it =
                   indicator->cbegin(); it != indicator->cend(); ++it ) {
-                visInd = GET2DINDEX(MAX_RATING, it->movie, 1);
+                visInd = GET2DINDEX(MAX_RATING, it->movie, 0);
+                // For each softmax unit
+                for ( int r = 0; r < MAX_RATING; ++r ) {
+                    // Calculate P[v_q^k == 1 | h] (Eq. 10 of
+                    // Salakhutdinov, Mnih, & Hinton 2007)
+                    visibleProbsRMSE[visInd + r] = 
+                        sigmoid<data_t>(visibleProbsRMSE[visInd + r] 
+                                        + this->visibleBias[visInd + r]);
+                }
+                // Normalize the activation probabilities
+                data_t total = 
+                    (visibleProbsRMSE[visInd] + visibleProbsRMSE[visInd + 1]) +
+                    ((visibleProbsRMSE[visInd + 2] 
+                      + visibleProbsRMSE[visInd + 3])
+                     + visibleProbsRMSE[visInd + 4]);
+                if ( total > 0 ) {
+                    for ( int r = 1; r < MAX_RATING; ++r ) {
+                        visibleProbsRMSE[visInd + r] *= 1.0 / total;
+                    }
+                }
                 // Compute expected value for the corresponding softmax unit
-                double expectation = 
-                    (visibleProbsRMSE[visInd] 
-                     + 2.0 * visibleProbsRMSE[visInd + 1]) +
-                    (3.0 * visibleProbsRMSE[visInd + 2] 
-                     + 4.0 * visibleProbsRMSE[visInd + 3]);
+                data_t expectation = 
+                    (visibleProbsRMSE[visInd + 1] 
+                     + 2.0 * visibleProbsRMSE[visInd + 2]) +
+                    (3.0 * visibleProbsRMSE[visInd + 3] 
+                     + 4.0 * visibleProbsRMSE[visInd + 4]);
+                // Compute mean squared error contributed by the expectation
+                data_t mse = pow(it->score - expectation, 2.0);
+                mse *= 1.0 / (data_t) data.n_cols;
                 // Accumulate contribution to per-epoch RMSE
-                epochRMSE += pow((double) it->score - expectation, 2.0);
-                ++rmseCount;
+                epochRMSE += (double) mse;
             }
 #ifndef NTIME
             section_begin = std::chrono::system_clock::now();
@@ -686,6 +703,7 @@ void RBM::train (const Mat<data_t> &data) {
             //       array?
 
             memset(negHiddenAct, 0, this->hidden);
+            memset(visibleProbsRMSE, 0, this->movies * MAX_RATING);
             memset(posVisibleAct, 0, this->movies * MAX_RATING);
             memset(negVisibleAct, 0, this->movies * MAX_RATING);
             for ( int h = 0; h < this->hidden; ++h ) {
@@ -706,8 +724,8 @@ void RBM::train (const Mat<data_t> &data) {
     end = std::chrono::system_clock::now();
     seconds_elapsed = end - begin;
     cout << "Finished epoch " << epoch << " of RBM training in " 
-         << seconds_elapsed.count() << " seconds.  RMSE: " 
-         << sqrt(epochRMSE / rmseCount) << std::endl;
+         << seconds_elapsed.count() << " seconds.  RMSE: " << sqrt(epochRMSE) 
+         << std::endl;
     } // Epochs
 
     // delete [] hiddenProbs;
@@ -847,8 +865,10 @@ fmat RBM::predict (const fmat &targets) {
                 (visibleProbs[visInd] + visibleProbs[visInd + 1]) +
                 ((visibleProbs[visInd + 2] + visibleProbs[visInd + 3])
                  + visibleProbs[visInd + 4]);
-            for ( int r = 0; r < MAX_RATING; ++r ) {
-                visibleProbs[visInd + r] *= 1.0 / total;
+            if ( total > 0 ) {
+                for ( int r = 0; r < MAX_RATING; ++r ) {
+                    visibleProbs[visInd + r] *= 1.0 / total;
+                }
             }
         }
 
