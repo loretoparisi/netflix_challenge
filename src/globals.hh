@@ -23,7 +23,7 @@
 #include <vector>
 
 #include <netflix.hh>
-#include <singlealgorithm.hh>
+#include <basealgorithm.hh>
 
 #define LEVEL1_ALPHA  25
 #define LEVEL2_ALPHA  7
@@ -42,7 +42,7 @@ using namespace netflix; // challenge-related constants/functions.
 using std::cout;
 using std::endl;
 
-class Globals : public SingleAlgorithm
+class Globals : public BaseAlgorithm
 {
 private:
     fmat dataMU;

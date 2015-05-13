@@ -26,58 +26,58 @@ const std::string OUTPUT_FN = "data/rbm_predictions.mat";
  * specified output file.
  *
  */
-void testOnDataFile(SingleAlgorithm &predAlgo, const std::string &testFileName,
-                    const std::string &outputFileName)
-{
-    std::ifstream qualDataFile(testFileName);
-    std::ofstream outputFile(outputFileName); 
+// void testOnDataFile(BaseAlgorithm &predAlgo, const std::string &testFileName,
+//                     const std::string &outputFileName)
+// {
+//     std::ifstream qualDataFile(testFileName);
+//     std::ofstream outputFile(outputFileName); 
     
-    if (qualDataFile.fail())
-    {
-        throw std::runtime_error("Couldn't find test file at " + testFileName);
-    }
+//     if (qualDataFile.fail())
+//     {
+//         throw std::runtime_error("Couldn't find test file at " + testFileName);
+//     }
 
-    if (outputFile.fail())
-    {
-        throw std::runtime_error("Couldn't open output file at " 
-                                 + outputFileName);
-    }
+//     if (outputFile.fail())
+//     {
+//         throw std::runtime_error("Couldn't open output file at " 
+//                                  + outputFileName);
+//     }
 
-    std::string qualDataLine;
+//     std::string qualDataLine;
     
-    std::cout << "\nTesting on data in " << testFileName << "..." << std::endl;
+//     std::cout << "\nTesting on data in " << testFileName << "..." << std::endl;
 
-    while (std::getline(qualDataFile, qualDataLine))
-    {
-        // Read the line and split it.
-        std::vector<int> thisLineVec;
-        splitIntoInts(qualDataLine, DELIMITER,
-                      thisLineVec);
+//     while (std::getline(qualDataFile, qualDataLine))
+//     {
+//         // Read the line and split it.
+//         std::vector<int> thisLineVec;
+//         splitIntoInts(qualDataLine, DELIMITER,
+//                       thisLineVec);
 
-        if (thisLineVec.size() != 3)
-        {
-            throw std::logic_error("The line \"" + qualDataLine + "\" did not "
-                                   "contain three delimiter-separated "
-                                   "entries!");
-        }
+//         if (thisLineVec.size() != 3)
+//         {
+//             throw std::logic_error("The line \"" + qualDataLine + "\" did not "
+//                                    "contain three delimiter-separated "
+//                                    "entries!");
+//         }
         
-        // The first entry is the user ID, the second entry is the item ID,
-        // and the third entry is the date. All of these should be
-        // zero-indexed!
-        int user = thisLineVec[0];
-        int item = thisLineVec[1];
-        int date = thisLineVec[2];
+//         // The first entry is the user ID, the second entry is the item ID,
+//         // and the third entry is the date. All of these should be
+//         // zero-indexed!
+//         int user = thisLineVec[0];
+//         int item = thisLineVec[1];
+//         int date = thisLineVec[2];
         
-        // Output the prediction to file.
-        float prediction = predAlgo.predict(user, item, date);
-        outputFile << std::setprecision(RATING_SIG_FIGS) << prediction << std::endl;
-    }
+//         // Output the prediction to file.
+//         float prediction = predAlgo.predict(user, item, date);
+//         outputFile << std::setprecision(RATING_SIG_FIGS) << prediction << std::endl;
+//     }
     
-    outputFile.close();
+//     outputFile.close();
     
-    cout << "\nOutputted predictions on " << testFileName << " to the " 
-            "output file " << outputFileName << endl;
-}
+//     cout << "\nOutputted predictions on " << testFileName << " to the " 
+//             "output file " << outputFileName << endl;
+// }
 
 double computeRMSE(const Mat<data_t> &data, const Mat<data_t> &predictions) {
     if ( data.n_cols != predictions.n_cols ) {
@@ -92,7 +92,7 @@ double computeRMSE(const Mat<data_t> &data, const Mat<data_t> &predictions) {
     for ( unsigned col = 0; col < data.n_cols; ++col ) {
         double delta = pow((double)data.at(RATING_ROW, col) - 
                            (double)predictions.at(2, col), 2.0);
-        rmse += delta * (1 / data.n_cols);
+        rmse += delta;
         if ( col % 100000 == 0 ) {
             std::cout << delta << ", " << rmse << std::endl;
             std::cout << (double)data.at(RATING_ROW, col) << " " 
@@ -100,7 +100,7 @@ double computeRMSE(const Mat<data_t> &data, const Mat<data_t> &predictions) {
                       << std::endl;
         }
     }
-    rmse /= data.n_cols - 1;
+    rmse *= (1.0 / data.n_cols);
 
     return sqrt(rmse);
 }

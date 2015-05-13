@@ -27,7 +27,7 @@
 #include <vector>
 
 #include <netflix.hh>
-#include <singlealgorithm.hh>
+#include <basealgorithm.hh>
 
 #define EPSILON 0.0000000001
 
@@ -87,7 +87,7 @@ struct s_neighbors
     float weight;
 };
 
-class KNN : public SingleAlgorithm
+class KNN : public BaseAlgorithm
 {
     private:
         const int numUsers;

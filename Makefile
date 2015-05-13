@@ -28,6 +28,9 @@ BIN_FILES = $(foreach bin, $(BINS), $(bindir)/$(bin))
 # Declare all phony targets
 .PHONY: all clean mklib mkbin
 
+# Keep intermediate files
+.PRECIOUS: $(libdir)/%.o
+
 
 # All (final) targets
 all: $(LIB_FILES) $(EXT_FILES) $(BIN_FILES)
@@ -71,7 +74,8 @@ $(libdir)/interface.o: private EXTRA_CFLAGS += $(CYTHON_CFLAGS) -fPIC
 $(libdir)/knn.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/knn_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/netflix.o: private EXTRA_CFLAGS += -fPIC
-$(libdir)/rbm.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG $(MKL_CFLAGS) -DNTIME
+$(libdir)/rbm.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG $(MKL_CFLAGS) \
+-DRANDOM -DNTIME
 $(libdir)/svd.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/svd_only_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/svdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG -fPIC

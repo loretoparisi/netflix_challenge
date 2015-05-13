@@ -16,7 +16,7 @@ Two_Algo::Two_Algo(const std::string &trainingSet,
 }
 
 
-void Two_Algo::trainFirst(SingleAlgorithm &firstAlgo)
+void Two_Algo::trainFirst(BaseAlgorithm &firstAlgo)
 {
 #ifndef NDEBUG
     cout << "\nStarted training first model." << endl;
@@ -30,7 +30,7 @@ void Two_Algo::trainFirst(SingleAlgorithm &firstAlgo)
 }
 
 
-void Two_Algo::saveFirstQualPredictions(SingleAlgorithm &firstAlgo,
+void Two_Algo::saveFirstQualPredictions(BaseAlgorithm &firstAlgo,
         const std::string &qualFileName)
 {
     // Output predictions to intermediatePredFileName
@@ -87,7 +87,7 @@ void Two_Algo::saveFirstQualPredictions(SingleAlgorithm &firstAlgo,
 }
 
 
-void Two_Algo::computeFirstResiduals(SingleAlgorithm &firstAlgo)
+void Two_Algo::computeFirstResiduals(BaseAlgorithm &firstAlgo)
 {
     int user, item, date;
     float actualRating, predictedRating;
@@ -132,7 +132,7 @@ void Two_Algo::saveResiduals(const std::string residualsFile)
 }
 
 
-void Two_Algo::trainSecond(SingleAlgorithm &secondAlgo)
+void Two_Algo::trainSecond(BaseAlgorithm &secondAlgo)
 {
 #ifndef NDEBUG
     cout << "\nStarted training second model." << endl;
@@ -151,7 +151,7 @@ void Two_Algo::trainSecond(SingleAlgorithm &secondAlgo)
  * Note: This actually saves the combined predictions of the two algorithms
  * to file, and then deletes the temp file at intermediatePredFileName.
  */
-void Two_Algo::saveSecondQualPredictions(SingleAlgorithm &secondAlgo,
+void Two_Algo::saveSecondQualPredictions(BaseAlgorithm &secondAlgo,
     const std::string &qualFileName,
     const std::string &outputFileName)
 {

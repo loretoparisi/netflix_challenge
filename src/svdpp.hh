@@ -28,13 +28,13 @@
 #include <vector>
 
 #include <netflix.hh>
-#include <singlealgorithm.hh>
+#include <basealgorithm.hh>
 
 using namespace std;
 using namespace arma;
 using namespace netflix; // challenge-related constants/functions.
 
-class SVDPP : public SingleAlgorithm
+class SVDPP : public BaseAlgorithm
 {
 private:
     // Regularization constants for each internal variable. See the train()

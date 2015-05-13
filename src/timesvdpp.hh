@@ -33,7 +33,7 @@
 #include <vector>
 
 #include <netflix.hh>
-#include <singlealgorithm.hh>
+#include <basealgorithm.hh>
 
 using namespace arma;
 using namespace netflix; // challenge-related constants/functions.
@@ -93,7 +93,7 @@ public:
 // This can technically be a subclass of SVDPP, but there's no real point
 // in nesting the hierarchy that much. Especially since SVDPP's internals
 // represent fairly different things.
-class TimeSVDPP : public SingleAlgorithm
+class TimeSVDPP : public BaseAlgorithm
 {
 private:
     // Regularization constants for each internal variable. See the train()
