@@ -63,8 +63,16 @@ TIMESVDPP_NO_UFMT_FAC_500_EPOCH_40_QRMSE_0.87834: See TIMESVDPP_QUAL_7.679
 in "good_predictions". This run did not use userFacMatTime.
 
 
-SVD++
-------
+SVD++ (overfit)
+--------------------
+
+SVDPP_FAC_100_EPOCH_80_QRMSE_0.88763: See SVDPP_QUAL_6.703 in
+"good_predictions". The actual amount of overfitting in this run might not
+have been too significant (unfortunately).
+
+
+SVD++ (not overfit)
+--------------------
 
 SVDPP_FAC_200_EPOCH_40_QRMSE_0.88698: See SVDPP_QUAL_6.771 in
 "good_predictions".
