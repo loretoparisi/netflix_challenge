@@ -31,7 +31,7 @@ const int NUM_FACTORS = 100;
 
 const float LEARNING_RATE = 0.001;
 
-const int NUM_ITERS = 2;
+const int NUM_ITERS = 30;
 
 // The name of the output file to use (for predictions on "qual").
 const string OUTPUT_FN = "data/rbm_cached/VALID_f100_i2_predictions.dta";

@@ -22,9 +22,12 @@ class RBM_New : public BaseAlgorithm
         float globalAverage;
         float learningRate;
 
-        cube W; // M * F * K
-        mat BV; // K * M
-        vec BH; // F
+        // numUsers * numFactors * maxRating
+        cube W;
+        // maxRating * numUsers
+        mat BV;
+        // numFactors
+        vec BH;
 
         fcolvec numItemsTrainingSet;
         fcolvec userStartIndex;
@@ -43,3 +46,4 @@ class RBM_New : public BaseAlgorithm
 };
 
 #endif // __RBM_NEW_HH__
+

@@ -9,7 +9,7 @@ RBM_New::RBM_New(int numUsers, int numItems, float globalAverage,
     W = randu<cube>(maxRating, numFactors, numUsers) / 8.0;
     BV = randu<mat>(maxRating, numUsers) / 8.0;
     BH = randu<vec>(numFactors) / 8.0;
-    // BH = randu<mat>(K, F) / 8.0;
+    // BH = randu<mat>(maxRating, numFactors) / 8.0;
     CD_K = 1;
     userStartIndex.zeros();
     numItemsTrainingSet.zeros();
@@ -103,7 +103,7 @@ void RBM_New::singleUser(int user_id, int CD_K)
 
     /*
     // Set up H0 by V -> H
-    H0(j) = sigma( BH(j) + sum_ik ( W(k, j, r.movie) * V0(k, i) ))
+    H0(j) = sigma( BH(j) + sum_ik ( W(k, j, movie) * V0(k, i) ))
     */
 
     H0 = BH;
