@@ -12,6 +12,13 @@ below.
 
 Further details on predictions in this folder:
 
+TIMESVDPP_QUAL_7.585: This was generated on May 12 at 10:03 am. Time-SVD++
+was carried out on the whole dataset, with 60 factors, 30 time bins, 80
+iterations, and userFacMatTime added. The learning rate decay was changed
+to 0.915 (as opposed to 0.89) for more overfitting. But other than that,
+the parameters are the same as in TIMESVDPP_QUAL_7.749.
+
+
 SVDPP_QUAL_6.771: This was generated on May 11 at 6:41 pm. SVD++ was
 carried out on the whole dataset, with 200 factors and 40 iterations. The
 internal parameters were the same as in SVDPP_QUAL_6.833.

@@ -10,6 +10,9 @@ OLD PREDICTIONS
 TIME-SVD++
 -----------
 
+TIMESVDPP_FAC_60_EPOCH_40_QRMSE_0.87911: See TIMESVDPP_QUAL_7.598 in
+"good_predictions". This run did use userFacMatTIme.
+
 TIMESVDPP_FAC_110_EPOCH_25_QRMSE_0.87768: This is an extension to
 SVD++^(3), with frequency-dependent biases and extra bin-wise item factors.
 This was generated using the parameters specified in "good_predictions" for

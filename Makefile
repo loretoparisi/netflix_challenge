@@ -70,6 +70,8 @@ mkbin:
 # Additional compiler flags for all object files go here (using EXTRA_CFLAGS)
 $(libdir)/globals.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/globals_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/rbm_new.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/rbm_new_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/interface.o: private EXTRA_CFLAGS += $(CYTHON_CFLAGS) -fPIC
 $(libdir)/knn.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/knn_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
@@ -116,6 +118,7 @@ $(libdir)/%.so: $(libdir)/%.o
 # Dependencies for all binary targets go here
 $(bindir)/binarize_data: $(libdir)/netflix.o
 $(bindir)/globals_test: $(libdir)/globals.o $(libdir)/netflix.o
+$(bindir)/rbm_new_test: $(libdir)/rbm_new.o $(libdir)/netflix.o
 $(bindir)/knn_test: $(libdir)/knn.o $(libdir)/netflix.o
 $(bindir)/rbm_test: $(libdir)/rbm.o $(libdir)/netflix.o
 $(bindir)/svd_only_test: $(libdir)/svd.o $(libdir)/netflix.o
@@ -126,6 +129,7 @@ $(bindir)/knn_on_globals: $(libdir)/globals.o $(libdir)/knn.o $(libdir)/two_algo
 
 # Additional linker flags for all binary targets go here (using EXTRA_LDFLAGS)
 $(bindir)/globals_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+$(bindir)/rbm_new_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/knn_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/rbm_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS) $(MKL_LDFLAGS)
 $(bindir)/svd_only_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)

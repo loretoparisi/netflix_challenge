@@ -36,15 +36,16 @@ TIMESVDPP_FAC_110_EPOCH_80_QRMSE_0.87817: See TIMESVDPP_QUAL_7.697 in
 "good_predictions". This run did use userFacMatTime, and was slightly
 overfitted (learning rate decay set to 0.90).
 
+TIMESVDPP_FAC_60_EPOCH_80_QRMSE_0.87924: See TIMESVDPP_QUAL_7.585 in
+"good_predictions". This run used userFacMatTime and was overfitted
+(learning rate decay set to 0.915).
+
 
 TIME-SVD++ (not overfit)
 -------------------------
 
 TIMESVDPP_FAC_110_EPOCH_40_QRMSE_0.87752: See TIMESVDPP_QUAL_7.765 in
 "good_predictions". This run did use userFacMatTime.
-
-TIMESVDPP_FAC_60_EPOCH_40_QRMSE_0.87911: See TIMESVDPP_QUAL_7.598 in
-"good_predictions". This run did use userFacMatTIme.
 
 TIMESVDPP_FAC_20_EPOCH_40_QRMSE_0.88668: See TIMESVDPP_QUAL_6.803 in
 "good_predictions". This run did use userFacMatTime.
