@@ -12,6 +12,9 @@ data/hat_dev_u_t.dta
 data/f_u_t.dta
 data/probe_um.dta
 data/knn_cached/*.dta
+data/knn_ge_intermed_pred_temp.dta
+data/knn_on_timesvdpp_predictions.dta
+data/knn_timesvdpp_intermed_pred_temp.dta
 
 # Library/Binary Directories #
 ##############################

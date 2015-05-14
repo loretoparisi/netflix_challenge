@@ -12,18 +12,19 @@ class ComboAlgorithm
         /* Train on the first model regularly. */
         virtual void trainFirst(BaseAlgorithm &predAlgo) = 0;
 
-        /* Compute the residuals of the first model on training set. */
-        virtual void computeFirstResiduals(BaseAlgorithm &firstAlgo) = 0;
+        /* Compute the residuals of the first model on training set, and
+         * then save them (in Armadillo matrix format) to the specified
+         * file. If the file name is NULL, then saving isn't carried out.
+         */
+        virtual void computeAndSaveFirstResiduals(
+                BaseAlgorithm &firstAlgo,
+                const std::string residualsFile) = 0;
 
         /* Return the current average for the training set. */
         virtual float getAverage() = 0;
         
-        /* 
-         * Save the residuals to a file. This must be called after
-         * computeFirstResiduals() so that the appropriate residuals are
-         * saved to "currentTrain".
-         */
-        virtual void saveResiduals(const std::string residualsFile) = 0;
+        /* Load residuals from a given file. */
+        virtual void loadResiduals(const std::string residualsFile) = 0;
 
         /* Train on the second model with residuals. */
         virtual void trainSecond(BaseAlgorithm &secondAlgo) = 0;

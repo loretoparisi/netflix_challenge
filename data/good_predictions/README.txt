@@ -12,6 +12,13 @@ below.
 
 Further details on predictions in this folder:
 
+KNN_ON_TIMESVDPP_QUAL_7.243: This was generated on May 14 at 12:39 pm. kNN
+with MIN_COMMON = 24 and MAX_WEIGHT = 200 was carried out on the residuals
+of a Time-SVD++ run with 60 factors, 40 iterations, and 30 time bins (the
+remaining parameters for the Time-SVD++ were the same as those in
+TIMESVDPP_QUAL_7.749.
+
+
 TIMESVDPP_QUAL_7.895: This was generated on May 14 at 1:25 am. Time-SVD++
 was carried out on the whole dataset, with 345 factors and 40 iterations,
 with all other parameters matching those in TIMESVDPP_QUAL_7.749 (including

@@ -41,12 +41,16 @@ class Two_Algo : public ComboAlgorithm
          */
         std::string intermediatePredFileName;
 
+        /* Whether we'll delete the intermediate predictions file. */
+        bool deleteIntermedPredFile;
+
         int ratingSigFig;
 
     public:
         Two_Algo(const std::string &trainingSet,
                  const std::string &intermediatePredFileName,
-                 const int ratingSigFig);
+                 const int ratingSigFig,
+                 const bool deleteIntermedPredFile);
 
         /* Train on the first model normally. */
         void trainFirst(BaseAlgorithm &firstAlgo);
@@ -59,13 +63,14 @@ class Two_Algo : public ComboAlgorithm
                 const std::string &qualFileName);
          
         /* Update the fmat for the residuals of training set. */
-        void computeFirstResiduals(BaseAlgorithm &firstAlgo);
+       void computeAndSaveFirstResiduals(BaseAlgorithm &firstAlgo,
+                const std::string residualsFile);
 
         /* Return the current average for the training set. */
         float getAverage();
 
-        /* Save the residuals to a file. */
-        void saveResiduals(const std::string residualsFile);
+        /* Load the residuals from a file. */
+        void loadResiduals(const std::string residualsFile);
 
         /* Train on the second model with residuals. */
         void trainSecond(BaseAlgorithm &secondAlgo);

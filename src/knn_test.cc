@@ -38,10 +38,10 @@ const unsigned int MAX_WEIGHT = 30;
 
 // If P is already precomputed, we only need to load, so set this to true.
 // If P hasn't been computed, set this to false.
-const bool LOAD_P = true;
+const bool LOAD_P = false;
 
 // Whether we want to save the output of P.
-const bool SAVE_P = false;
+const bool SAVE_P = true;
 
 // Sig-figs for output file.
 const int RATING_SIG_FIGS = 4;
