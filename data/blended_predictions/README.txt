@@ -12,6 +12,15 @@ quiz RMSEs they achieved (added on in the same format as in the
 ADDITIONAL DETAILS
 ===========================================================================
 
+BLEND_MAY_14_QRMSE_0.87393: This came from a quiz blend of the following
+predictors, all of which were trained on the entire dataset:
+    * 
+
+The new 300-factor, overfitted Time-SVD++ significantly changed the
+characteristics of the blend, which was interesting since it's QRMSE was
+fairly low.
+
+
 BLEND_MAY_13_QRMSE_0.87418: This came from a quiz blend of the following
 predictors, all of which were trained on the entire dataset:
     * SVDPP_FAC_1000_EPOCH_80_QRMSE_0.88479.dta

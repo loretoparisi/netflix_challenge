@@ -32,6 +32,10 @@ ADDITIONAL DETAILS
 TIME-SVD++ (overfit)
 ---------------------
 
+TIMESVDPP_FAC_300_EPOCH_80_QRMSE_0.88275: See TIMESVDPP_QUAL_7.216 in
+"good_predictions". This run did use userFacMatTime, and was overfitted
+with an LRD of 0.945.
+
 TIMESVDPP_FAC_110_EPOCH_80_QRMSE_0.87817: See TIMESVDPP_QUAL_7.697 in
 "good_predictions". This run did use userFacMatTime, and was slightly
 overfitted (learning rate decay set to 0.90).
