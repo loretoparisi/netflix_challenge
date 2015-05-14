@@ -12,6 +12,12 @@ below.
 
 Further details on predictions in this folder:
 
+TIMESVDPP_QUAL_7.895: This was generated on May 14 at 1:25 am. Time-SVD++
+was carried out on the whole dataset, with 345 factors and 40 iterations,
+with all other parameters matching those in TIMESVDPP_QUAL_7.749 (including
+the learning rate decay).
+
+
 SVDPP_QUAL_7.001: This was generated on May 13 at 5:41 pm. SVD++ was
 carried out on the whole dataset, with 1000 factors, 80 iterations, and a
 learning rate decay of 0.935 (all other parameters remaining unchanged

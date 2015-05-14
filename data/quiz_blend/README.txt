@@ -44,6 +44,10 @@ TIMESVDPP_FAC_60_EPOCH_80_QRMSE_0.87924: See TIMESVDPP_QUAL_7.585 in
 TIME-SVD++ (not overfit)
 -------------------------
 
+TIMESVDPP_FAC_345_EPOCH_40_QRMSE_0.87629: See TIMESVDPP_QUAL_7.895 in
+"good_predictions". This run did use userFacMatTime, and took up almost the
+full 32 GB of RAM on Walker's computers (~300 MB left over).
+
 TIMESVDPP_FAC_110_EPOCH_40_QRMSE_0.87752: See TIMESVDPP_QUAL_7.765 in
 "good_predictions". This run did use userFacMatTime.
 
