@@ -12,11 +12,17 @@ below.
 
 Further details on predictions in this folder:
 
+SVDPP_QUAL_7.001: This was generated on May 13 at 5:41 pm. SVD++ was
+carried out on the whole dataset, with 1000 factors, 80 iterations, and a
+learning rate decay of 0.935 (all other parameters remaining unchanged
+relative to SVDPP_QUAL_6.833.
+
+
 SVDPP_QUAL_6.703: This was generated on May 13 at 1:40 am. SVD++ was
 carried out on the whole dataset, with 100 factors, 80 iterations, and a
 learning rate decay of 0.93 (all other parameters remaining unchanged
-relative to what they were before). This should've allowed for a small
-amount of overfitting.
+relative to SVDPP_QUAL_6.833). This should've allowed for a small amount of
+overfitting.
 
 
 TIMESVDPP_QUAL_7.585: This was generated on May 12 at 10:03 am. Time-SVD++
