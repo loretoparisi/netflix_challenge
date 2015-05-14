@@ -74,6 +74,9 @@ in "good_predictions". This run did not use userFacMatTime.
 SVD++ (overfit)
 --------------------
 
+SVDPP_FAC_2000_EPOCH_80_QRMSE_0.88415: See SVDPP_QUAL_7.069 in
+"good_predictions" for more information.
+
 SVDPP_FAC_1000_EPOCH_80_QRMSE_0.88479: See SVDPP_QUAL_7.001 in
 "good_predictions". Hopefully there was some overfitting in this run.
 

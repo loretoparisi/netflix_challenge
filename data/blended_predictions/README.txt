@@ -12,9 +12,46 @@ quiz RMSEs they achieved (added on in the same format as in the
 ADDITIONAL DETAILS
 ===========================================================================
 
+BLEND_MAY_14_QRMSE_0.87374: This came from a quiz blend of the following
+predictors, all of which were trained on the entire dataset:
+    * KNN_ON_TIMESVDPP_MC_24_MW_200_FAC_60_EPOCH_40_QRMSE_0.88249.dta
+    * SVDPP_FAC_1000_EPOCH_80_QRMSE_0.88479.dta
+    * SVDPP_FAC_100_EPOCH_80_QRMSE_0.88763.dta
+    * SVDPP_FAC_2000_EPOCH_80_QRMSE_0.88415.dta
+    * SVDPP_FAC_200_EPOCH_40_QRMSE_0.88698.dta
+    * SVDPP_FAC_500_EPOCH_40_QRMSE_0.88639.dta
+    * TIMESVDPP_FAC_110_EPOCH_40_QRMSE_0.87752.dta
+    * TIMESVDPP_FAC_110_EPOCH_80_QRMSE_0.87817.dta
+    * TIMESVDPP_FAC_20_EPOCH_40_QRMSE_0.88668.dta
+    * TIMESVDPP_FAC_300_EPOCH_80_QRMSE_0.88275.dta
+    * TIMESVDPP_FAC_345_EPOCH_40_QRMSE_0.87629.dta
+    * TIMESVDPP_FAC_60_EPOCH_80_QRMSE_0.87924.dta
+    * TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40_QRMSE_0.8796.dta
+    * TIMESVDPP_NO_UFMT_FAC_200_EPOCH_40_QRMSE_0.8789.dta
+    * TIMESVDPP_NO_UFMT_FAC_20_EPOCH_40_QRMSE_0.88863.dta
+    * TIMESVDPP_NO_UFMT_FAC_500_EPOCH_40_QRMSE_0.87834.dta
+
+Note that the new, 2000-factor SVD++ is contributing a noticeable
+improvement. The old 1000-factor SVD++ is not contributing as much now.
+
+
 BLEND_MAY_14_QRMSE_0.87393: This came from a quiz blend of the following
 predictors, all of which were trained on the entire dataset:
-    * 
+    * KNN_ON_TIMESVDPP_MC_24_MW_200_FAC_60_EPOCH_40_QRMSE_0.88249.dta
+    * SVDPP_FAC_1000_EPOCH_80_QRMSE_0.88479.dta
+    * SVDPP_FAC_100_EPOCH_80_QRMSE_0.88763.dta
+    * SVDPP_FAC_200_EPOCH_40_QRMSE_0.88698.dta
+    * SVDPP_FAC_500_EPOCH_40_QRMSE_0.88639.dta
+    * TIMESVDPP_FAC_110_EPOCH_40_QRMSE_0.87752.dta
+    * TIMESVDPP_FAC_110_EPOCH_80_QRMSE_0.87817.dta
+    * TIMESVDPP_FAC_20_EPOCH_40_QRMSE_0.88668.dta
+    * TIMESVDPP_FAC_300_EPOCH_80_QRMSE_0.88275.dta
+    * TIMESVDPP_FAC_345_EPOCH_40_QRMSE_0.87629.dta
+    * TIMESVDPP_FAC_60_EPOCH_80_QRMSE_0.87924.dta
+    * TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40_QRMSE_0.8796.dta
+    * TIMESVDPP_NO_UFMT_FAC_200_EPOCH_40_QRMSE_0.8789.dta
+    * TIMESVDPP_NO_UFMT_FAC_20_EPOCH_40_QRMSE_0.88863.dta
+    * TIMESVDPP_NO_UFMT_FAC_500_EPOCH_40_QRMSE_0.87834.dta 
 
 The new 300-factor, overfitted Time-SVD++ significantly changed the
 characteristics of the blend, which was interesting since it's QRMSE was

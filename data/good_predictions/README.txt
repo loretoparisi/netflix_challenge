@@ -12,6 +12,12 @@ below.
 
 Further details on predictions in this folder:
 
+SVDPP_QUAL_7.069: This was generated on May 14 at 10:57 am. An overfitted
+SVD++ run was carried out with 2000 factors, 80 iterations, and a learning
+rate decay of 0.935. All other parameters (LRs/RFs) were unchanged relative
+to SVDPP_QUAL_6.833.
+
+
 TIMESVDPP_QUAL_7.216: This was generated on May 14 at 9:25 am. An
 overfitted Time-SVD++ was carried out with 300 factors, 80 iterations, and
 a learning rate decay of 0.945. All other parameters (LRs/RFs) were the
