@@ -39,5 +39,11 @@ Note that this has not been trained on probe.
 Residual kNN
 -------------
 
+KNN_ON_TIMESVDPP_MC_24_MW_400_FAC_60_EPOCH_40_QRMSE_0.8821: For more
+details, see KNN_ON_TIMESVDPP_QUAL_7.284 in "good_predictions".
+
+KNN_ON_TIMESVDPP_MC_24_MW_200_FAC_60_EPOCH_40_QRMSE_0.88249: For more
+details, see KNN_ON_TIMESVDPP_QUAL_7.243 in "good_predictions".
+
 GLOBALS_KNN_GE_10_MC_24_MW_30_QRMSE_0.94117: See
 GLOBALS_KNN_COMBO_QUAL_1.075 in "good_predictions".

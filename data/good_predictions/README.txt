@@ -12,6 +12,13 @@ below.
 
 Further details on predictions in this folder:
 
+KNN_ON_TIMESVDPP_QUAL_7.284: This was generated on May 14 at 1:02 pm. kNN
+with MIN_COMMON = 24 and MAX_WEIGHT = 400 was carried out on the residuals
+of a Time-SVD++ run with 60 factors, 40 iterations, and 30 time bins (the
+remaining parameters for the Time-SVD++ were the same as those in
+TIMESVDPP_QUAL_7.749).
+
+
 SVDPP_QUAL_7.069: This was generated on May 14 at 10:57 am. An overfitted
 SVD++ run was carried out with 2000 factors, 80 iterations, and a learning
 rate decay of 0.935. All other parameters (LRs/RFs) were unchanged relative
@@ -28,7 +35,7 @@ KNN_ON_TIMESVDPP_QUAL_7.243: This was generated on May 14 at 12:39 pm. kNN
 with MIN_COMMON = 24 and MAX_WEIGHT = 200 was carried out on the residuals
 of a Time-SVD++ run with 60 factors, 40 iterations, and 30 time bins (the
 remaining parameters for the Time-SVD++ were the same as those in
-TIMESVDPP_QUAL_7.749.
+TIMESVDPP_QUAL_7.749).
 
 
 TIMESVDPP_QUAL_7.895: This was generated on May 14 at 1:25 am. Time-SVD++

@@ -104,5 +104,4 @@ A
 Residual kNN
 -------------
 
-KNN_ON_TIMESVDPP_MC_24_MW_200_FAC_60_EPOCH_40_QRMSE_0.88249: For more
-details, see KNN_ON_TIMESVDPP_QUAL_7.243 in "good_predictions".
+A
