@@ -12,6 +12,11 @@ below.
 
 Further details on predictions in this folder:
 
+SVDPP_QUAL_6.509: This was generated on May 15 at 3:42 pm. SVD++ was
+carried out with 60 factors and 40 iterations. All other parameters were
+the same as those in SVDPP_QUAL_6.833.
+
+
 RBM_QUAL_4.522: This was generated on May 15 around 1 am. RBM was run on
 the entire dataset with 400 factors and 60 iterations. The parameters used
 were the same as those in RBM_QUAL_4.952.

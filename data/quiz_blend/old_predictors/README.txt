@@ -31,6 +31,9 @@ TIMESVDPP_QUAL_6.904.dta. Note that this has not been trained on probe.
 SVD++
 ------
 
+SVDPP_FAC_60_EPOCH_40_QRMSE_0.88947: See SVDPP_QUAL_6.509 in
+"good_predictions".
+
 SVDPP_FAC_200_EPOCH_25_QRMSE_0.89204: this is SVD++, generated using the
 parameters specified in good_predictions.dta for SVDPP_QUAL_6.239.dta.
 Note that this has not been trained on probe.
