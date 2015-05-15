@@ -95,6 +95,13 @@ SVDPP_FAC_500_EPOCH_40_QRMSE_0.88639: See SVDPP_QUAL_6.833 in
 "good_predictions".
 
 
+SVD (overfit)
+--------------
+
+SVD_FAC_1000_EPOCH_80_QRMSE_0.89161: See SVD_QUAL_6.284 in
+"good_predictions".
+
+
 Regular RBM (UToronto)
 -----------------------
 

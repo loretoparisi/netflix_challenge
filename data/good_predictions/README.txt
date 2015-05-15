@@ -12,8 +12,23 @@ below.
 
 Further details on predictions in this folder:
 
+SVD_QUAL_6.284: This was generated on May 14 at 11:57 pm. An overfitted
+(regular) SVD run was carried out with 1000 factors, 80 epochs, and a
+learning rate decay of 0.95. The following LRs/RFs were used:
+    * Regularization factors:
+        * SVD_LAM_B_I = 0.007
+        * SVD_LAM_B_U = 0.007
+        * SVD_LAM_Q_I = 0.014
+        * SVD_LAM_P_U = 0.014
+    * Learning rates:
+        * SVD_GAMMA_B_I = 0.007
+        * SVD_GAMMA_B_U = 0.007
+        * SVD_GAMMA_Q_I = 0.007
+        * SVD_GAMMA_P_U = 0.007
+
+
 RBM_QUAL_4.237: This was generated on May 14. RBM was run on base with 200
-factorsand 36 iterations. The following parameters were used:
+factors and 36 iterations. The following parameters were used:
     * rbm_alpha = 0.001
     * rbm_beta = 0.002
     * dec = 0.0001
