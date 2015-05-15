@@ -12,6 +12,11 @@ below.
 
 Further details on predictions in this folder:
 
+RBM_QUAL_4.952: This was generated on May 15 around 7 am. RBM was run on the entire dataset
+with 200 factors and 60 iterations. The parameters used were the same as
+those in RBM_QUAL_4.237.
+
+
 SVD_QUAL_6.284: This was generated on May 14 at 11:57 pm. An overfitted
 (regular) SVD run was carried out with 1000 factors, 80 epochs, and a
 learning rate decay of 0.95. The following LRs/RFs were used:
