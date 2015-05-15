@@ -78,9 +78,9 @@ $(libdir)/knn_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/netflix.o: private EXTRA_CFLAGS += -fPIC
 $(libdir)/rbm.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG $(MKL_CFLAGS) \
 -DRANDOM -DNTIME
-$(libdir)/svd.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
-$(libdir)/svd_only_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
+$(libdir)/svd.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG -fPIC
 $(libdir)/svdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG -fPIC
+$(libdir)/svd_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/svdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
 $(libdir)/timesvdpp.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG 
 $(libdir)/timesvdpp_test.o: private EXTRA_CFLAGS += -DARMA_NO_DEBUG
@@ -122,7 +122,7 @@ $(bindir)/globals_test: $(libdir)/globals.o $(libdir)/netflix.o
 $(bindir)/rbm_new_test: $(libdir)/rbm_new.o $(libdir)/netflix.o
 $(bindir)/knn_test: $(libdir)/knn.o $(libdir)/netflix.o
 $(bindir)/rbm_test: $(libdir)/rbm.o $(libdir)/netflix.o
-$(bindir)/svd_only_test: $(libdir)/svd.o $(libdir)/netflix.o
+$(bindir)/svd_test: $(libdir)/svd.o $(libdir)/netflix.o
 $(bindir)/svdpp_test: $(libdir)/svdpp.o $(libdir)/netflix.o
 $(bindir)/timesvdpp_test: $(libdir)/timesvdpp.o $(libdir)/netflix.o
 $(bindir)/combo_test: $(libdir)/globals.o $(libdir)/timesvdpp.o $(libdir)/two_algo.o $(libdir)/netflix.o
@@ -134,7 +134,7 @@ $(bindir)/globals_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/rbm_new_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/knn_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/rbm_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS) $(MKL_LDFLAGS)
-$(bindir)/svd_only_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
+$(bindir)/svd_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/svdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/timesvdpp_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)
 $(bindir)/combo_test: private EXTRA_LDFLAGS += $(ARMA_LDFLAGS)

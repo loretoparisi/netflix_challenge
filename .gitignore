@@ -3,6 +3,7 @@
 data/um/*
 data/mu/*
 *.mat
+data/svd_predictions.dta
 data/svdpp_predictions.dta
 data/timesvdpp_predictions.dta
 data/timesvdpp_cached/*.dta

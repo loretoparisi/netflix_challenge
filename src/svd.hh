@@ -1,191 +1,129 @@
-#ifndef SVD_HH_
-#define SVD_HH_
+/*
+ * This class allows us to carry out SVD via stochastic gradient descent.
+ *
+ */
+
+#ifndef SVD_HH
+#define SVD_HH
 
 #include <algorithm>
+#include <armadillo>
+#include <array>
 #include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include <ctime>
-#include <ctime>
-#include <dirent.h>
-#include <errno.h>
 #include <fstream>
-#include <iostream>
-#include <malloc.h>
-#include <map>
-#include <sstream>
+#include <functional>
+#include <iterator>
+#include <random>
+#include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
+#include <netflix.hh>
+#include <basealgorithm.hh>
+
 using namespace std;
+using namespace arma;
+using namespace netflix; // challenge-related constants/functions.
 
-struct rateNode
+class SVD : public BaseAlgorithm
 {
-    short item;
-    short rate;
-};
-
-// use different struct between test set
-// and training set to save memory space
-struct testSetNode
-{
-    int user;
-    short item;
-    short rate;
-};
-
-float new_dot(float* p, float* qLocal, int dim)
-{
-    float result = 0.0;
-    for (int i = 0; i < dim; i++)
-    {
-        result += p[i] * qLocal[i];
-    }
-    return result;
-}
-
-float get_rand(int dim)
-{
-    return 0.1 * (rand()/(float)RAND_MAX) / sqrt(dim);
-}
-
-// set the vector to random values
-void setRand(float  p[], int dim, float base)
-{
-    for(int i = 0; i < dim; i++)
-    {
-        float temp = base + get_rand(dim);
-        p[i] = temp;
-    }
-}
-
-float predictRate(int user, int item, int dim);
-
-// compute the rmse of test set
-float RMSEProbe(vector<testSetNode>& probeSet, int dim)
-{
-    int probeSize = probeSet.size();
-    float pRate, err;
-    long double rmse = 0;
-
-    for(int i = 0; i < probeSize; i++)
-    {
-        pRate = predictRate(probeSet[i].user, \
-            probeSet[i].item, dim); // predict rate
-        err = pRate-probeSet[i].rate;
-        rmse += err*err;
-    }
-    rmse = sqrt( rmse / probeSize);
-    cout<<"RMSE: "<< rmse <<" probeSize: "<< probeSize << endl;
-    return rmse;
-}
-
-// load training set
-void loadRating(char * fileName, vector< vector<rateNode> >& rateMatrixLocal, \
-	const char* separator)
-{
-    char rateStr[256];
-    char* pch;    
-    vector<string> rateDetail;
-    std::ifstream from (fileName);
-    if (!from.is_open())
-    {
-        cout << "can't open: operation failed!\n";
-        exit(1);
-    }
-
-    int itemId = -1, userId = -1, rate = 0;
-    while(from.getline(rateStr, 256))
-    {
-        string strTemp(rateStr);
-        if(strTemp.length() < 3) continue;
-
-        int i = 0;
-        pch = strtok (rateStr, separator);
-        while (pch != NULL)
-        {
-            if(0 == i) userId = atoi(pch);
-            else if(1 == i) itemId = atoi(pch);
-            else if(3 == i) rate = atoi(pch);
-            else if(i > 4) break;
-            ++i;
-            pch = strtok (NULL, separator);
-        }
-        if(-1 == itemId || -1 == userId || 0 == rate )
-        {
-            cout << strTemp << "#########userId: " << userId;
-            cout <<" itemId: "<< itemId <<" rate: "<< rate << endl;
-            exit(1);
-        }
-
-        // initialization rateMatrix
-        try
-        {
-            rateNode tmpNode;
-            tmpNode.item = itemId;
-            tmpNode.rate = (short)rate;
-            rateMatrixLocal[userId].push_back(tmpNode);
-        }
-        catch (bad_alloc& ba)
-        {
-            cerr << "bad_alloc caught: " << ba.what() << endl;
-            cout << "Can't allocate the momery!" << endl; exit(1);
-        }
-    }
-    from.close();
-    cout<<"read file sucessfully!"<<endl;
-    return;
-}
-
-// load test set of netflix dataset
-void loadProbe(char * fileName, vector<testSetNode>& probeSet, \
-	const char* separator)
-{
-    ifstream in(fileName);
-    if (!in.is_open())
-    {
-        cout << "can't open test set file!\n";
-        exit(1);
-    }
-    char rateStr[256];
-    char* pch ; // store a token of a string
-
-    string strTemp;
-    int rateValue = 0, itemId = -1, userId = -1, probeNum = 0;
+private:
+    // Regularization constants for each internal variable. See the train()
+    // method for more on what these mean. These values came from a
+    // combination of the Koren paper and
+    // http://www.netflixprize.com/community/viewtopic.php?id=1359 and
+    // other tweaks.
+    static constexpr float SVD_LAM_B_I = 0.008;
+    static constexpr float SVD_LAM_B_U = 0.008;
+    static constexpr float SVD_LAM_Q_I = 0.014;
+    static constexpr float SVD_LAM_P_U = 0.014;
     
-    while(in.getline(rateStr, 256))
-    {
-        strTemp = rateStr;
-        if(strTemp.length() < 4) continue;
-        int i = 0;
-        pch = strtok (rateStr, separator);
-        while (pch != NULL)
-        {
-            if(1 == i) itemId = atoi(pch);
-            else if(0 == i) userId = atoi(pch);
-            else if(3 == i) rateValue = atoi(pch);
-            else if(i > 3) break;
-            ++i;
-            pch = strtok (NULL, separator);
-        }
-        try
-        {
-            testSetNode tmpNode;
-            tmpNode.item = itemId;
-            tmpNode.rate = (short)rateValue;
-            tmpNode.user = userId;
-            probeSet.push_back(tmpNode);
-            ++probeNum;
-        }
-        catch (bad_alloc& ba)
-        {
-            cerr << "bad_alloc caught: " << ba.what() << endl;
-            cout << "Can't allocate the momery!" << endl;
-            exit(1);
-        }
-    }
-    cout << "Load " << probeNum << " test ratings successfully!"<< endl;
-    in.close(); 
-}
+    // Step sizes used for stochastic gradient descent. See the train()
+    // method for more on which parameters these apply to. These came from
+    // a combination of the Koren paper, the abovementioned forum link, and
+    // other tweaks.
+    float SVD_GAMMA_B_I = 0.007;
+    float SVD_GAMMA_B_U = 0.007;
+    float SVD_GAMMA_Q_I = 0.007;
+    float SVD_GAMMA_P_U = 0.007;
+    
+    // The fraction by which the step sizes will be multiplied on each
+    // iteration (as recommended in the Koren paper).
+    static constexpr float SVD_GAMMA_MULT_PER_ITER = 0.90;
+    
+    // The number of factors used in matrix factorization.
+    const int numFactors;
+    
+    // The number of users and items in this dataset.
+    const int numUsers, numItems;
+    
+    // The number of iterations for which SVD++ will be carried out.
+    const int numIterations;
+    
+    // The mean rating assigned to all items in the dataset. This is "mu"
+    // in the Koren paper.
+    const float meanRating;
+    
+    // The bias for each user. Referred to as "b_u" in the Koren paper. The
+    // uth element in this is the bias for user u.
+    fcolvec bUser;
 
-#endif // SVD_HH_
+    // The bias for each item. Referred to as "b_i" in the Koren paper.
+    fcolvec bItem;
+
+    // The number of items rated by each user in the training set. This is
+    // a column vector with numUsers elements. The nth element corresponds
+    // to the number of items rated by user n (in the training set).
+    fcolvec numItemsTrainingSet;
+
+    // The user factor matrix. This is a numFactors x numUsers matrix. The
+    // nth column represents the user factor array p_n, using the convention
+    // of the Koren paper.
+    fmat userFacMat;
+
+    // The item factor matrix. This is a numFactors x numItems matrix. The
+    // nth column represents the item factor array q_n, using the
+    // convention of the Koren paper.
+    fmat itemFacMat;
+
+    // Whether the algorithm has been trained yet or not.
+    bool trained = false;
+
+    // Whether we're using cached data or not.
+    bool usingCachedData = false;
+
+    void initInternalData();
+    void populateNumItemsTrainingSet(const fmat &data);
+    float computeRMSE(const string &testFileName);
+
+public:
+    SVD(int numUsers, int numItems, float meanRating, int numFactors,
+        int numIterations);
+
+    SVD(int numUsers, int numItems, float meanRating, int numFactors,
+        int numIterations,
+        const string &fileNameBUser, const string &fileNameBItem,
+        const string &fileNameUserFacMat,
+        const string &fileNameItemFacMat);
+     
+    ~SVD();
+    
+    void train(const fmat &data);
+
+    void trainAndCache(const fmat &data, const string &fileNameBUser,
+                       const string &fileNameBItem,
+                       const string &fileNameUserFacMat,
+                       const string &fileNameItemFacMat);
+    
+    void trainAndCache(const string &fileNameData,
+                       const string &fileNameBUser,
+                       const string &fileNameBItem,
+                       const string &fileNameUserFacMat,
+                       const string &fileNameItemFacMat);
+    
+    float predict(int user, int item, int date, bool bound);
+};
+
+#endif // SVD_HH
