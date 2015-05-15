@@ -12,6 +12,32 @@ quiz RMSEs they achieved (added on in the same format as in the
 ADDITIONAL DETAILS
 ===========================================================================
 
+BLEND_MAY_15_QRMSE_0.87278: This came from a quiz blend of the following
+predictors, all of which were trained on the entire dataset. Blending
+coefficients have been included as well.
+    * SVDPP_FAC_200_EPOCH_40: -0.113
+    * SVDPP_FAC_500_EPOCH_40: -0.124
+    * TIMESVDPP_FAC_110_EPOCH_40: -0.107
+    * TIMESVDPP_FAC_110_EPOCH_80: -0.044
+    * TIMESVDPP_FAC_20_EPOCH_40: 0.259
+    * TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40: 0.077
+    * TIMESVDPP_NO_UFMT_FAC_200_EPOCH_40: 0.087
+    * TIMESVDPP_NO_UFMT_FAC_20_EPOCH_40: -0.014
+    * TIMESVDPP_NO_UFMT_FAC_500_EPOCH_40: 0.081
+    * TIMESVDPP_FAC_60_EPOCH_80: -0.018
+    * SVDPP_FAC_100_EPOCH_80: -0.090
+    * SVDPP_FAC_1000_EPOCH_80: 0.102
+    * TIMESVDPP_FAC_345_EPOCH_40: -0.214
+    * TIMESVDPP_FAC_300_EPOCH_80: 0.541
+    * SVDPP_FAC_2000_EPOCH_80: 0.174
+    * SVD_FAC_1000_EPOCH_80: 0.057
+    * RBM_FAC_200_EPOCH_60: 0.165
+    * RBM_FAC_400_EPOCH_60: 0.180
+
+The overfitted SVD and the RBMs seem to be improving the blend noticeably.
+I also removed the old 200-factor RBM that was trained on just base.
+
+
 BLEND_MAY_14_QRMSE_0.87358: This came from a quiz blend of the following
 predictors. All but the RBM were trained on the entire dataset:
     * RBM_FAC_200_EPOCH_36_QRMSE_0.91109.dta

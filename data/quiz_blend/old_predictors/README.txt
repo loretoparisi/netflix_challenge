@@ -36,6 +36,13 @@ parameters specified in good_predictions.dta for SVDPP_QUAL_6.239.dta.
 Note that this has not been trained on probe.
 
 
+Regular RBM (UToronto)
+-----------------------
+
+RBM_FAC_200_EPOCH_36_QRMSE_0.91109: See RBM_QUAL_4.237 in
+"good_predictions".
+
+
 Residual kNN
 -------------
 

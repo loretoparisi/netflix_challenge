@@ -12,9 +12,17 @@ below.
 
 Further details on predictions in this folder:
 
-RBM_QUAL_4.952: This was generated on May 15 around 7 am. RBM was run on the entire dataset
-with 200 factors and 60 iterations. The parameters used were the same as
-those in RBM_QUAL_4.237.
+RBM_QUAL_4.522: This was generated on May 15 around 1 am. RBM was run on
+the entire dataset with 400 factors and 60 iterations. The parameters used
+were the same as those in RBM_QUAL_4.952.
+
+
+RBM_QUAL_4.952: This was generated on May 15 around 7 am. RBM was run on
+the entire dataset with 200 factors and 60 iterations. The remaining
+parameters used were:
+    * alpha = 0.001
+    * beta = 0.002
+    * dec = 0.001
 
 
 SVD_QUAL_6.284: This was generated on May 14 at 11:57 pm. An overfitted

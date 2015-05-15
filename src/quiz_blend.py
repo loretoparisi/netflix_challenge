@@ -16,6 +16,7 @@
 
 import numpy as np
 import glob
+import os
 import math
 import sys
 
@@ -132,8 +133,22 @@ def main():
     if verbose:
         print("Using predictors in", QBLEND_DIR)
 
-    # Find how many prediction files there are in the quiz blend directory.
-    for fileName in glob.glob(QBLEND_DIR + "*" + PRED_EXT):
+    # Find how many prediction files there are in the quiz blend directory,
+    # and store their names (in order of modification time).
+    predFiles = glob.glob(QBLEND_DIR + "*" + PRED_EXT)
+    predFiles.sort(key = os.path.getmtime)
+
+    predNames = list()
+
+    for predFile in predFiles:
+        # Ignore the part before the QRMSE in getting this predictor's
+        # name, as well as the part before the QBLEND_DIR (including the
+        # "/").
+        afterDirStart = predFile.rindex(QBLEND_DIR) + len(QBLEND_DIR)
+        beforeRMSEStart = predFile.rindex(BEFORE_RMSE)
+        predName = predFile[afterDirStart:beforeRMSEStart]
+
+        predNames.append(predName)
         numPredictors += 1
 
     if verbose:
@@ -158,7 +173,7 @@ def main():
     if verbose:
         print("\nParsing predictor files...")
 
-    for fileName in glob.glob(QBLEND_DIR + "*" + PRED_EXT):
+    for fileName in predFiles:
         # Get the RMSE for this predictor from its file name. If this is
         # not possible, an error will be thrown.
         beforeRMSEStart = fileName.rindex(BEFORE_RMSE)
@@ -168,8 +183,8 @@ def main():
         thisQuizRMSE = float(fileName[rmseStart:rmseEnd])
         predQRMSEs[predInd] = thisQuizRMSE
 
-        # Also get the predictor's name (the part before the QRMSE).
-        predName = fileName[0:beforeRMSEStart];
+        # Also get the predictor's name, as stored earlier.
+        predName = predNames[predInd];
 
         # Parse the data in this prediction file. Make sure the number of
         # lines equals NUM_QUAL_RAT as expected.
@@ -218,9 +233,8 @@ def main():
     beta = (np.linalg.inv(xTransXPlusLam)).dot(xTransYEst)
 
     if verbose:
-        print("\nComputed an un-normalized beta, which is:")
-        print(beta)
-        print("Sum of elements in beta:", np.sum(beta))
+        print("\nComputed an un-normalized beta")
+        print("Sum of elements in un-normalized beta:", np.sum(beta))
 
     # Normalize beta so that its sum is 1 (TODO: maybe this indicates some
     # mathematical incorrectness with the current blending, or just the
@@ -229,7 +243,10 @@ def main():
 
     if verbose:
         print("\nNormalized beta:")
-        print(beta)
+
+        for i in range(len(beta)):
+            print("    * " + predNames[i] + ": " + \
+                  str('%0.3f' % beta[i, 0]))
 
     # The final list of standardized predictions is given by standardized y
     # = standardized X * beta. Here, standardized y is (y - QMEAN) /
@@ -240,8 +257,8 @@ def main():
 
     np.savetxt(outputFileName, blendedPred, '%0.3f')
 
-    if verbose:
-        print("\nSaved blended predictions to", outputFileName)
+    # Print this even if the verbose option isn't specified.
+    print("\nSaved blended predictions to", outputFileName)
 
 if __name__ == "__main__":
     main()
