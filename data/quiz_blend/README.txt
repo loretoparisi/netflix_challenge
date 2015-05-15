@@ -95,10 +95,11 @@ SVDPP_FAC_500_EPOCH_40_QRMSE_0.88639: See SVDPP_QUAL_6.833 in
 "good_predictions".
 
 
-RBM (which type?)
-----
+Regular RBM (UToronto)
+-----------------------
 
-A
+RBM_FAC_200_EPOCH_36_QRMSE_0.91109: See RBM_QUAL_4.237 in
+"good_predictions".
 
 
 Residual kNN

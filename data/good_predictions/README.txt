@@ -12,6 +12,13 @@ below.
 
 Further details on predictions in this folder:
 
+RBM_QUAL_4.237: This was generated on May 14. RBM was run on base with 200
+factorsand 36 iterations. The following parameters were used:
+    * rbm_alpha = 0.001
+    * rbm_beta = 0.002
+    * dec = 0.0001
+
+
 KNN_ON_TIMESVDPP_QUAL_7.284: This was generated on May 14 at 1:02 pm. kNN
 with MIN_COMMON = 24 and MAX_WEIGHT = 400 was carried out on the residuals
 of a Time-SVD++ run with 60 factors, 40 iterations, and 30 time bins (the
