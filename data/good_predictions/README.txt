@@ -18,6 +18,12 @@ a learning rate decay of 0.945. All other parameters were the same as those
 in TIMESVDPP_QUAL_7.749.
 
 
+SVD_QUAL_6.372: This was generated on May 15 around 7 pm. SVD was run on
+the entire dataset with 2000 factors, 80 iterations, and a learning rate
+decay of 0.945. The remaining parameters used were the same as those in 
+SVD_QUAL_6.284.
+
+
 SVDPP_QUAL_6.509: This was generated on May 15 at 3:42 pm. SVD++ was
 carried out on the entire dataset with 60 factors and 40 iterations. All
 other parameters were the same as those in SVDPP_QUAL_6.833.
