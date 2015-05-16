@@ -6,6 +6,7 @@ data/mu/*
 data/svd_predictions.dta
 data/svdpp_predictions.dta
 data/timesvdpp_predictions.dta
+data/globals_knn_combo_predictions.dta
 data/timesvdpp_cached/*.dta
 data/N.dta
 data/R.dta

@@ -10,15 +10,18 @@ OLD PREDICTIONS
 TIME-SVD++ (overfitted)
 ------------------------
 
+TIMESVDPP_FAC_100_EPOCH_60_QRMSE_0.88112: See TIMESVDPP_QUAL_7.387 in
+"good_predictions". This run did use userFacMatTime.
+
+TIMESVDPP_FAC_60_EPOCH_80_QRMSE_0.88616: See TIMESVDPP_QUAL_6.857 in
+"good_predictions".
+
 TIMESVDPP_FAC_200_EPOCH_80_QRMSE_0.88436: See TIMESVDPP_QUAL_7.046 in
 "good_predictions".
 
 
 TIME-SVD++
 -----------
-
-TIMESVDPP_FAC_100_EPOCH_60_QRMSE_0.88112: See TIMESVDPP_QUAL_7.387 in
-"good_predictions". This run did use userFacMatTime.
 
 TIMESVDPP_FAC_60_EPOCH_40_QRMSE_0.87911: See TIMESVDPP_QUAL_7.598 in
 "good_predictions". This run did use userFacMatTIme.
@@ -65,6 +68,9 @@ RBM_FAC_200_EPOCH_36_QRMSE_0.91109: See RBM_QUAL_4.237 in
 
 Residual kNN
 -------------
+
+KNN_ON_TIMESVDPP_MC_30_MW_50_FAC_60_EPOCH_80_QRMSE_0.89256: For more
+details, see KNN_ON_TIMESVDPP_QUAL_6.185 in "good_predictions".
 
 KNN_ON_TIMESVDPP_MC_24_MW_400_FAC_60_EPOCH_40_QRMSE_0.8821: For more
 details, see KNN_ON_TIMESVDPP_QUAL_7.284 in "good_predictions".
