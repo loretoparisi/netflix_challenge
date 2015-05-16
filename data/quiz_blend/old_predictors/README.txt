@@ -39,6 +39,13 @@ parameters specified in good_predictions.dta for SVDPP_QUAL_6.239.dta.
 Note that this has not been trained on probe.
 
 
+SVD (overfitted)
+-----------------
+
+SVD_FAC_2000_EPOCH_80_QRMSE_0.89078: See SVD_QUAL_6.372 in
+"good_predictions".
+
+
 Regular RBM (UToronto)
 -----------------------
 
