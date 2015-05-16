@@ -7,6 +7,13 @@ OLD PREDICTIONS
 ===========================================================================
 
 
+TIME-SVD++ (overfitted)
+------------------------
+
+TIMESVDPP_FAC_200_EPOCH_80_QRMSE_0.88436: See TIMESVDPP_QUAL_7.046 in
+"good_predictions".
+
+
 TIME-SVD++
 -----------
 

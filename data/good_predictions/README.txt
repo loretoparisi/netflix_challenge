@@ -12,9 +12,15 @@ below.
 
 Further details on predictions in this folder:
 
+TIMESVDPP_QUAL_7.046: This was generated on May 15 at 7:46 pm. Time-SVD++
+was carried out on the entire dataset with 200 factors, 80 iterations, and
+a learning rate decay of 0.945. All other parameters were the same as those
+in TIMESVDPP_QUAL_7.749.
+
+
 SVDPP_QUAL_6.509: This was generated on May 15 at 3:42 pm. SVD++ was
-carried out with 60 factors and 40 iterations. All other parameters were
-the same as those in SVDPP_QUAL_6.833.
+carried out on the entire dataset with 60 factors and 40 iterations. All
+other parameters were the same as those in SVDPP_QUAL_6.833.
 
 
 RBM_QUAL_4.522: This was generated on May 15 around 1 am. RBM was run on
