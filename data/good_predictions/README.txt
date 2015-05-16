@@ -12,6 +12,12 @@ below.
 
 Further details on predictions in this folder:
 
+TIMESVDPP_QUAL_7.860: This was generated on May 16 at 12:17 am. Time-SVD++
+was carried out with 240 factors and 40 iterations, with all other
+parameters left unchanged relative to TIMESVDPP_QUAL_7.749 (i.e. there was
+no overfitting).
+
+
 KNN_ON_TIMESVDPP_QUAL_6.185: This was generated on May 16 at 4:11 am. kNN
 with MIN_COMMON = 30 and MAX_WEIGHT = 50 was carried out on the residuals
 of TIMESVDPP_QUAL_6.857. The results actually brought down the QRMSE and

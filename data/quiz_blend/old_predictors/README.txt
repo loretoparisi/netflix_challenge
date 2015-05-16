@@ -23,6 +23,9 @@ TIMESVDPP_FAC_200_EPOCH_80_QRMSE_0.88436: See TIMESVDPP_QUAL_7.046 in
 TIME-SVD++
 -----------
 
+TIMESVDPP_FAC_240_EPOCH_40_QRMSE_0.87662: See TIMESVDPP_QUAL_7.860 in
+"good_predictions". This run did use userFacMatTime. 
+
 TIMESVDPP_FAC_60_EPOCH_40_QRMSE_0.87911: See TIMESVDPP_QUAL_7.598 in
 "good_predictions". This run did use userFacMatTIme.
 
