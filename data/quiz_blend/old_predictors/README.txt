@@ -7,17 +7,8 @@ OLD PREDICTIONS
 ===========================================================================
 
 
-TIME-SVD++ (overfitted)
-------------------------
-
-TIMESVDPP_FAC_100_EPOCH_60_QRMSE_0.88112: See TIMESVDPP_QUAL_7.387 in
-"good_predictions". This run did use userFacMatTime.
-
-TIMESVDPP_FAC_60_EPOCH_80_QRMSE_0.88616: See TIMESVDPP_QUAL_6.857 in
-"good_predictions".
-
-TIMESVDPP_FAC_200_EPOCH_80_QRMSE_0.88436: See TIMESVDPP_QUAL_7.046 in
-"good_predictions".
+TIME-SVD++ (overfit)
+---------------------
 
 
 TIME-SVD++
@@ -55,8 +46,8 @@ parameters specified in good_predictions.dta for SVDPP_QUAL_6.239.dta.
 Note that this has not been trained on probe.
 
 
-SVD (overfitted)
------------------
+SVD (overfit)
+--------------
 
 SVD_FAC_2000_EPOCH_80_QRMSE_0.89078: See SVD_QUAL_6.372 in
 "good_predictions".
@@ -75,11 +66,5 @@ Residual kNN
 KNN_ON_TIMESVDPP_MC_30_MW_50_FAC_60_EPOCH_80_QRMSE_0.89256: For more
 details, see KNN_ON_TIMESVDPP_QUAL_6.185 in "good_predictions".
 
-KNN_ON_TIMESVDPP_MC_24_MW_400_FAC_60_EPOCH_40_QRMSE_0.8821: For more
-details, see KNN_ON_TIMESVDPP_QUAL_7.284 in "good_predictions".
-
 KNN_ON_TIMESVDPP_MC_24_MW_200_FAC_60_EPOCH_40_QRMSE_0.88249: For more
 details, see KNN_ON_TIMESVDPP_QUAL_7.243 in "good_predictions".
-
-GLOBALS_KNN_GE_10_MC_24_MW_30_QRMSE_0.94117: See
-GLOBALS_KNN_COMBO_QUAL_1.075 in "good_predictions".

@@ -12,6 +12,37 @@ quiz RMSEs they achieved (added on in the same format as in the
 ADDITIONAL DETAILS
 ===========================================================================
 
+BLEND_MAY_17_QRMSE_0.87093: Added a lot of predictors back to the
+quiz_blend folder, and ran quiz-blending again. This gave the following
+coefficients:
+    * SVDPP_FAC_200_EPOCH_40: -0.137
+    * SVDPP_FAC_500_EPOCH_40: -0.064
+    * TIMESVDPP_FAC_110_EPOCH_40: -0.011
+    * TIMESVDPP_FAC_110_EPOCH_80: -0.073
+    * TIMESVDPP_FAC_20_EPOCH_40: 0.132
+    * TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40: 0.084
+    * TIMESVDPP_NO_UFMT_FAC_200_EPOCH_40: 0.129
+    * TIMESVDPP_NO_UFMT_FAC_20_EPOCH_40: -0.011
+    * TIMESVDPP_NO_UFMT_FAC_500_EPOCH_40: 0.198
+    * GLOBALS_KNN_GE_10_MC_24_MW_30: 0.010
+    * TIMESVDPP_FAC_60_EPOCH_80: -0.027
+    * SVDPP_FAC_100_EPOCH_80: -0.147
+    * SVDPP_FAC_1000_EPOCH_80: 0.016
+    * TIMESVDPP_FAC_345_EPOCH_40: 0.127
+    * TIMESVDPP_FAC_300_EPOCH_80: 0.250
+    * SVDPP_FAC_2000_EPOCH_80: 0.280
+    * KNN_ON_TIMESVDPP_MC_24_MW_200_FAC_60_EPOCH_40: 0.062
+    * KNN_ON_TIMESVDPP_MC_24_MW_400_FAC_60_EPOCH_40: 0.024
+    * SVD_FAC_1000_EPOCH_80: 0.037
+    * RBM_FAC_200_EPOCH_60: 0.116
+    * RBM_FAC_400_EPOCH_60: 0.084
+    * SVD_FAC_2000_EPOCH_80: 0.060
+    * TIMESVDPP_FAC_200_EPOCH_80: 0.117
+    * TIMESVDPP_FAC_100_EPOCH_60: -0.122
+    * KNN_ON_TIMESVDPP_MC_30_MW_50_FAC_60_EPOCH_80: 0.071
+    * TIMESVDPP_FAC_60_EPOCH_80: -0.176
+
+
 BLEND_MAY_17_QRMSE_0.87131: After fixing some bugs in the quiz blending
 script, I ran a blend on the same predictors as below. This gave the
 following coefficients:

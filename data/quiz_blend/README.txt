@@ -32,6 +32,15 @@ ADDITIONAL DETAILS
 TIME-SVD++ (overfit)
 ---------------------
 
+TIMESVDPP_FAC_60_EPOCH_80_QRMSE_0.88616: See TIMESVDPP_QUAL_6.857 in
+"good_predictions".
+
+TIMESVDPP_FAC_200_EPOCH_80_QRMSE_0.88436: See TIMESVDPP_QUAL_7.046 in
+"good_predictions".
+
+TIMESVDPP_FAC_100_EPOCH_60_QRMSE_0.88112: See TIMESVDPP_QUAL_7.387 in
+"good_predictions". This run did use userFacMatTime.
+
 TIMESVDPP_FAC_300_EPOCH_80_QRMSE_0.88275: See TIMESVDPP_QUAL_7.216 in
 "good_predictions". This run did use userFacMatTime, and was overfitted
 with an LRD of 0.945.
@@ -98,6 +107,9 @@ SVDPP_FAC_500_EPOCH_40_QRMSE_0.88639: See SVDPP_QUAL_6.833 in
 SVD (overfit)
 --------------
 
+SVD_FAC_2000_EPOCH_80_QRMSE_0.89078: See SVD_QUAL_6.372 in
+"good_predictions".
+
 SVD_FAC_1000_EPOCH_80_QRMSE_0.89161: See SVD_QUAL_6.284 in
 "good_predictions".
 
@@ -108,7 +120,6 @@ Regular RBM (UToronto)
 RBM_FAC_400_EPOCH_60_QRMSE_0.90838: See RBM_QUAL_4.522 in
 "good_predictions".
 
-
 RBM_FAC_200_EPOCH_60_QRMSE_0.90429: See RBM_QUAL_4.952 in
 "good_predictions".
 
@@ -116,4 +127,14 @@ RBM_FAC_200_EPOCH_60_QRMSE_0.90429: See RBM_QUAL_4.952 in
 Residual kNN
 -------------
 
-A
+GLOBALS_KNN_GE_10_MC_24_MW_30_QRMSE_0.94117: See
+GLOBALS_KNN_COMBO_QUAL_1.075 in "good_predictions".
+
+KNN_ON_TIMESVDPP_MC_24_MW_200_FAC_60_EPOCH_40_QRMSE_0.88249: For more
+details, see KNN_ON_TIMESVDPP_QUAL_7.243 in "good_predictions".
+
+KNN_ON_TIMESVDPP_MC_30_MW_50_FAC_60_EPOCH_80_QRMSE_0.89256: For more
+details, see KNN_ON_TIMESVDPP_QUAL_6.185 in "good_predictions".
+
+KNN_ON_TIMESVDPP_MC_24_MW_400_FAC_60_EPOCH_40_QRMSE_0.8821: For more
+details, see KNN_ON_TIMESVDPP_QUAL_7.284 in "good_predictions".
