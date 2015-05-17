@@ -12,6 +12,29 @@ quiz RMSEs they achieved (added on in the same format as in the
 ADDITIONAL DETAILS
 ===========================================================================
 
+BLEND_MAY_17_QRMSE_0.87131: After fixing some bugs in the quiz blending
+script, I ran a blend on the same predictors as below. This gave the
+following coefficients:
+    * SVDPP_FAC_200_EPOCH_40: -0.129
+    * SVDPP_FAC_500_EPOCH_40: -0.042
+    * TIMESVDPP_FAC_110_EPOCH_40: -0.013
+    * TIMESVDPP_FAC_110_EPOCH_80: -0.103
+    * TIMESVDPP_FAC_20_EPOCH_40: 0.149
+    * TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40: 0.047
+    * TIMESVDPP_NO_UFMT_FAC_200_EPOCH_40: 0.105
+    * TIMESVDPP_NO_UFMT_FAC_20_EPOCH_40: -0.002
+    * TIMESVDPP_NO_UFMT_FAC_500_EPOCH_40: 0.187
+    * TIMESVDPP_FAC_60_EPOCH_80: -0.046
+    * SVDPP_FAC_100_EPOCH_80: -0.160
+    * SVDPP_FAC_1000_EPOCH_80: 0.000
+    * TIMESVDPP_FAC_345_EPOCH_40: 0.159
+    * TIMESVDPP_FAC_300_EPOCH_80: 0.278
+    * SVDPP_FAC_2000_EPOCH_80: 0.292
+    * SVD_FAC_1000_EPOCH_80: 0.091
+    * RBM_FAC_200_EPOCH_60: 0.123
+    * RBM_FAC_400_EPOCH_60: 0.088
+
+
 BLEND_MAY_15_QRMSE_0.87278: This came from a quiz blend of the following
 predictors, all of which were trained on the entire dataset. Blending
 coefficients have been included as well.
