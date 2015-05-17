@@ -25,19 +25,21 @@ using namespace netflix; // challenge-related constants/functions.
 // The Armadillo binary file to use for training.
 // Make sure that both UM and MU data are using the same
 // "type" of training resource (eg. probe, hidden, base, etc.)
-const string TRAIN_UM = VALID_BIN;
+const string TRAIN_UM = BASE_BIN;
 
 const int NUM_FACTORS = 100;
 
 const float LEARNING_RATE = 0.001;
 
-const int NUM_ITERS = 30;
+const int NUM_ITERS = 3;
 
 // The name of the output file to use (for predictions on "qual").
 const string OUTPUT_FN = "data/rbm_cached/VALID_f100_i2_predictions.dta";
 
 // Sig-figs for output file.
 const int RATING_SIG_FIGS = 4;
+
+fcolvec temp;
 
 // Helper function that carries out "predAlgo" on the test file specified
 // by testFileName, and then puts the prediction results (for each (user,
@@ -59,18 +61,24 @@ int main(void)
     trainingSetUM.load(TRAIN_UM, arma_binary);
     cout << "Loaded training data from " << TRAIN_UM << "."
         << endl;
-
+        cout << trainingSetUM.n_cols << endl;
     RBM_New predAlgo(NUM_USERS, NUM_MOVIES,
         MEAN_RATING_TRAINING_SET, MAX_RATING, NUM_FACTORS,
         LEARNING_RATE, NUM_ITERS);
-    predAlgo.train(trainingSetUM);
+    //predAlgo.train(trainingSetUM);
+    predAlgo.new_train(trainingSetUM);
+    int iter = 20;
+    for (int j = 0; j < iter; j++)
+    {
+        std::cout << "At iteration " << j << std::endl;
+        predAlgo.update(j);
+            // Get probe RMSE.
+        float probeRMSE = computeRMSE(predAlgo, PROBE_BIN);
+        // Go through qual.dta to produce a prediction file.
+        //testOnDataFile(predAlgo, QUAL_DATA_FN, OUTPUT_FN);
+        cout << "\nProbe RMSE: " << probeRMSE << endl;
+    }
 
-    // Get probe RMSE.
-    float probeRMSE = computeRMSE(predAlgo, PROBE_BIN);
-
-    // Go through qual.dta to produce a prediction file.
-    testOnDataFile(predAlgo, QUAL_DATA_FN, OUTPUT_FN);
-    cout << "\nProbe RMSE: " << probeRMSE << endl;
 }
 
 
@@ -96,6 +104,8 @@ float computeRMSE(RBM_New &predAlgo, const string &testFileName)
 
     // The number we divide by in computing the RMSE.
     int nMinusOne = testSet.n_cols - 1;
+    temp.resize(testSet.n_cols);
+    temp.zeros();
 
     // Accumulator for RMSE (take square root at the end)
     float rmse = 0.0;
@@ -107,7 +117,13 @@ float computeRMSE(RBM_New &predAlgo, const string &testFileName)
         int date = roundToInt(testSet(DATE_ROW, i));
         float actualRating = testSet(RATING_ROW, i);
         
-        float prediction = predAlgo.predict(user, item, date, true);
+        //float prediction = predAlgo.predict(user, item, date, true);
+        float prediction;
+        if (temp[i] != 0)
+            prediction = temp[i];
+        else
+            prediction = -1;
+        prediction = predAlgo.new_predict(user, item, 0);
         
         rmse += pow(actualRating - prediction, 2.0)/nMinusOne;
     }
@@ -163,7 +179,8 @@ void testOnDataFile(RBM_New &predAlgo, const string &testFileName,
         int date = thisLineVec[2];
         
         // Output the prediction to file.
-        float prediction = predAlgo.predict(user, item, date, true);
+        //float prediction = predAlgo.predict(user, item, date, true);
+        float prediction = predAlgo.new_predict(user, item, -1);
         outputFile << setprecision(RATING_SIG_FIGS) << prediction << endl;
     }
     
