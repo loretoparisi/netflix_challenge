@@ -12,6 +12,46 @@ quiz RMSEs they achieved (added on in the same format as in the
 ADDITIONAL DETAILS
 ===========================================================================
 
+BLEND_MAY_17_QRMSE_0.87052: Added RBM result with 100, 200, and 400 factors
+and kNN on RBM for those factors. Also added SGD (GraphChi implementation
+and kNN on SGD). This RMSE is with blend constant 0.001. With 0.0014, we are
+at 0.87056, also 8.5%, rounded.
+    * SVDPP_FAC_200_EPOCH_40: -0.147
+    * SVDPP_FAC_500_EPOCH_40: -0.059
+    * TIMESVDPP_FAC_110_EPOCH_40: -0.017
+    * TIMESVDPP_FAC_110_EPOCH_80: -0.092
+    * TIMESVDPP_FAC_20_EPOCH_40: 0.124
+    * TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40: 0.095
+    * TIMESVDPP_NO_UFMT_FAC_200_EPOCH_40: 0.139
+    * TIMESVDPP_NO_UFMT_FAC_20_EPOCH_40: -0.009
+    * TIMESVDPP_NO_UFMT_FAC_500_EPOCH_40: 0.218
+    * TIMESVDPP_FAC_60_EPOCH_80: -0.017
+    * SVDPP_FAC_1000_EPOCH_80: -0.025
+    * SVDPP_FAC_100_EPOCH_80: -0.147
+    * SVDPP_FAC_2000_EPOCH_80: 0.302
+    * TIMESVDPP_FAC_300_EPOCH_80: 0.266
+    * TIMESVDPP_FAC_345_EPOCH_40: 0.138
+    * KNN_ON_RBM_FAC_200_EPOCH_50_MC_30_MW_400: 0.004
+    * KNN_ON_RBM_FAC_200_EPOCH_50_MC_16_MW_400: 0.055
+    * RBM_FAC_200_EPOCH_60: 0.087
+    * RBM_FAC_400_EPOCH_60: 0.063
+    * SVD_FAC_1000_EPOCH_80: 0.026
+    * KNN_ON_RBM_FACT_200_EPOCH_50_MC_30_MW_50: 0.020
+    * SGD_FAC_20_EPOCH_30: -0.010
+    * RBM_FAC_200_EPOCH_57: -0.001
+    * GLOBALS_KNN_GE_10_MC_24_MW_30: 0.017
+    * KNN_ON_TIMESVDPP_MC_24_MW_200_FAC_60_EPOCH_40: 0.056
+    * KNN_ON_TIMESVDPP_MC_24_MW_400_FAC_60_EPOCH_40: 0.009
+    * KNN_ON_TIMESVDPP_MC_30_MW_50_FAC_60_EPOCH_80: 0.037
+    * SVD_FAC_2000_EPOCH_80: 0.062
+    * TIMESVDPP_FAC_100_EPOCH_60: -0.137
+    * TIMESVDPP_FAC_200_EPOCH_80: 0.121
+    * TIMESVDPP_FAC_60_EPOCH_80: -0.161
+    * SGD_FAC_20_EPOCH_90: 0.002
+    * KNN_ON_RBM_FAC_100_EPOCH_38_MC_30_MW_50: 0.038
+    * KNN_ON_SGD_FACT_20_EPOCH_90_MC_30_MW_50: -0.031
+
+
 BLEND_MAY_17_QRMSE_0.87093: Added a lot of predictors back to the
 quiz_blend folder, and ran quiz-blending again. This gave the following
 coefficients:

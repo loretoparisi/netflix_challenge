@@ -123,6 +123,20 @@ RBM_FAC_400_EPOCH_60_QRMSE_0.90838: See RBM_QUAL_4.522 in
 RBM_FAC_200_EPOCH_60_QRMSE_0.90429: See RBM_QUAL_4.952 in
 "good_predictions".
 
+RBM_FAC_200_EPOCH_57_QRMSE_0.91735: See RBM_QUAL_3.579 in
+"good_predictions".
+
+
+SGD (GraphChi)
+--------------
+
+SGD_FAC_20_EPOCH_30_QRMSE_1.00199: See SGD_QUAL_-5.317 in
+"good_predictions".
+
+
+SGD_FAC_20_EPOCH_90_QRMSE_1.00147: See SGD_QUAL_-5.262 in
+"good_predictions".
+
 
 Residual kNN
 -------------
@@ -138,3 +152,19 @@ details, see KNN_ON_TIMESVDPP_QUAL_6.185 in "good_predictions".
 
 KNN_ON_TIMESVDPP_MC_24_MW_400_FAC_60_EPOCH_40_QRMSE_0.8821: For more
 details, see KNN_ON_TIMESVDPP_QUAL_7.284 in "good_predictions".
+
+KNN_ON_RBM_FAC_100_EPOCH_38_MC_30_MW_50_QRMSE_0.91438: For more
+details, see KNN_ON_RBM_QUAL_3.891 in "good_predictions".
+
+KNN_ON_RBM_FACT_200_EPOCH_50_MC_30_MW_50_QRMSE_0.91562: For more
+details, see KNN_ON_RBM_QUAL_3.760 in "good_predictions".
+
+KNN_ON_RBM_FAC_200_EPOCH_50_MC_16_MW_400_QRMSE_0.94395: For more
+details, see KNN_ON_RBM_QUAL_0.783 in "good_predictions".
+
+KNN_ON_RBM_FAC_200_EPOCH_50_MC_30_MW_400_QRMSE_0.91818: For more
+details, see KNN_ON_RBM_QUAL_3.492 in "good_predictions".
+
+KNN_ON_SGD_FACT_20_EPOCH_90_MC_30_MW_50_QRMSE_0.956: For more
+details, see KNN_ON_SGD_QUAL_-0.483 in "good_predictions".
+
