@@ -131,6 +131,24 @@ factors and 57 iterations. The following parameters were used:
     * rbm_beta = 0.002
     * dec = 0.001
 
+RBM_QUAL_4.710: This was generated on May 19. RBM was run on all with 300
+factors and 80 iterations. The following parameters were used:
+    * rbm_alpha = 0.001
+    * rbm_beta = 0.002
+    * dec = 0.002
+
+RBM_QUAL_4.89: This was generated on May 20. RBM was run on all with 150
+factors and 120 iterations. The following parameters were used:
+    * rbm_alpha = 0.001
+    * rbm_beta = 0.002
+    * dec = 0.002
+
+RBM_QUAL_4.64: This was generated on May 20. RBM was run on all with 250
+factors and 120 iterations. The following parameters were used:
+    * rbm_alpha = 0.001
+    * rbm_beta = 0.002
+    * dec = 0.002
+
 SGD_QUAL_-5.317: This was generated on May 16. It was run with 20 factors
 and 30 iterations. The following parameters were used:
     * sgd_lambda = 0.001
@@ -138,6 +156,11 @@ and 30 iterations. The following parameters were used:
 SGD_QUAL_-5.262: This was generated on May 16. It was run with 20 factors
 and 90 iterations. The following parameters were used:
     * sgd_lambda = 0.001
+
+SGD_QUAL_-0.103: This was generated on May 18. It was run with 100 factors
+and 90 iterations. The following parameters were used:
+    * sgd_lambda = 0.001
+
 
 KNN_ON_TIMESVDPP_QUAL_7.284: This was generated on May 14 at 1:02 pm. kNN
 with MIN_COMMON = 24 and MAX_WEIGHT = 400 was carried out on the residuals

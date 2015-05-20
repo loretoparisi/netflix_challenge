@@ -126,6 +126,14 @@ RBM_FAC_200_EPOCH_60_QRMSE_0.90429: See RBM_QUAL_4.952 in
 RBM_FAC_200_EPOCH_57_QRMSE_0.91735: See RBM_QUAL_3.579 in
 "good_predictions".
 
+RBM_FAC_300_EPOCH_80_QRMSE_0.90637: See RBM_QUAL_4.710 in
+"good_predictions".
+
+RBM_FAC_150_EPOCH_120_QRMSE_0.90484: See RBM_QUAL_4.89 in
+"good_predictions".
+
+RBM_FAC_250_EPOCH_120_QRMSE_0.90725: See RBM_QUAL_4.64 in
+"good_predictions".
 
 SGD (GraphChi)
 --------------
@@ -133,8 +141,10 @@ SGD (GraphChi)
 SGD_FAC_20_EPOCH_30_QRMSE_1.00199: See SGD_QUAL_-5.317 in
 "good_predictions".
 
-
 SGD_FAC_20_EPOCH_90_QRMSE_1.00147: See SGD_QUAL_-5.262 in
+"good_predictions".
+
+SGD_FAC_100_EPOCH_90_QRMSE_1.04922: See SGD_QUAL_-0.103 in
 "good_predictions".
 
 
