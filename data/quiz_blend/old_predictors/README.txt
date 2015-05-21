@@ -63,6 +63,9 @@ RBM_FAC_200_EPOCH_36_QRMSE_0.91109: See RBM_QUAL_4.237 in
 Residual kNN
 -------------
 
+GLOBALS_KNN_GE_6_MC_30_MW_80_QRMSE_0.94725: For more details, see
+KNN_ON_GLOBALS_QUAL_0.436 in "good_predictions".
+
 KNN_ON_TIMESVDPP_MC_24_MW_200_FAC_30_EPOCH_80_QRMSE_0.90103: For more
 details, see KNN_ON_TIMESVDPP_QUAL_5.294 in "good_predictions".
 

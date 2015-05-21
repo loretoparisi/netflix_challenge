@@ -25,8 +25,8 @@ using namespace netflix; // challenge-related constants/functions.
 // The Armadillo binary file to use for training.
 // Make sure that both UM and MU data are using the same
 // "type" of training resource (eg. probe, hidden, base, etc.)
-const string TRAIN_UM = BASE_BIN;
-const string TRAIN_MU = MU_BASE_BIN;
+const string TRAIN_UM = ALL_TRAIN_BIN;
+const string TRAIN_MU = MU_ALL_TRAIN_BIN;
 
 // The "level" of global effect we want to train on.
 // (See globals_README in "data" dir for more detail)

@@ -12,6 +12,11 @@ below.
 
 Further details on predictions in this folder:
 
+KNN_ON_GLOBALS_QUAL_0.436: This was generated on May 20 at 10:30 pm. kNN
+with MIN_COMMON = 30 and MAX_WEIGHT = 80 was run on the residuals of the
+unbounded predictions of a 6-level global effects run.
+
+
 KNN_ON_TIMESVDPP_QUAL_5.294: This was generated on May 20 at 5:00 pm. kNN
 with MIN_COMMON = 24 and MAX_WEIGHT = 200 was run on the residuals of the
 unbounded predictions made by TIMESVDPP_QUAL_5.587.
