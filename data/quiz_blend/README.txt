@@ -32,6 +32,9 @@ ADDITIONAL DETAILS
 TIME-SVD++ (overfit)
 ---------------------
 
+TIMESVDPP_FAC_30_EPOCH_80_QRMSE_0.89825: See TIMESVDPP_QUAL_5.587 in
+"good_predictions".
+
 TIMESVDPP_FAC_60_EPOCH_80_QRMSE_0.88616: See TIMESVDPP_QUAL_6.857 in
 "good_predictions".
 

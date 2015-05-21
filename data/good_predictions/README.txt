@@ -12,6 +12,26 @@ below.
 
 Further details on predictions in this folder:
 
+KNN_ON_TIMESVDPP_QUAL_5.294: This was generated on May 20 at 5:00 pm. kNN
+with MIN_COMMON = 24 and MAX_WEIGHT = 200 was run on the residuals of the
+unbounded predictions made by TIMESVDPP_QUAL_5.587.
+
+
+KNN_ON_TIMESVDPP_QUAL_4.994: This was generated on May 20 at 4:36 pm. kNN
+with MIN_COMMON = 30 and MAX_WEIGHT = 50 was run on the residuals of the
+unbounded predictions made by TIMESVDPP_QUAL_5.587.
+
+
+TIMESVDPP_QUAL_5.587: This was generated on May 20 at 4:19 pm. Time-SVD++
+was carried out with 30 factors, 80 iterations, and 30 time bins, using
+userFacMatTime. A learning rate decay of 0.945 was applied, and *all*
+regularization parameters were reduced by a factor of 1.05, relative to
+TIMESVDPP_QUAL_7.749. All other parameters (i.e. learning rates) have the
+same value as those in TIMESVDPP_QUAL_7.749. Note: This run was
+post-processed with kNN, and so I had to bound its predictions before
+submitting them to the scoreboard.
+
+
 TIMESVDPP_QUAL_7.860: This was generated on May 16 at 12:17 am. Time-SVD++
 was carried out with 240 factors and 40 iterations, with all other
 parameters left unchanged relative to TIMESVDPP_QUAL_7.749 (i.e. there was
