@@ -77,9 +77,8 @@ def usage(progName):
 # ratings are in quiz. So, we'll instead take a different approach. We'll
 # approximate X^T * X by using the array X of predictors' predictions on
 # the entire "qual" set (i.e. X is an N_L x p matrix). For each predictor,
-# we'll subtract off the mean rating for that predictor and divide by
-# sqrt(N_L) (to standardize each predictor), so we should get the same
-# result.
+# we'll subtract off the mean quiz rating and then divide by sqrt(N_L) (to
+# standardize each predictor), so we should get the same result.
 #
 # To estimate X^T * y, which is a p x 1 column vector, we use the fact that
 # the jth element in this column vector (j in [0, p-1]) is given by:
@@ -201,9 +200,9 @@ def main():
 
         assert lineNum == NUM_QUAL_RAT
 
-        # Standardize this column by subtracting off its mean and dividing
-        # by sqrt(N_L)
-        X[:, predInd] -= np.mean(X[:, predInd])
+        # Standardize this column by subtracting off the quiz mean and
+        # dividing by sqrt(N_L)
+        X[:, predInd] -= QMEAN
         X[:, predInd] /= math.sqrt(NUM_QUAL_RAT)
 
         # Store sum_{u} x_{uj}^2 for this predictor, post-standardization.

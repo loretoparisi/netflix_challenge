@@ -138,6 +138,7 @@ RBM_FAC_150_EPOCH_120_QRMSE_0.90484: See RBM_QUAL_4.89 in
 RBM_FAC_250_EPOCH_120_QRMSE_0.90725: See RBM_QUAL_4.64 in
 "good_predictions".
 
+
 SGD (GraphChi)
 --------------
 
@@ -149,6 +150,12 @@ SGD_FAC_20_EPOCH_90_QRMSE_1.00147: See SGD_QUAL_-5.262 in
 
 SGD_FAC_100_EPOCH_90_QRMSE_1.04922: See SGD_QUAL_-0.103 in
 "good_predictions".
+
+
+Global Effects
+---------------
+
+GLOBALS_GE_10_QRMSE_0.96283: See GLOBALS_QUAL_-1.201 in "good_predictions".
 
 
 Residual kNN

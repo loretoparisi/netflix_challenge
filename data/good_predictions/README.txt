@@ -12,6 +12,10 @@ below.
 
 Further details on predictions in this folder:
 
+GLOBALS_QUAL_-1.201: This was generated on May 20 at 11:10 pm. Global
+effects was run with 10 levels on the entire dataset.
+
+
 KNN_ON_GLOBALS_QUAL_0.436: This was generated on May 20 at 10:30 pm. kNN
 with MIN_COMMON = 30 and MAX_WEIGHT = 80 was run on the residuals of the
 unbounded predictions of a 6-level global effects run.
