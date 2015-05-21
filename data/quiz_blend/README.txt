@@ -188,3 +188,15 @@ details, see KNN_ON_RBM_QUAL_3.492 in "good_predictions".
 KNN_ON_SGD_FACT_20_EPOCH_90_MC_30_MW_50_QRMSE_0.956: For more
 details, see KNN_ON_SGD_QUAL_-0.483 in "good_predictions".
 
+
+Blended Predictions
+--------------------
+
+Some of the old blended predictions weren't trained on probe, so they added
+some variety (in the form of negative coefficients) to the blend.
+
+BLEND_MAY_03_QRMSE_0.88427: See corresponding entry in
+"blended_predictions".
+
+BLEND_MAY_07_QRMSE_0.87651: See corresponding entry in
+"blended_predictions".
