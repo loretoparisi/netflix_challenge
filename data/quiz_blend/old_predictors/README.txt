@@ -10,6 +10,9 @@ OLD PREDICTIONS
 TIME-SVD++ (overfit)
 ---------------------
 
+TIMESVDPP_FAC_150_EPOCH_80_QRMSE_0.88563: See TIMESVDPP_QUAL_6.913 in
+"good_predictions".
+
 
 TIME-SVD++
 -----------
