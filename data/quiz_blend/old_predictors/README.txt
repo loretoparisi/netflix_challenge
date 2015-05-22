@@ -10,6 +10,9 @@ OLD PREDICTIONS
 TIME-SVD++ (overfit)
 ---------------------
 
+TIMESVDPP_NO_UFMT_FAC_650_EPOCH_80_QRMSE_0.87842: See TIMESVDPP_QUAL_7.671
+in "good_predictions".
+
 TIMESVDPP_FAC_150_EPOCH_80_QRMSE_0.88563: See TIMESVDPP_QUAL_6.913 in
 "good_predictions".
 
@@ -65,6 +68,9 @@ RBM_FAC_200_EPOCH_36_QRMSE_0.91109: See RBM_QUAL_4.237 in
 
 Residual kNN
 -------------
+
+KNN_ON_RBM_FAC_400_EPOCH_120_MC_30_MW_50_QRMSE_0.91653: For more details,
+see KNN_ON_RBM_QUAL_3.665 in "good_predictions".
 
 GLOBALS_KNN_GE_6_MC_30_MW_80_QRMSE_0.94725: For more details, see
 KNN_ON_GLOBALS_QUAL_0.436 in "good_predictions".
