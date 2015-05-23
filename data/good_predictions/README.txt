@@ -112,6 +112,15 @@ SVDPP_QUAL_6.509: This was generated on May 15 at 3:42 pm. SVD++ was
 carried out on the entire dataset with 60 factors and 40 iterations. All
 other parameters were the same as those in SVDPP_QUAL_6.833.
 
+KNN_ON_RBM_QUAL_4.015: This was generated on May 22.  KNN was
+run on RBM, which was run on the entire dataset with 400 factors and 120
+iterations. The remaining parameters used were:
+    * alpha = 0.001
+    * beta = 0.002
+    * dec = 0.002
+    * min_common = 16
+    * max_weight = 400
+
 KNN_ON_RBM_QUAL_3.665: This was generated on May 21 around 3 am.  KNN was
 run on RBM, which was run on the entire dataset with 400 factors and 120
 iterations. The remaining parameters used were:
@@ -178,6 +187,12 @@ learning rate decay of 0.95. The following LRs/RFs were used:
         * SVD_GAMMA_Q_I = 0.007
         * SVD_GAMMA_P_U = 0.007
 
+RBM_QUAL_3.327: This was generated on May 22. RBM was run on all with 30
+factors and 120 iterations. The following parameters were used:
+    * rbm_alpha = 0.001
+    * rbm_beta = 0.002
+    * dec = 0.003
+
 RBM_QUAL_4.116: This was generated on May 22. RBM was run on all with 400
 factors and 120 iterations. The parameters were the same as those in
 RBM_QUAL_4.597.
@@ -231,6 +246,10 @@ factors and 120 iterations. The following parameters were used:
     * rbm_alpha = 0.001
     * rbm_beta = 0.002
     * dec = 0.002
+
+SGD_QUAL_-5.289: This was generated on May 20. It was run with 30 factors
+and 70 iterations. The following parameters were used:
+    * sgd_lambda = 0.002
 
 SGD_QUAL_-5.317: This was generated on May 16. It was run with 20 factors
 and 30 iterations. The following parameters were used:
