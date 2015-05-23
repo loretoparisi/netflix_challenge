@@ -45,6 +45,12 @@ QMEAN = 3.674
 # The variance of the quiz set, i.e. 1/N_Q sum_u (y_u - yMean)^2
 QVAR = 1.274
 
+# The minimum and maximum ratings that we'll allow in the outputs. These
+# were chosen by just trying various combinations and submitting them to
+# the scoreboard.
+MIN_BLEND_RATING = 1.0
+MAX_BLEND_RATING = 5.0
+
 # Separate note: The number of ratings in quiz is referred to as N_Q in the
 # code below and the comments above.
 
@@ -250,10 +256,19 @@ def main():
     blendedPred *= math.sqrt(NUM_QUAL_RAT)
     blendedPred += QMEAN
 
+    # Clip the blended prediction values
+    blendedPred = np.clip(blendedPred, MIN_BLEND_RATING, MAX_BLEND_RATING)
+
+    if verbose:
+        print("\nClipped blended predictions to range [" +
+              str(MIN_BLEND_RATING) + ", " + str(MAX_BLEND_RATING) + "]")
+
+
+    # Save to the specified output file.
     np.savetxt(outputFileName, blendedPred, '%0.3f')
 
-    # Print this even if the verbose option isn't specified.
-    print("\nSaved blended predictions to", outputFileName)
+    print("Saved blended predictions to", outputFileName)
+
 
 if __name__ == "__main__":
     main()
