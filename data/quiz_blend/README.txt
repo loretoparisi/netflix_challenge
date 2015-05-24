@@ -109,9 +109,11 @@ have been too significant (unfortunately).
 SVD++ (not overfit)
 --------------------
 
-SVDPP_FAC_200_EPOCH_25_QRMSE_0.89204: See SVDPP_QUAL_6.239.dta in
-"good_predictions". Note that this predictor has **not** been trained on
-probe.
+SVDPP_FAC_750_EPOCH_25_QRMSE_0.89352: See SVDPP_QUAL_6.084 in
+"good_predictions". Note that this predictor was **not** trained on probe.
+
+SVDPP_FAC_200_EPOCH_25_QRMSE_0.89204: See SVDPP_QUAL_6.239 in
+"good_predictions". Note that this predictor was **not** trained on probe.
 
 SVDPP_FAC_500_EPOCH_40_QRMSE_0.88639: See SVDPP_QUAL_6.833 in
 "good_predictions".
@@ -127,6 +129,8 @@ SVD_FAC_2000_EPOCH_80_QRMSE_0.89078: See SVD_QUAL_6.372 in
 SVD (not overfit)
 ------------------
 
+SVD_FAC_1000_EPOCH_25_QRMSE_0.91179: See SVD_QUAL_4.163 in
+"good_predictions".
 
 
 
