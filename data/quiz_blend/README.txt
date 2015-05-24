@@ -123,8 +123,11 @@ SVD (overfit)
 SVD_FAC_2000_EPOCH_80_QRMSE_0.89078: See SVD_QUAL_6.372 in
 "good_predictions".
 
-SVD_FAC_1000_EPOCH_80_QRMSE_0.89161: See SVD_QUAL_6.284 in
-"good_predictions".
+
+SVD (not overfit)
+------------------
+
+
 
 
 Regular RBM (UToronto)

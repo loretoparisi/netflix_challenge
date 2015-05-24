@@ -166,9 +166,9 @@ def main():
         print("Using predictors in", QBLEND_DIR)
 
     # Find how many prediction files there are in the quiz blend directory,
-    # and store their names (in order of modification time).
+    # and store their names (in alphabetical order).
     predFiles = glob.glob(QBLEND_DIR + "*" + PRED_EXT)
-    predFiles.sort(key = os.path.getmtime)
+    predFiles = sorted(predFiles)
 
     predNames = list()
 
