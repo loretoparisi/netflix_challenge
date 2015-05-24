@@ -247,8 +247,8 @@ def main():
 
     if verbose:
         print("Finished parsing predictor files.")
-        # print("\nDisplaying predictors' correlation heatmap.")
-        # plotCorrHeatmap(X, predNames)
+        print("\nDisplaying predictors' correlation heatmap.")
+        plotCorrHeatmap(X, predNames)
 
     # Compute (X^T * X + LAMBDA * I)
     xTransXPlusLam = (X.T).dot(X) + LAMBDA * np.identity(numPredictors)
