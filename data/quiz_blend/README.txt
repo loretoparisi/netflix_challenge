@@ -130,6 +130,9 @@ SVD_FAC_1000_EPOCH_80_QRMSE_0.89161: See SVD_QUAL_6.284 in
 Regular RBM (UToronto)
 -----------------------
 
+RBM_FAC_50_EPOCH_60_QRMSE_0.9184: See RBM_QUAL_3.469
+in "good_predictions".
+
 RBM_FAC_200_EPOCH_36_QRMSE_0.91109: This was an older prediction Sharon
 e-mailed to me (Laksh), which has seven decimal places or so since it came
 from an early run of RBM. I think this run was only used "base" as its
@@ -175,6 +178,9 @@ RBM_FAC_250_EPOCH_120_QRMSE_0.90725: See RBM_QUAL_4.64 in
 SGD (GraphChi)
 --------------
 
+SGD_FAC_50_EPOCH_30_QRMSE_1.01966: See SGD_QUAL_-7.175 in
+"good_predictions".
+
 SGD_FAC_30_EPOCH_70_QRMSE_1.00172: See SGD_QUAL_-5.289 in
 "good_predictions".
 
@@ -208,6 +214,9 @@ details, see KNN_ON_TIMESVDPP_QUAL_6.185 in "good_predictions".
 
 KNN_ON_TIMESVDPP_MC_24_MW_400_FAC_60_EPOCH_40_QRMSE_0.8821: For more
 details, see KNN_ON_TIMESVDPP_QUAL_7.284 in "good_predictions".
+
+KNN_ON_RBM_FAC_50_EPOCH_60_MC_16_MW_400_QRMSE_0.91493: For more
+details, see KNN_ON_RBM_QUAL_3.833 in "good_predictions".
 
 KNN_ON_RBM_FAC_400_EPOCH_120_MC_16_MW_400_QRMSE_0.9132: For more
 details, see KNN_ON_RBM_QUAL_4.015 in "good_predictions".

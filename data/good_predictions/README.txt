@@ -119,6 +119,24 @@ SVDPP_QUAL_6.509: This was generated on May 15 at 3:42 pm. SVD++ was
 carried out on the entire dataset with 60 factors and 40 iterations. All
 other parameters were the same as those in SVDPP_QUAL_6.833.
 
+KNN_ON_RBM_QUAL_3.833: This was generated on May 23.  KNN was
+run on RBM, which was run on the BASE set with 50 factors and 60
+iterations. The remaining parameters used were:
+    * alpha = 0.001
+    * beta = 0.002
+    * dec = 0.001
+    * min_common = 16
+    * max_weight = 400
+
+KNN_ON_RBM_QUAL_3.346: This was generated on May 23.  KNN was
+run on RBM, which was run on the BASE set with 50 factors and 60
+iterations. The remaining parameters used were:
+    * alpha = 0.001
+    * beta = 0.002
+    * dec = 0.001
+    * min_common = 50
+    * max_weight = 800
+
 KNN_ON_RBM_QUAL_4.015: This was generated on May 22.  KNN was
 run on RBM, which was run on the entire dataset with 400 factors and 120
 iterations. The remaining parameters used were:
@@ -194,6 +212,13 @@ learning rate decay of 0.95. The following LRs/RFs were used:
         * SVD_GAMMA_Q_I = 0.007
         * SVD_GAMMA_P_U = 0.007
 
+RBM_QUAL_3.469: This is generated on May 23. This run
+was run on BASE. RBM was run on all with 50
+factors and 60 iterations. The following parameters were used:
+    * rbm_alpha = 0.001
+    * rbm_beta = 0.002
+    * iter = 60, dec = 0.0001, factor = 50
+
 RBM_QUAL_3.327: This was generated on May 22. RBM was run on all with 30
 factors and 120 iterations. The following parameters were used:
     * rbm_alpha = 0.001
@@ -253,6 +278,12 @@ factors and 120 iterations. The following parameters were used:
     * rbm_alpha = 0.001
     * rbm_beta = 0.002
     * dec = 0.002
+
+SGD_QUAL_-7.175: This was generated on May 23. It was run with 50 factors
+and 30 iterations. It was run on BASE only. The following parameters were
+used:
+    * sgd_lambda = 0.001
+    * sgd_gamma  = 0.001
 
 SGD_QUAL_-5.289: This was generated on May 20. It was run with 30 factors
 and 70 iterations. The following parameters were used:

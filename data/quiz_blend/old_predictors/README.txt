@@ -66,6 +66,9 @@ Regular RBM (UToronto)
 Residual kNN
 -------------
 
+KNN_ON_RBM_FAC_50_EPOCH_60_MC_50_MW_800_QRMSE_0.91957: For more details,
+see KNN_ON_RBM_QUAL_3.346 in "good_predictions".
+
 KNN_ON_RBM_FAC_400_EPOCH_120_MC_30_MW_50_QRMSE_0.91653: For more details,
 see KNN_ON_RBM_QUAL_3.665 in "good_predictions".
 
