@@ -15,10 +15,15 @@
 #
 
 import numpy as np
+import matplotlib.pyplot as plt
 import glob
 import os
 import math
 import sys
+
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams['xtick.labelsize'] = 7
+plt.rcParams['ytick.labelsize'] = 7
 
 # Constants
 
@@ -63,6 +68,26 @@ def usage(progName):
           "optional arguments:\n" +
           "  -v, --verbose\tprint additional status outputs");
     sys.exit(1)
+
+
+# Plots the correlation matrix, to see if any predictors are too highly
+# correlated. Note that each column of X represents a prediction. The name
+# of the prediction corresponding to the ith column in X will be given by
+# predNames[i].
+def plotCorrHeatmap(X, predNames):
+    # Each column represents a prediction, so rowvar = 0.
+    corr = np.corrcoef(X, rowvar = 0)
+
+    # Plot the heat map. Black = low correlation; white = high correlation.
+    fig = plt.figure(facecolor='w')
+
+    plt.imshow(corr, interpolation="nearest", cmap=plt.cm.hot)
+    plt.xticks(np.arange(len(predNames)), predNames, rotation=90)
+    plt.yticks(np.arange(len(predNames)), predNames)
+    plt.title("Predictors' Correlation Matrix")
+    plt.colorbar()
+
+    plt.show()
 
 
 # The main quiz blending function. Our approach is as follows:
@@ -222,6 +247,8 @@ def main():
 
     if verbose:
         print("Finished parsing predictor files.")
+        # print("\nDisplaying predictors' correlation heatmap.")
+        # plotCorrHeatmap(X, predNames)
 
     # Compute (X^T * X + LAMBDA * I)
     xTransXPlusLam = (X.T).dot(X) + LAMBDA * np.identity(numPredictors)
