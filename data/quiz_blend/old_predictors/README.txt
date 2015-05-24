@@ -20,8 +20,14 @@ TIMESVDPP_FAC_150_EPOCH_80_QRMSE_0.88563: See TIMESVDPP_QUAL_6.913 in
 "good_predictions".
 
 
-TIME-SVD++
------------
+TIME-SVD++ (not overfit)
+-------------------------
+
+TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40_QRMSE_0.8796: See TIMESVDPP_QUAL_7.547
+in "good_predictions". This run did not use userFacMatTime.
+
+TIMESVDPP_FAC_110_EPOCH_40_QRMSE_0.87752: See TIMESVDPP_QUAL_7.765 in
+"good_predictions". This run did use userFacMatTime.
 
 TIMESVDPP_FAC_240_EPOCH_40_QRMSE_0.87662: See TIMESVDPP_QUAL_7.860 in
 "good_predictions". This run did use userFacMatTime. 
@@ -38,6 +44,9 @@ probe as well, and did use userFacMatTime.
 
 SVD++
 ------
+
+SVDPP_FAC_200_EPOCH_40_QRMSE_0.88698: See SVDPP_QUAL_6.771 in
+"good_predictions".
 
 SVDPP_FAC_60_EPOCH_40_QRMSE_0.88947: See SVDPP_QUAL_6.509 in
 "good_predictions".

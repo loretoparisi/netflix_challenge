@@ -79,14 +79,8 @@ TIMESVDPP_FAC_345_EPOCH_40_QRMSE_0.87629: See TIMESVDPP_QUAL_7.895 in
 "good_predictions". This run did use userFacMatTime, and took up almost the
 full 32 GB of RAM on Walker's computers (~300 MB left over).
 
-TIMESVDPP_FAC_110_EPOCH_40_QRMSE_0.87752: See TIMESVDPP_QUAL_7.765 in
-"good_predictions". This run did use userFacMatTime.
-
 TIMESVDPP_FAC_20_EPOCH_40_QRMSE_0.88668: See TIMESVDPP_QUAL_6.803 in
 "good_predictions". This run did use userFacMatTime.
-
-TIMESVDPP_NO_UFMT_FAC_100_EPOCH_40_QRMSE_0.8796: See TIMESVDPP_QUAL_7.547
-in "good_predictions". This run did not use userFacMatTime.
 
 TIMESVDPP_NO_UFMT_FAC_200_EPOCH_40_QRMSE_0.8789: See TIMESVDPP_QUAL_7.620
 in "good_predictions". This run did not use userFacMatTime.
@@ -118,9 +112,6 @@ SVD++ (not overfit)
 SVDPP_FAC_200_EPOCH_25_QRMSE_0.89204: See SVDPP_QUAL_6.239.dta in
 "good_predictions". Note that this predictor has **not** been trained on
 probe.
-
-SVDPP_FAC_200_EPOCH_40_QRMSE_0.88698: See SVDPP_QUAL_6.771 in
-"good_predictions".
 
 SVDPP_FAC_500_EPOCH_40_QRMSE_0.88639: See SVDPP_QUAL_6.833 in
 "good_predictions".
