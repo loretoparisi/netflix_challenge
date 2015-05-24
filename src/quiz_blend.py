@@ -78,10 +78,12 @@ def plotCorrHeatmap(X, predNames):
     # Each column represents a prediction, so rowvar = 0.
     corr = np.corrcoef(X, rowvar = 0)
 
-    # Plot the heat map. Black = low correlation; white = high correlation.
+    # Plot the heat map. Black = low correlation (i.e. 0.85 or below);
+    # white = high correlation (1.00).
     fig = plt.figure(facecolor='w')
+    plt.imshow(corr, interpolation="nearest", cmap=plt.cm.hot,
+               vmin=0.85, vmax=1.00)
 
-    plt.imshow(corr, interpolation="nearest", cmap=plt.cm.hot)
     plt.xticks(np.arange(len(predNames)), predNames, rotation=90)
     plt.yticks(np.arange(len(predNames)), predNames)
     plt.title("Predictors' Correlation Matrix")

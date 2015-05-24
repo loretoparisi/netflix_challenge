@@ -65,6 +65,9 @@ SVD_FAC_2000_EPOCH_80_QRMSE_0.89078: See SVD_QUAL_6.372 in
 Regular RBM (UToronto)
 -----------------------
 
+RBM_FAC_400_EPOCH_120_QRMSE_0.91224: See RBM_QUAL_4.116
+in "good_predictions".
+
 
 Residual kNN
 -------------
