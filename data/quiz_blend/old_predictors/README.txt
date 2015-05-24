@@ -65,7 +65,8 @@ SVD_FAC_1000_EPOCH_80_QRMSE_0.89161: See SVD_QUAL_6.284 in
 SVD (not overfit)
 ------------------
 
-
+SVD_FAC_500_EPOCH_30_QRMSE_0.91206: See SVD_QUAL_4.135 in
+"good_predictions".
 
 
 Regular RBM (UToronto)
