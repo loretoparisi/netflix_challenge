@@ -12,6 +12,12 @@ below.
 
 Further details on predictions in this folder:
 
+SVD_QUAL_3.779: This was generated on May 24 at 3:17 am. SVD was run on the
+entire dataset **except probe**, with 80 factors, 30 iterations, and a
+learning rate decay of 0.90. All other parameters (LRs/RFs) were the same
+as those in SVD_QUAL_6.284. 
+
+
 SVD_QUAL_4.135: This was generated on May 24 at 2:54 am. SVD was run on the
 entire dataset **except probe**, with 500 factors, 30 iterations, and a
 learning rate decay of 0.90. All other parameters (LRs/RFs) were the same
