@@ -35,24 +35,12 @@ This was generated using the parameters specified in "good_predictions" for
 TIMESVDPP_QUAL_7.749.dta. Note that this predictor has been trained on
 probe as well, and did use userFacMatTime.
 
-TIMESVDPP_FAC_130_EPOCH_30_QRMSE_0.88515: this is SVD++^(3), generated
-using the parameters specified in "good_predictions" for
-TIMESVDPP_QUAL_6.963.dta. Note that this has not been trained on probe.
-
-TIMESVDPP_FAC_500_EPOCH_30_QRMSE_0.88572: this is SVD++^(1), generated
-using the parameters specified in "good_predictions" for
-TIMESVDPP_QUAL_6.904.dta. Note that this has not been trained on probe.
-
 
 SVD++
 ------
 
 SVDPP_FAC_60_EPOCH_40_QRMSE_0.88947: See SVDPP_QUAL_6.509 in
 "good_predictions".
-
-SVDPP_FAC_200_EPOCH_25_QRMSE_0.89204: this is SVD++, generated using the
-parameters specified in good_predictions.dta for SVDPP_QUAL_6.239.dta.
-Note that this has not been trained on probe.
 
 
 SVD (overfit)
@@ -64,9 +52,6 @@ SVD_FAC_2000_EPOCH_80_QRMSE_0.89078: See SVD_QUAL_6.372 in
 
 Regular RBM (UToronto)
 -----------------------
-
-RBM_FAC_200_EPOCH_36_QRMSE_0.91109: See RBM_QUAL_4.237 in
-"good_predictions".
 
 
 Residual kNN

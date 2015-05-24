@@ -66,6 +66,15 @@ TIMESVDPP_FAC_60_EPOCH_80_QRMSE_0.87924: See TIMESVDPP_QUAL_7.585 in
 TIME-SVD++ (not overfit)
 -------------------------
 
+TIMESVDPP_FAC_130_EPOCH_30_QRMSE_0.88515: this is SVD++^(3), generated
+using the parameters specified in "good_predictions" for
+TIMESVDPP_QUAL_6.963.dta. Note that this has not been trained on probe.
+
+TIMESVDPP_FAC_500_EPOCH_30_QRMSE_0.88572: this is SVD++^(1), generated
+using the parameters specified in "good_predictions" for
+TIMESVDPP_QUAL_6.904.dta. Note that this has **not** been trained on
+probe.
+
 TIMESVDPP_FAC_345_EPOCH_40_QRMSE_0.87629: See TIMESVDPP_QUAL_7.895 in
 "good_predictions". This run did use userFacMatTime, and took up almost the
 full 32 GB of RAM on Walker's computers (~300 MB left over).
@@ -106,6 +115,10 @@ have been too significant (unfortunately).
 SVD++ (not overfit)
 --------------------
 
+SVDPP_FAC_200_EPOCH_25_QRMSE_0.89204: See SVDPP_QUAL_6.239.dta in
+"good_predictions". Note that this predictor has **not** been trained on
+probe.
+
 SVDPP_FAC_200_EPOCH_40_QRMSE_0.88698: See SVDPP_QUAL_6.771 in
 "good_predictions".
 
@@ -125,6 +138,14 @@ SVD_FAC_1000_EPOCH_80_QRMSE_0.89161: See SVD_QUAL_6.284 in
 
 Regular RBM (UToronto)
 -----------------------
+
+RBM_FAC_200_EPOCH_36_QRMSE_0.91109: This was an older prediction Sharon
+e-mailed to me (Laksh), which has seven decimal places or so since it came
+from an early run of RBM. I think this run was only used "base" as its
+training set. The parameters were as follows:
+    * rbm_alpha = 0.001
+    * rbm_beta = 0.002
+    * iter = 36, dec = 0.0001, factor = 200
 
 RBM_FAC_30_EPOCH_120_QRMSE_0.91975: See RBM_QUAL_3.327
 in "good_predictions".
@@ -214,16 +235,3 @@ details, see KNN_ON_RBM_QUAL_3.492 in "good_predictions".
 
 KNN_ON_SGD_FACT_20_EPOCH_90_MC_30_MW_50_QRMSE_0.956: For more
 details, see KNN_ON_SGD_QUAL_-0.483 in "good_predictions".
-
-
-Blended Predictions
---------------------
-
-Some of the old blended predictions weren't trained on probe, so they added
-some variety (in the form of negative coefficients) to the blend.
-
-BLEND_MAY_03_QRMSE_0.88427: See corresponding entry in
-"blended_predictions".
-
-BLEND_MAY_07_QRMSE_0.87651: See corresponding entry in
-"blended_predictions".
