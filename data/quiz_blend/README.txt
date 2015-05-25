@@ -32,6 +32,9 @@ ADDITIONAL DETAILS
 TIME-SVD++ (overfit)
 ---------------------
 
+TIMESVDPP_NO_UFMT_FAC_750_EPOCH_80_QRMSE_0.88657: See TIMESVDPP_QUAL_6.814
+in "good_predictions". Note that this predictor was not trained on probe.
+
 TIMESVDPP_NO_UFMT_FAC_50_EPOCH_80_QRMSE_0.8839: See TIMESVDPP_QUAL_7.095 in
 "good_predictions".
 
@@ -70,8 +73,8 @@ TIMESVDPP_FAC_130_EPOCH_30_QRMSE_0.88515: this is SVD++^(3), generated
 using the parameters specified in "good_predictions" for
 TIMESVDPP_QUAL_6.963.dta. Note that this has not been trained on probe.
 
-TIMESVDPP_FAC_500_EPOCH_30_QRMSE_0.88572: this is SVD++^(1), generated
-using the parameters specified in "good_predictions" for
+TIMESVDPP_NO_UFMT_FAC_500_EPOCH_30_QRMSE_0.88572: this is SVD++^(1),
+generated using the parameters specified in "good_predictions" for
 TIMESVDPP_QUAL_6.904.dta. Note that this has **not** been trained on
 probe.
 

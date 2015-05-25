@@ -12,6 +12,13 @@ below.
 
 Further details on predictions in this folder:
 
+TIMESVDPP_QUAL_6.814: This was generated on May 24 at 6:17 am. Time-SVD++
+was carried out on the entire dataset **except probe** and **without
+userFacMatTime**. This run involved 750 factors, 80 iterations, and 30 time
+bins, as well as a learning rate decay of 0.940. The remaining parameters
+(LRs/RFs) were the same as those in TIMESVDPP_QUAL_7.749.
+
+
 SVD_QUAL_3.779: This was generated on May 24 at 3:17 am. SVD was run on the
 entire dataset **except probe**, with 80 factors, 30 iterations, and a
 learning rate decay of 0.90. All other parameters (LRs/RFs) were the same
