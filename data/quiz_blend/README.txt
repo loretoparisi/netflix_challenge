@@ -192,20 +192,6 @@ RBM_FAC_250_EPOCH_120_QRMSE_0.90725: See RBM_QUAL_4.64 in
 SGD (GraphChi)
 --------------
 
-SGD_FAC_50_EPOCH_30_QRMSE_1.01966: See SGD_QUAL_-7.175 in
-"good_predictions".
-
-SGD_FAC_30_EPOCH_70_QRMSE_1.00172: See SGD_QUAL_-5.289 in
-"good_predictions".
-
-SGD_FAC_20_EPOCH_30_QRMSE_1.00199: See SGD_QUAL_-5.317 in
-"good_predictions".
-
-SGD_FAC_20_EPOCH_90_QRMSE_1.00147: See SGD_QUAL_-5.262 in
-"good_predictions".
-
-SGD_FAC_100_EPOCH_90_QRMSE_1.04922: See SGD_QUAL_-0.103 in
-"good_predictions".
 
 
 Global Effects
