@@ -12,6 +12,13 @@ below.
 
 Further details on predictions in this folder:
 
+TIMESVDPP_QUAL_6.608: This was generated on May 24 at 9:42 pm. Time-SVD++
+was carried out on base and hidden (i.e. not valid and probe) with
+userFacMatTime. This run involved 160 factors, 16 epochs (beyond which the
+predictor started doing worse), 30 time bins, and a learning rate decay of
+0.940. All other parameters were the same as those in TIMESVDPP_QUAL_7.749.
+
+
 TIMESVDPP_QUAL_6.814: This was generated on May 24 at 6:17 am. Time-SVD++
 was carried out on the entire dataset **except probe** and **without
 userFacMatTime**. This run involved 750 factors, 80 iterations, and 30 time

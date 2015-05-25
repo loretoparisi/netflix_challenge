@@ -66,6 +66,9 @@ TIMESVDPP_FAC_60_EPOCH_80_QRMSE_0.87924: See TIMESVDPP_QUAL_7.585 in
 TIME-SVD++ (not overfit)
 -------------------------
 
+TIMESVDPP_FAC_160_EPOCH_16_QRMSE_0.88853: See TIMESVDPP_QUAL_6.608 in
+"good_predictions".
+
 TIMESVDPP_FAC_80_EPOCH_25_QRMSE_0.88638: See TIMESVDPP_QUAL_6.834 in
 "good_predictions".
 
