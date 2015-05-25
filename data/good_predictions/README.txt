@@ -12,6 +12,28 @@ below.
 
 Further details on predictions in this folder:
 
+CRBM_FAC_100_EPOCH_35: This was generated on May 25.  The conditional
+restricted Boltzmann machine was trained on the entire dataset (including
+probe) with 100 hidden units until the change in RMSE fell below 0.00002.
+    * epsilonw, epsilond: 0.00065
+    * epsilonvb: 0.0050
+    * epsilonhb: 0.001
+    * weightcost (beta): 0.0001
+    * initial momentum: 0.8
+    * final momentum: 0.9
+
+
+CRBM_FAC_30_EPOCH_19: This was generated on May 25.  The conditional
+restricted Boltzmann machine was trained on the entire dataset (including
+probe) with 30 hidden units until the change in RMSE fell below 0.00002.
+    * epsilonw, epsilond: 0.00065
+    * epsilonvb: 0.0050
+    * epsilonhb: 0.001
+    * weightcost (beta): 0.0001
+    * initial momentum: 0.8
+    * final momentum: 0.9
+
+
 TIMESVDPP_QUAL_6.760: This was generated on May 25 at 5:47 am. Time-SVD++
 was carried out on base and hidden (i.e. not valid and probe) with 250
 factors, 30 iterations, 18 time bins, and **without** userFacMatTime. All
