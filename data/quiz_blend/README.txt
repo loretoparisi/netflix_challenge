@@ -137,6 +137,10 @@ SVD_FAC_1000_EPOCH_25_QRMSE_0.91179: See SVD_QUAL_4.163 in
 Regular RBM (UToronto)
 -----------------------
 
+RBM_FAC_30_EPOCH_90_QRMSE_0.92596: See RBM_QUAL_2.674
+in "good_predictions".
+
+
 RBM_FAC_50_EPOCH_60_QRMSE_0.9184: See RBM_QUAL_3.469
 in "good_predictions".
 

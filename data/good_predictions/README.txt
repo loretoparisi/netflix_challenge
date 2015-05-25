@@ -243,6 +243,13 @@ learning rate decay of 0.95. The following LRs/RFs were used:
         * SVD_GAMMA_Q_I = 0.007
         * SVD_GAMMA_P_U = 0.007
 
+RBM_QUAL_2.674: This is generated on May 24. This run
+was run on BASE. RBM was run on all with 30
+factors and 90 iterations. The following parameters were used:
+    * rbm_alpha = 0.0015
+    * rbm_beta = 0.0025
+    * dec = 0.0002
+
 RBM_QUAL_3.469: This is generated on May 23. This run
 was run on BASE. RBM was run on all with 50
 factors and 60 iterations. The following parameters were used:
