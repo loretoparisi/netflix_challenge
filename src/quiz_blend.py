@@ -64,7 +64,7 @@ MAX_BLEND_RATING = 5.0
 def usage(progName):
     # This program either takes one or two argument(s). If it is given two
     # argument, one argument must be a verbose flag.
-    print("usage: " + progName + " [-v] outputFile\n\n" +
+    print("usage: python3 " + progName + " [-v] outputFile\n\n" +
           "optional arguments:\n" +
           "  -v, --verbose\tprint additional status outputs");
     sys.exit(1)
@@ -200,12 +200,12 @@ def main():
     sumXColSquared = np.zeros(numPredictors)
 
     # Parse all of the prediction files in order to load up X and predQRMSEs
-    predInd = 0
-
     if verbose:
         print("\nParsing predictor files...")
 
-    for fileName in predFiles:
+    for predInd in range(numPredictors):
+        fileName = predFiles[predInd]
+
         # Get the RMSE for this predictor from its file name. If this is
         # not possible, an error will be thrown.
         beforeRMSEStart = fileName.rindex(BEFORE_RMSE)
@@ -244,8 +244,6 @@ def main():
         if verbose:
             print("Finished parsing data for predictor " + predName +
                   ", which had a QRMSE of " + str(thisQuizRMSE))
-
-        predInd += 1
 
     if verbose:
         print("Finished parsing predictor files.")
