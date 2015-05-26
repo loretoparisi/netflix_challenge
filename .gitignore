@@ -19,6 +19,7 @@ data/knn_on_timesvdpp_predictions.dta
 data/knn_timesvdpp_intermed_pred_temp.dta
 data/global_predictions/globals_predictions.dta
 data/globals_knn_combo_predictions.dta
+data/quiz_bin_blend/old_last_two_terms_cache.dta
 
 # Library/Binary Directories #
 ##############################
